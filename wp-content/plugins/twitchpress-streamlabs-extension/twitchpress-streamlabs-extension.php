@@ -260,7 +260,7 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             
             // Add sections to the User Settings tab. 
             $new_sections = array(
-                'testsection'  => __( 'Test Section', 'twitchpress-streamlabs' ),
+                //'testsectionalpha'  => __( 'Test Section Repeat One', 'twitchpress-streamlabs' ),
             );
 
             return array_merge( $sections, $new_sections );           

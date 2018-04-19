@@ -65,6 +65,7 @@ function twitchpress_streamlabs_endpoints_donations() {
     // get donations
     $endpoints[] = array( 
         'name'     => __( 'Get Donations', 'twitchpress' ),
+        'scope'    => 'donations.read',
         'type'     => __( 'GET', 'twitchpress' ),
         'desc'     => __( 'Fetch donations for the authenticated user. Results are ordered by creation date, descending.', 'twitchpress' ),
         'slug'     => '/donations',
@@ -81,6 +82,7 @@ function twitchpress_streamlabs_endpoints_donations() {
     // create donation
     $endpoints[] = array( 
         'name'     => __( 'Create Donation', 'twitchpress' ),
+        'scope'    => 'donations.create',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( 'Create a donation for the authenticated user.', 'twitchpress' ),
         'slug'     => '/donations',
@@ -109,6 +111,7 @@ function twitchpress_streamlabs_endpoints_alerts() {
     // trigger alert
     $endpoints[] = array( 
         'name'     => __( 'Trigger Alert', 'twitchpress' ),
+        'scope'    => 'alerts.create',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( 'Trigger a custom alert for the authenticated user.', 'twitchpress' ),
         'slug'     => 'alerts',
@@ -127,6 +130,7 @@ function twitchpress_streamlabs_endpoints_alerts() {
     // alerts skip
     $endpoints[] = array( 
         'name'     => __( 'Skip', 'twitchpress' ),
+        'scope'    => 'alerts.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/alerts/skip',
@@ -137,6 +141,7 @@ function twitchpress_streamlabs_endpoints_alerts() {
     // alerts mute volume
     $endpoints[] = array( 
         'name'     => __( 'Mute Volume', 'twitchpress' ),
+        'scope'    => 'alerts.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( 'EMPTY', 'twitchpress' ),
         'slug'     => '/alerts/mute_volume',
@@ -147,6 +152,7 @@ function twitchpress_streamlabs_endpoints_alerts() {
     // alerts unmute volume
     $endpoints[] = array( 
         'name'     => __( 'Unmute Volume', 'twitchpress' ),
+        'scope'    => 'alerts.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/alerts/unmute_volume',
@@ -157,6 +163,7 @@ function twitchpress_streamlabs_endpoints_alerts() {
     // alerts pause queue
     $endpoints[] = array( 
         'name'     => __( 'Pause Queue', 'twitchpress' ),
+        'scope'    => 'alerts.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/alerts/pause_queue',
@@ -167,6 +174,7 @@ function twitchpress_streamlabs_endpoints_alerts() {
     // alert unpause queue
     $endpoints[] = array( 
         'name'     => __( 'Unpause Queue', 'twitchpress' ),
+        'scope'    => 'alerts.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/alerts/unpause_queue',
@@ -177,6 +185,7 @@ function twitchpress_streamlabs_endpoints_alerts() {
     // send test alert
     $endpoints[] = array( 
         'name'     => __( 'Send Test Alert', 'twitchpress' ),
+        'scope'    => 'alerts.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/alerts/send_test_alert',
@@ -218,6 +227,7 @@ function twitchpress_streamlabs_endpoints_points() {
     // points
     $endpoints[] = array( 
         'name'     => __( 'Get Points', 'twitchpress' ),
+        'scope'    => 'points.read',
         'type'     => __( 'GET', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/points/points',
@@ -230,6 +240,7 @@ function twitchpress_streamlabs_endpoints_points() {
     // subtract
     $endpoints[] = array( 
         'name'     => __( 'Substract Points', 'twitchpress' ),
+        'scope'    => 'points.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/points/subtract',
@@ -243,6 +254,7 @@ function twitchpress_streamlabs_endpoints_points() {
     // import
     $endpoints[] = array( 
         'name'     => __( 'Import Points', 'twitchpress' ),
+        'scope'    => 'points.write',        
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/points/import',
@@ -283,6 +295,7 @@ function twitchpress_streamlabs_endpoints_points() {
     // add_to_all
     $endpoints[] = array( 
         'name'     => __( 'Add Points to All', 'twitchpress' ),
+        'scope'    => 'points.write',        
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/points/add_to_all',
@@ -349,6 +362,7 @@ function twitchpress_streamlabs_endpoints_alert_profiles() {
     // get
     $endpoints[] = array( 
         'name'     => __( 'Get Alert Profiles', 'twitchpress' ),
+        'scope'    => 'profiles.write',
         'type'     => __( 'GET', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/alert_profiles/get',
@@ -359,6 +373,7 @@ function twitchpress_streamlabs_endpoints_alert_profiles() {
     // alert_profiles/activate
     $endpoints[] = array( 
         'name'     => __( 'Activate Alert Profile', 'twitchpress' ),
+        'scope'    => 'profiles.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/alert_profiles/activate',
@@ -383,6 +398,7 @@ function twitchpress_streamlabs_endpoints_credits() {
     // credits/roll
     $endpoints[] = array( 
         'name'     => __( 'Credits Roll', 'twitchpress' ),
+        'scope'    => 'credits.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/credits/roll',
@@ -404,6 +420,7 @@ function twitchpress_streamlabs_endpoints_jar() {
     // jar/empty
     $endpoints[] = array( 
         'name'     => __( 'Empty Jar', 'twitchpress' ),
+        'scope'    => 'jar.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/jar/empty',
@@ -425,6 +442,7 @@ function twitchpress_streamlabs_endpoints_wheel() {
     // wheel/spin
     $endpoints[] = array( 
         'name'     => __( 'Spin Wheel', 'twitchpress' ),
+        'scope'    => 'wheel.write',
         'type'     => __( 'POST', 'twitchpress' ),
         'desc'     => __( '', 'twitchpress' ),
         'slug'     => '/wheel/spin',

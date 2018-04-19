@@ -47,7 +47,7 @@ class TwitchPress_ListTable_Subscribers extends WP_List_Table {
     * 
     * This is not required and was only implemented for demonstration purposes. 
     * 
-    * @version 1.2
+    * @version 2.0
     */
     public function default_items() {
         global $wpdb;
@@ -78,13 +78,13 @@ class TwitchPress_ListTable_Subscribers extends WP_List_Table {
             $new_key = key( $this->items );
 
             // Add the items data to the array we just created.
-            $this->items[$new_key]['wpuserid']        = $users[0]->ID; 
-            $this->items[$new_key]['user_nicename']   = $users[0]->user_nicename;  
-            $this->items[$new_key]['user_email']      = $users[0]->user_email; 
-            $this->items[$new_key]['user_url']        = $users[0]->user_url; 
-            $this->items[$new_key]['user_registered'] = $users[0]->user_registered;            
-            $this->items[$new_key]['display_name']    = $users[0]->display_name;  
-            $this->items[$new_key]['subplan']         = $users[0]->subplan; 
+            $this->items[$new_key]['wpuserid']        = $user->ID; 
+            $this->items[$new_key]['user_nicename']   = $user->user_nicename;  
+            $this->items[$new_key]['user_email']      = $user->user_email; 
+            $this->items[$new_key]['user_url']        = $user->user_url; 
+            $this->items[$new_key]['user_registered'] = $user->user_registered;            
+            $this->items[$new_key]['display_name']    = $user->display_name;  
+            $this->items[$new_key]['subplan']         = $user->subplan; 
                         
             $this->items = array_reverse( $this->items );       
         }
