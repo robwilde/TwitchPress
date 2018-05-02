@@ -5,7 +5,7 @@
  * @link https://dev.streamlabs.com/
  * @author   Ryan Bayne
  * @category Admin
- * @package  TwitchPress/Core
+ * @package  TwitchPress/Streamlabs Extension
  * @version  1.0
  */
 
@@ -13,12 +13,14 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
-if( !class_exists( 'TWITCHPRESS_All_API' ) ) :
+if( !class_exists( 'TWITCHPRESS_All_API' ) ) { return; }
+
+if( !class_exists( 'TWITCHPRESS_All_API_Streamlabs' ) ) :
 
 class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
-
-    public function __construct(){
-      
+       
+    public function __construct( $service = 'none', $profile = 'default' ){
+        parent::__construct( $service, $profile );
     } 
     
     /**
@@ -27,7 +29,8 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.23
      */
-    public static function init() {   
+    public static function init() {  
+        $this->calls = new TwitchPress_All_API_Streamlabs_Calls();
         add_action( 'plugins_loaded', array( __CLASS__, 'administrator_main_account_listener' ), 50 );
     }
     
@@ -232,7 +235,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
     * 
     * @version 1.0
     */
-    public function app_credentails_test() {
+    public function app_credentails_test( $service, $service_calls_object ) {
 
         return false;  
     }
@@ -247,18 +250,49 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         // We can return scopes without additional information.
         if( $scopes_only ) { return $this->streamlabs_scopes; }
               
-        $scope = array(
-            'EMPTY' => array(),
-        );
+        $scope = array();
         
         // Add form input labels for use in form input labels. 
-        $scope['empty']['label']    = __( 'EMPTY', 'twitchpress' );
+        $scope['donations.create']['label'] = __( 'Create Donation', 'twitchpress' );
+        $scope['donations.read']['label']   = __( 'Get Donations', 'twitchpress' );
+        $scope['alerts.create']['label']    = __( 'Create Alerts', 'twitchpress' );
+        $scope['legacy.token']['label']     = __( 'Get Legacy Token', 'twitchpress' );
+        $scope['socket.token']['label']     = __( 'Get Socket Token', 'twitchpress' );
+        $scope['points.read']['label']      = __( 'Get Points', 'twitchpress' );
+        $scope['points.write']['label']     = __( 'Add Points', 'twitchpress' );
+        $scope['alerts.write']['label']     = __( 'Create Alerts', 'twitchpress' );
+        $scope['credits.write']['label']    = __( 'Roll Credits', 'twitchpress' );
+        $scope['profiles.write']['label']   = __( 'Get and Activate Profiles', 'twitchpress' );
+        $scope['jar.write']['label']        = __( 'Jar', 'twitchpress' );
+        $scope['wheel.write']['label']      = __( 'Spin Wheel', 'twitchpress' );
 
         // Add official api descriptions - copied from official API documention.
-        $scope['empty']['apidesc']  = __( 'OI DEV EMPTY AND EMPTY AND EMPTY.', 'twitchpress' );
+        $scope['donations.create']['apidesc'] = __( 'None.', 'twitchpress' );
+        $scope['donations.read']['apidesc']   = __( 'None.', 'twitchpress' );
+        $scope['alerts.create']['apidesc']    = __( 'None.', 'twitchpress' );
+        $scope['legacy.token']['apidesc']     = __( 'None.', 'twitchpress' );
+        $scope['socket.token']['apidesc']     = __( 'None.', 'twitchpress' );
+        $scope['points.read']['apidesc']      = __( 'None.', 'twitchpress' );
+        $scope['points.write']['apidesc']     = __( 'None.', 'twitchpress' );
+        $scope['alerts.write']['apidesc']     = __( 'None.', 'twitchpress' );
+        $scope['credits.write']['apidesc']    = __( 'None.', 'twitchpress' );
+        $scope['profiles.write']['apidesc']   = __( 'None.', 'twitchpress' );
+        $scope['jar.write']['apidesc']        = __( 'None.', 'twitchpress' );
+        $scope['wheel.write']['apidesc']      = __( 'None.', 'twitchpress' );
 
         // Add user-friendly descriptions.
-        $scope['empty']['userdesc'] = __( 'HELLO USER THIS IS EMPTY.', 'twitchpress' );
+        $scope['donations.create']['userdesc'] = __( 'Create a new donation.', 'twitchpress' );
+        $scope['donations.read']['userdesc']   = __( 'Get donations data.', 'twitchpress' );
+        $scope['alerts.create']['userdesc']    = __( 'Create a new alert.', 'twitchpress' );
+        $scope['legacy.token']['userdesc']     = __( 'Get the legacy token.', 'twitchpress' );
+        $scope['socket.token']['userdesc']     = __( 'Get the socket token.', 'twitchpress' );
+        $scope['points.read']['userdesc']      = __( 'Get a users points.', 'twitchpress' );
+        $scope['points.write']['userdesc']     = __( 'Subtract points, import points and add points to all users.', 'twitchpress' );
+        $scope['alerts.write']['userdesc']     = __( 'Jukebox controls including skip, mute, unmute, pause, unpause and send test alert.', 'twitchpress' );
+        $scope['credits.write']['userdesc']    = __( 'Roll the credits.', 'twitchpress' );
+        $scope['profiles.write']['userdesc']   = __( 'Get profiles and activate them.', 'twitchpress' );
+        $scope['jar.write']['userdesc']        = __( 'Jar access.', 'twitchpress' );
+        $scope['wheel.write']['userdesc']      = __( 'Spin the wheel.', 'twitchpress' );
 
         return $scope;  
     }   
@@ -274,10 +308,15 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * @return $result - [mixed] The raw return of the resulting query or the numerical status
      * 
      * @version 1.6
-     */
-    protected function cURL_get($url, array $get = array(), array $options = array(), $returnStatus = false, $function = '' ){
-
-        $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
+     */                             
+    protected function cURL_get( $url, array $get = array(), array $options = array(), $returnStatus = false, $function = '' ){
+        
+        return;
+        
+        $url = 'https://streamlabs.com/api/v1.0/token';
+        
+        // Header
+        $header = array('Accept: application/vnd.twitchtv.v1+json'); // Always included
         $header = (( $this->twitch_client_id !== '') && ($this->twitch_client_id !== ' ')) ? array_merge($header, array('Client-ID: ' . $this->twitch_client_id)) : $header;
         $header = (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $get) === 1) 
                         || (array_key_exists('oauth_token', $get) === true))) 
@@ -386,7 +425,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.7
      */ 
-    protected function cURL_post($url, array $post = array(), array $options = array(), $returnStatus = false){
+    protected function cURL_post_NOTUSED($url, array $post = array(), array $options = array(), $returnStatus = false){
         $postfields = '';
         
         // Specify the header
@@ -482,7 +521,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.6
      */ 
-    protected function cURL_put($url, array $put = array(), array $options = array(), $returnStatus = false) {
+    protected function cURL_put_NOTUSED($url, array $put = array(), array $options = array(), $returnStatus = false) {
         $postfields = '';
 
         // Specify the header
@@ -573,7 +612,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.2
      */ 
-    protected function cURL_delete($url, array $post = array(), array $options = array(), $returnStatus = true) {
+    protected function cURL_delete_NOTUSED($url, array $post = array(), array $options = array(), $returnStatus = true) {
         // Specify the header
         $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
         $header = ((TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $post) === 1) || (array_key_exists('oauth_token', $post) === true))) ? array_merge($header, array('Authorization: OAuth ' . $post['oauth_token'])) : $header ;
@@ -666,7 +705,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.5
      */ 
-    protected function get_iterated( $url, $options, $limit, $offset, $arrayKey = null, $authKey = null, $hls = null, $direction = null, $channels = null, $embedable = null, $client_id = null, $broadcasts = null, $period = null, $game = null, $returnTotal = false, $sortBy = null) {
+    protected function get_iterated_NOTUSED( $url, $options, $limit, $offset, $arrayKey = null, $authKey = null, $hls = null, $direction = null, $channels = null, $embedable = null, $client_id = null, $broadcasts = null, $period = null, $game = null, $returnTotal = false, $sortBy = null) {
 
         // Check to make sure limit is an int
         if ((gettype($limit) != 'integer') && (gettype($limit) != 'double') && (gettype($limit) != 'float')) {
@@ -1104,6 +1143,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         // Arriving here means the scope is valid and was found. 
         return true;
     }   
+
 }
 
 endif;
