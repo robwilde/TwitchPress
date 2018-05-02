@@ -18,18 +18,11 @@ if ( ! class_exists( 'TwitchPress_Settings_OtherAPI' ) ) :
 class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
     
     private $sections_array = array();
-    
-    private $api_array = array(
-        'twitter',
-        'youtube',
-        'steam',
-        'facebook',
-        'deepbot',
-        'streamtip',
-        'discord',
+
+    public $api_array = array(
         'streamlabs'
     );
-
+    
     /**
     * Constructor
     * 
@@ -59,14 +52,6 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
         // needs settings on this tab. 
         $this->sections_array = array(
             'default'    => __( 'API Switches', 'twitchpress' ),
-            'twitter'    => __( 'Twitter', 'twitchpress' ),
-            'youtube'    => __( 'YouTube', 'twitchpress' ),
-            'steam'      => __( 'Steam', 'twitchpress' ),
-            'facebook'   => __( 'Facebook', 'twitchpress' ),
-            'deepbot'    => __( 'DeepBot', 'twitchpress' ),
-            'streamtip'  => __( 'Streamtip', 'twitchpress' ),
-            'discord'    => __( 'Discord', 'twitchpress' ),
-            'streamlabs' => __( 'Streamlabs', 'twitchpress' ),
         );
         
         return apply_filters( 'twitchpress_get_sections_' . $this->id, $this->sections_array );
@@ -103,23 +88,23 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
     * 
     * @param mixed $service
     * 
-    * @version 1.0
+    * @version 1.1
     */
     public function update_application( $service ) {
         
         // We need all application credentials else display error. 
-        if( !isset( $_POST['twitchpress_api_redirect_uri_' . $service] ) ) {
-            TwitchPress_Admin_Settings::add_error( __( 'You have not entered the redirect URL setup in your application.', 'twitchpress' ) );
+        if( !isset( $_POST[ 'twitchpress_allapi_' . $service . '_default_uri' ] ) ) {
+            TwitchPress_Admin_Settings::add_error( __( 'You have not entered the redirect URL.', 'twitchpress' ) );
             return;    
         }    
         
-        if( !isset( $_POST['twitchpress_api_id_' . $service] ) || empty( $_POST['twitchpress_api_id_' . $service] ) ) {
-            TwitchPress_Admin_Settings::add_error( __( 'You have not entered the ID generated when creating your application.', 'twitchpress' ) );
+        if( !isset( $_POST[ 'twitchpress_allapi_' . $service . '_default_key' ] ) || empty( $_POST[ 'twitchpress_allapi_' . $service . '_default_key' ] ) ) {
+            TwitchPress_Admin_Settings::add_error( __( 'You have not entered the ID for your application.', 'twitchpress' ) );
             return;
         }    
         
-        if( !isset( $_POST['twitchpress_api_secret_' . $service] ) ) {
-            TwitchPress_Admin_Settings::add_error( __( 'You have not entered the secret generated when you created your application.', 'twitchpress' ) );
+        if( !isset( $_POST[ 'twitchpress_allapi_' . $service . '_default_secret' ] ) ) {
+            TwitchPress_Admin_Settings::add_error( __( 'You have not entered the secret value for your application.', 'twitchpress' ) );
             return;
         }    
         
@@ -129,9 +114,9 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
         
         // Validate (no special characters allowed)
         
-        $url = $_POST['twitchpress_api_redirect_uri_' . $service];
-        $id = $_POST['twitchpress_api_id_' . $service];
-        $secret = $_POST['twitchpress_api_secret_' . $service];
+        $url = $_POST['twitchpress_allapi_redirect_uri_' . $service];
+        $id = $_POST['twitchpress_allapi_id_' . $service];
+        $secret = $_POST['twitchpress_allapi_secret_' . $service];
         
         // The All API library will start an oAuth2 if required.  
         $all_api = new TWITCHPRESS_All_API();
@@ -175,6 +160,7 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
                     'id'    => 'otherapiswitches_settings'
                 ),
 
+                /*
                 // Twitter
                 array(
                     'title'         => __( 'Twitter API', 'twitchpress' ),
@@ -300,28 +286,8 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
                     'show_if_checked' => 'yes',
                     'autoload'        => false,
                 ),
-                                 
-                // Streamlabs 
-                array(
-                    'title'         => __( 'Streamlabs API', 'twitchpress' ),
-                    'desc'          => __( 'Activate Streamlabs Services.', 'twitchpress' ),
-                    'id'            => 'twitchpress_switch_streamlabs_api_services',
-                    'type'          => 'checkbox',
-                    'default'       => 'no',
-                    'checkboxgroup' => 'start',
-                    'autoload'      => false,
-                ),
-
-                array(
-                    'desc'            => __( 'Log Streamlabs API Activity', 'twitchpress' ),
-                    'id'              => 'twitchpress_switch_streamlabs_api_logs',
-                    'default'         => 'yes',
-                    'type'            => 'checkbox',
-                    'checkboxgroup'   => '',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                ),
-                                                                                                   
+                */
+                                                                                                    
                 array(
                     'type' => 'sectionend',
                     'id'   => 'otherapiswitches_settings'
@@ -375,13 +341,14 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
         return apply_filters( 'twitchpress_get_settings_' . $this->id, $settings, $current_section );
     }
     
-    public function application_inputs( $title, $lower ) {
+    public function application_inputs( $title, $service ) {
+        $service = strtolower( $service );
         return array(
             array(
                 'title' => $title . __( ' API Switches', 'twitchpress' ),
                 'type'  => 'title',
                 'desc'  => sprintf( __( 'Application settings for the %s API.', 'twitchpress' ), $title ),
-                'id'    => $lower . '_api_application_settings'
+                'id'    => $service . '_api_application_settings'
             ),
 
             array(
@@ -392,9 +359,9 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
             ),
             
             array(
-                'title'           => __( 'Redirect URL', 'twitchpress' ),
-                'desc'            => __( 'Redirect URL', 'twitchpress' ),
-                'id'              => 'twitchpress_api_redirect_uri_' . $lower,
+                'title'           => __( 'Redirect URI', 'twitchpress' ),
+                'desc'            => __( 'Redirect URI', 'twitchpress' ),
+                'id'              => 'twitchpress_allapi_' . $service . '_default_uri',
                 'default'         => '',
                 'autoload'        => false,
                 'type'            => 'text',
@@ -403,7 +370,7 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
             array(
                 'title'           => __( 'Application ID', 'twitchpress' ),
                 'desc'            => __( 'Your applications public ID.', 'twitchpress' ),
-                'id'              => 'twitchpress_api_id_' . $lower,
+                'id'              => 'twitchpress_allapi_' . $service . '_default_key',
                 'default'         => '',
                 'type'            => 'text',
                 'autoload'        => false,
@@ -412,15 +379,15 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
             array(
                 'title'           => __( 'Application Secret', 'twitchpress' ),
                 'desc'            => __( 'Keep this value hidden at all times.', 'twitchpress' ),
-                'id'              => 'twitchpress_api_secret_' . $lower,
+                'id'              => 'twitchpress_allapi_' . $service . '_default_secret',
                 'default'         => '',
                 'type'            => 'password',
                 'autoload'        => false,
             ),
-                  
+             
             array(
                 'type' => 'sectionend',
-                'id'   => $lower . '_api_application_settings'
+                'id'   => $service . '_api_application_settings'
             ),
         );   
     }

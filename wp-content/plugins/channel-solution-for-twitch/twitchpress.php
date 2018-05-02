@@ -219,38 +219,59 @@ final class WordPressTwitchPress {
         include_once( 'includes/class.twitchpress-autoloader.php' );
         
         // Load class and libraries.
-        include_once( 'includes/libraries/class.async-request.php' );
-        include_once( 'includes/libraries/class.background-process.php' );            
-        include_once( 'includes/class.twitchpress-post-types.php' );                
-        include_once( 'includes/class.twitchpress-install.php' );
-        include_once( 'includes/class.twitchpress-ajax.php' );
-        include_once( 'includes/libraries/allapi/class.all-api.php' );
-        include_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/functions.twitch-api-statuses.php' );
-        include_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api.php' );
-        include_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api-calls.php' );        
-        include_once( 'includes/toolbars/class.twitchpress-toolbars.php' );        
-        include_once( 'includes/class.twitchpress-listener.php' );
-        include_once( 'includes/class.twitchpress-feeds.php' );
-        include_once( 'includes/class.twitchpress-sync.php' );
-        include_once( 'includes/class.twitchpress-history.php' );
+        require_once( 'includes/libraries/class.async-request.php' );
+        require_once( 'includes/libraries/class.background-process.php' );            
+        require_once( 'includes/class.twitchpress-post-types.php' );                
+        require_once( 'includes/class.twitchpress-install.php' );
+        require_once( 'includes/class.twitchpress-ajax.php' );
+        require_once( 'includes/libraries/allapi/loader.php' );
+        require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/functions.twitch-api-statuses.php' );
+        require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api.php' );
+        require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api-calls.php' );        
+        require_once( 'includes/toolbars/class.twitchpress-toolbars.php' );        
+        require_once( 'includes/class.twitchpress-listener.php' );
+        require_once( 'includes/class.twitchpress-feeds.php' );
+        require_once( 'includes/class.twitchpress-sync.php' );
+        require_once( 'includes/class.twitchpress-history.php' );
         
-        // Create Objects (new approach April 2018)
+        // Load Core Objects
+        $this->load_core_objects();
+        
+        // Load Public Objects
+        $this->load_public_objects();
+    }
+    
+    /**
+    * Load class objects required by this core plugin for any request (front or abck) 
+    * or at all times by extensions. 
+    * 
+    * @version 1.0
+    */
+    private function load_core_objects() {
+        // Create CORE Objects (new approach April 2018)
         $this->sync           = new TwitchPress_Systematic_Syncing();
         $this->public_notices = new TwitchPress_Public_Notices();
                      
-        // Initialize services.
+        // Initialize full system.
         $this->sync->init();
         
-        // Load files only required when logged into the administration side.     
+        // Load CORE files only required when logged into the administration side.     
         if ( twitchpress_is_request( 'admin' ) ) {
             include_once( 'includes/admin/class.twitchpress-admin.php' );
             include_once( 'includes/admin/class.twitchpress-admin-deactivate.php' );
         }
-
+    }
+    
+    /**
+    * Load objects only required for a front-end request.
+    * 
+    * @version 1.0
+    */
+    private function load_public_objects() {
         // Load classes only required when viewing frontend/public side.
         if ( twitchpress_is_request( 'frontend' ) ) {
             $this->frontend_includes();
-        }
+        }   
     }
 
     /**
@@ -264,13 +285,13 @@ final class WordPressTwitchPress {
         register_activation_hook( __FILE__, array( 'TwitchPress_Install', 'install' ) );
         register_deactivation_hook( __FILE__, array( 'TwitchPress_Deactivate', 'deactivate' ) );
 
-        add_action( 'init', array( $this, 'init' ), 0 );
+        add_action( 'init', array( $this, 'init_system' ), 0 );
         add_action( 'init', array( $this, 'output_errors' ), 1 );
         add_action( 'init', array( $this, 'output_actions' ), 1 );            
         add_action( 'init', array( $this, 'output_filters' ), 1 );        
     }
     
-    public function init() {
+    public function init_system() {
 
         // Before init action.
         do_action( 'before_twitchpress_init' );    

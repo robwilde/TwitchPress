@@ -91,8 +91,7 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
          * Protected constructor to prevent creating a new instance of the
          * *Singleton* via the `new` operator from outside of this class.
          */
-        protected function __construct() {
-            
+        protected function __construct() {            
             $this->define_constants();
             
             // Load files and register actions required before TwitchPress core inits.
@@ -134,7 +133,16 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
         }
         
         public function after_twitchpress_init() {
-            $this->attach_hooks();    
+            
+            // Load the Streamlabs API with default profile.
+            //$this->streamlabs_api = new TWITCHPRESS_All_API( 'streamlabs', 'default' );
+            $this->streamlabs_api = new TWITCHPRESS_All_API_Streamlabs( 'streamlabs', 'default' );
+                                
+            // TEST
+            var_dump( $this->streamlabs_api->is_app_set() );
+
+            // Attack the rest of our hooks.
+            $this->attach_remaining_hooks();    
         }
         
         /**
@@ -164,7 +172,7 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
          * 
          * @version 1.0
          */
-        private function attach_hooks() {
+        private function attach_remaining_hooks() {
 
             // Filters
             add_filter( 'twitchpress_get_sections_users', array( $this, 'settings_add_section_users' ), 50 );
@@ -176,6 +184,18 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             
             // Shortcodes
             add_shortcode( apply_filters( "twitchpress_connect_button_filter", 'twitchpress_connect_button' ), array( $this, 'shortcode_connect_button' ) );                        
+        
+            // Add sections and settings to core pages.
+            add_filter( 'twitchpress_get_sections_users', array( $this, 'settings_add_section_users' ) );
+            add_filter( 'twitchpress_get_settings_users', array( $this, 'settings_add_options_users' ) );
+            add_filter( 'twitchpress_get_sections_otherapi', array( $this, 'settings_add_api_section'), 5 );
+            add_filter( 'twitchpress_otherapi_switches_settings', array( $this, 'settings_add_api_switches'), 5 );
+
+            // Other hooks.
+            add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
+            add_filter( 'twitchpress_update_system_scopes_status', array( $this, 'update_system_scopes_status' ), 1, 1 );
+                    
+            do_action( 'twitchpress_sync_loaded' );
         }
 
         public static function install() {
@@ -185,28 +205,53 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
         public static function deactivate() { 
             
         }
-                      
-        /**
-         * Init the plugin after plugins_loaded so environment variables are set.
-         * 
-         * @version 1.0
-         */
-        public function init_hooks() {
-               
-            // Other hooks.
-            add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
-            
-            do_action( 'twitchpress_sync_loaded' );
+
+        public function settings_add_api_section( $filtered_array ) {
+            return array_merge( $filtered_array, array( 'streamlabs' => __( 'Streamlabs', 'twitchpress' ) ) );   
         }
         
-        public function init_filters() {
-            // Add sections and settings to core pages.
-            add_filter( 'twitchpress_get_sections_users', array( $this, 'settings_add_section_users' ) );
-            add_filter( 'twitchpress_get_settings_users', array( $this, 'settings_add_options_users' ) );
+        /**
+        * Filters list of AllAPI activation switches by adding one for Streamlabs.
+        * 
+        * @param mixed $filtered_array
+        * 
+        * @version 1.0
+        */
+        public function settings_add_api_switches( $filtered_array ) {
 
-            // Other hooks.
-            add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
-            add_filter( 'twitchpress_update_system_scopes_status', array( $this, 'update_system_scopes_status' ), 1, 1 );                        
+            $last_item_key = count ( $filtered_array ) - 1;
+            
+            // Get the last item (not an option)
+            $last = end( $filtered_array );
+                               
+            // Remove last item.
+            unset( $filtered_array[ $last_item_key ] );
+            
+            // Add our extensions API switchs.
+            $merged = array_merge( $filtered_array, array( array(
+                'title'         => __( 'Streamlabs API test', 'twitchpress' ),
+                'desc'          => __( 'Activate Streamlabs Services.', 'twitchpress' ),
+                'id'            => 'twitchpress_switch_streamlabs_api_services',
+                'type'          => 'checkbox',
+                'default'       => 'no',
+                'checkboxgroup' => 'start',
+                'autoload'      => false,
+            ) ) );            
+            
+            $merged = array_merge( $merged, array( array(
+                'desc'            => __( 'Log Streamlabs API Activity', 'twitchpress' ),
+                'id'              => 'twitchpress_switch_streamlabs_api_logs',
+                'default'         => 'yes',
+                'type'            => 'checkbox',
+                'checkboxgroup'   => '',
+                'show_if_checked' => 'yes',
+                'autoload'        => false,
+            ) ) );
+        
+            // Re-add the last item.
+            $merged[] = $last;
+
+            return $merged;
         }
         
         /**
@@ -260,7 +305,7 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             
             // Add sections to the User Settings tab. 
             $new_sections = array(
-                'testsection'  => __( 'Test Section', 'twitchpress-streamlabs' ),
+                //'testsectionalpha'  => __( 'Test Section Repeat One', 'twitchpress-streamlabs' ),
             );
 
             return array_merge( $sections, $new_sections );           

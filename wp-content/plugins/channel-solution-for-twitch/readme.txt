@@ -91,10 +91,23 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
-= 2.0.3 = 
-* FIX - Function was missing "twitchpress_sync_currentusers_twitchsub_mainchannel", copied from sync plugin to new sync class.
-* DEV - check_application_token() will now log the current token stated to be invalid even when it is very new. 
+= 2.0.3: April 23, 2018 NOT RELEASED =
 
+* Bugfixes:
+  - Function was missing "twitchpress_sync_currentusers_twitchsub_mainchannel", copied from sync plugin to new sync class.
+  - Subscribers table was outputting the first item for all rows, reported by Shady in Discord. 
+  
+* Enhancements:
+  - check_application_token() will now log the current token stated to be invalid even when it is very new.
+  - AllAPI now allows the Streamlabs Extension to load it's own API. 
+  - Other API view will no longer display switches for services that are not installed.
+  
+* Configuration: 
+  - No changes.
+
+* Database: 
+  - No changes. 
+ 
 = 2.0.2 = 
 * DONE - Identical "Channel Not Confirmed" notices have been changed to help identify what instance is being displayed. 
  

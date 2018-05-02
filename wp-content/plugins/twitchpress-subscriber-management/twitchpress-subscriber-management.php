@@ -258,7 +258,7 @@ if ( ! class_exists( 'TwitchPress_Subscribers' ) ) :
             
             // Add sections to the User Settings tab. 
             $new_sections = array(
-                'testsection'  => __( 'Test Section', 'twitchpress' ),
+                //'testsectioncharlie'  => __( 'Test Section Repeat Two', 'twitchpress' ),
             );
 
             return array_merge( $sections, $new_sections );           

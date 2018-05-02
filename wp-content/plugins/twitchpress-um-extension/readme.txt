@@ -3,10 +3,10 @@ Contributors: Ryan Bayne
 Donate link: https://www.patreon.com/zypherevolved
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
-Tags: Twitch, TwitchPress, Twitch.tv, TwitchPress Extension, TwitchPress Boilerplate
-Requires at least: 4.4
+Tags: Twitch, TwitchPress, Twitch.tv, TwitchPress Extension, UM, Ultimate Member, Extension
+Requires at least: 4.6
 Tested up to: 4.9
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 Minimum TwitchPress version: 2.0.0
 Requires PHP: 5.6
                         
@@ -64,7 +64,11 @@ Translator needed to localize our Channel Solution for Twitch: TwitchPress, and 
 No special upgrade instructions this time. 
 
 == Changelog ==
+= 1.4.0: April 17, 2018 =
 
+* Bugfixes:
+  - Options were not showing due to the main file in Ultimate Member being renamed.
+  
 = 1.3.0 = 
 * FIX - Role set improved in set_twitch_subscribers_um_role() by ensuring WP user ID is set. 
 * DEV - Entry is made in new history data when a users role changes. 

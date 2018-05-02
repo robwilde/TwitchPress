@@ -314,7 +314,7 @@ if ( ! class_exists( 'TwitchPress_Embed_Everything' ) ) :
             
             // Add sections to the User Settings tab. 
             $new_sections = array(
-                'testsection'  => __( 'Test Section', 'twitchpress-embed' ),
+                //'testsection'  => __( 'Test Section</span>', 'twitchpress-embed' ),
             );
 
             return array_merge( $sections, $new_sections );           

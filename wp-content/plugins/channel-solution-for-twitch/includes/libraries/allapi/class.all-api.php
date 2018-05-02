@@ -1,10 +1,6 @@
 <?php 
 /**
-
  * All-API class helps to manage API consumption in a plugin consuming many API.
- * 
- * Do not use this class unless you accept the Twitch Developer Services Agreement
- * @link https://www.twitch.tv/p/developer-agreement
  * 
  * @class    TWITCHPRESS_All_API
  * @author   Ryan Bayne
@@ -18,30 +14,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Make sure we meet our dependency requirements
-if (!extension_loaded('curl')) trigger_error('cURL is not currently installed on your server, please install cURL if your wish to use Twitch services in TwitchPress.');
-if (!extension_loaded('json')) trigger_error('PECL JSON or pear JSON is not installed, please install either PECL JSON or compile pear JSON if you wish to use Twitch services in TwitchPress.');
+if (!extension_loaded('curl')) trigger_error('cURL is not installed on your server, please install cURL to use TwitchPress.');
+if (!extension_loaded('json')) trigger_error('PECL JSON or pear JSON is not installed, please install either PECL JSON or compile pear JSON to use TwitchPress.');
 
 if( !class_exists( 'TWITCHPRESS_All_API' ) ) :
 
 class TWITCHPRESS_All_API {
-    
+
     /**
-    * Could be a name or ID, string or integer. It is the value that a user
-    * would identify their Twitch or YouTube channel by. It might even be the
-    * services official ID and match the $allapi_subject_id value but it does not
-    * have to. 
+    * Human readable ID i.e. handle or username related to a person or group.
     * 
-    * There are scenarios where the user does not know the services internal ID
-    * for a page/instance. We will populate $allapi_subject_id with that internal
-    * value as soon as we can make our first request to the services API. 
+    * A unique string or integer. It is the value that a user
+    * would identify their Twitch or YouTube channel by. 
     * 
     * @var mixed
     */
-    protected $allapi_subject_name = null;
+    protected $allapi_subject_name = null;// i.e. ZypheREvolved
     
     /**
     * Services internal ID (not always known to users). This could be
-    * the numeric ID of a Twitch channel which is only used for technical purposes.
+    * the numeric ID of a Twitch channel which is only used for technical purposes
+    * and obtained using the API, not user input.
     * 
     * @var mixed
     */
@@ -52,67 +45,88 @@ class TWITCHPRESS_All_API {
     protected $allapi_service_calls_object = null;
     
     // App Credentials
-    protected $allapi_service = null;// name, not title
-    protected $allapi_profile = null;// kraken, helix, streamlabs etc
-    protected $allapi_app_key = null;
-    protected $allapi_app_secret = null;
-    protected $allapi_app_uri = null;
-    protected $allapi_app_code = null;
-    protected $allapi_app_token = null;
+    protected $allapi_service    = null;// streamlabs
+    protected $allapi_profile    = null;// development transition support i.e. choose kraken or helix
+    protected $allapi_app_key    = null;// client key
+    protected $allapi_app_secret = null;// client secret
+    protected $allapi_app_uri    = null;// redirect 
+    protected $allapi_app_code   = null;
+    protected $allapi_app_token  = null;
+    protected $allapi_app_scope  = array(); 
     
     // User Credentials
     protected $allapi_user_wordpress_id = null;
-    protected $allapi_user_service_id = null; 
-    protected $allapi_user_oauth_code = null;
-    protected $allapi_user_oauth_token = null;
+    protected $allapi_user_service_id   = null; 
+    protected $allapi_user_oauth_code   = null;
+    protected $allapi_user_oauth_token  = null;
+    protected $allapi_user_scope        = array();
     
     // Debugging variables.
     public $allapi_call_name = 'Unknown';
     public $allapi_sandbox_mode = false;
-
-    public function __construct(){
+           
+    public function __construct( $service = 'none', $profile = 'default' ){ 
+                
         // Load logging, reporting and debugging service. 
         $this->bugnet = new BugNet();
         
-        // Set all app credentials for this library to use. 
+        // Begin setting object to support desired API.
+        $this->allapi_service = strtolower( $service );
+        $this->allapi_profile = $profile;
+        
+        // Set all credentials for this library to use for the requested service. 
         $this->set_application_credentials();
+        $this->set_user_credentials();
     } 
     
     /**
     * This method makes it possible to store different Developer Applications
-    * in the WordPress options table. 
+    * in the WordPress options table and access them by providing a service name. 
     * 
     * @param mixed $app
     * 
     * @version 1.23
     */
-    public function set_application_credentials( $api_service, $app_profile ) {
+    public function set_application_credentials() {
         
-        // These values are used to access the appropriate values. Two variables are better for security. 
-        $this->allapi_service = strtolower( $api_service );
         $this->allapi_service_title = 'STILL TO DO';
-        $this->allapi_profile = $app_profile;
     
-        // Store the apps credentials in their own options.
-        $this->allapi_subject_id = get_option( 'allapi_' . $api . '_' . $app . '_subject_id' );
-        $this->allapi_app_key    = get_option( 'allapi_' . $api . '_' . $app . '_key' );
-        $this->allapi_app_secret = get_option( 'allapi_' . $api . '_' . $app . '_secret' );
-        $this->allapi_app_uri    = get_option( 'allapi_' . $api . '_' . $app . '_uri' );
-        $this->allapi_app_code   = get_option( 'allapi_' . $api . '_' . $app . '_code' );
-        $this->allapi_app_token  = get_option( 'allapi_' . $api . '_' . $app . '_token' );   
+        // Store the apps credentials in their own options.  
+        // Profile is related to specific api app, we could have many apps per api service.
+        $this->allapi_subject_id = get_option( 'twitchpress_allapi_' . $this->allapi_service . '_' . $this->allapi_profile . '_subject_id' );
+        $this->allapi_app_key    = get_option( 'twitchpress_allapi_' . $this->allapi_service . '_' . $this->allapi_profile . '_key' );
+        $this->allapi_app_secret = get_option( 'twitchpress_allapi_' . $this->allapi_service . '_' . $this->allapi_profile . '_secret' );
+        $this->allapi_app_uri    = get_option( 'twitchpress_allapi_' . $this->allapi_service . '_' . $this->allapi_profile . '_uri' );
+        $this->allapi_app_code   = get_option( 'twitchpress_allapi_' . $this->allapi_service . '_' . $this->allapi_profile . '_code' );
+        $this->allapi_app_token  = get_option( 'twitchpress_allapi_' . $this->allapi_service . '_' . $this->allapi_profile . '_token' );   
+        $this->allapi_app_scope  = get_option( 'twitchpress_allapi_' . $this->allapi_service . '_' . $this->allapi_profile . '_scope' );   
             
         // Tokens expire so we will check our current token and update option if needed.  
         $this->establish_application_token( __FUNCTION__ );
         
         // Set users token.
-        $this->allapi_user_oauth_token = twitchpress_get_user_token( get_current_user_id() );
-        
-        // Set $allapi_service_object which makes our requested API class ready to use. 
-        $this->set_services_object( $this->allapi_service );             
+        $this->allapi_user_oauth_token = twitchpress_get_user_token( get_current_user_id() );           
     }
     
     /**
-    * Checks if application credentials are set.
+    * Sets user API credentials.
+    * 
+    * @version 1.0
+    */
+    public function set_user_credentials() {
+        if( !is_user_logged_in() ) { return false; }
+        
+        $this->user_access_token     = get_user_meta( get_current_user_id(), 'twitchpress_allapi_access_token_' . $this->allapi_service, true );    
+        $this->user_refresh_token    = get_user_meta( get_current_user_id(), 'twitchpress_allapi_refresh_token_' . $this->allapi_service, true );
+        $this->user_token_lifetime   = get_user_meta( get_current_user_id(), 'twitchpress_allapi_token_lifetime' . $this->allapi_service, true );
+        $this->user_token_created_at = get_user_meta( get_current_user_id(), 'twitchpress_allapi_token_created_at_' . $this->allapi_service, true );
+        $this->allapi_user_scope     = get_user_meta( get_current_user_id(), 'twitchpress_allapi_scope_' . $this->allapi_service, true );
+        
+        return true;
+    }
+    
+    /**
+    * Checks if application credentials are set and ready in object.
     * 
     * @returns boolean true (all set) else array of missing values.
     * 
@@ -224,49 +238,49 @@ class TWITCHPRESS_All_API {
                      
         if( !isset( $_GET['code'] ) ) {       
             $return = true;
-            $return_reason .= sprintf( __( 'All-API Account Listener: No code returned from %s.', 'twitchpress' ), $this->allapi_service_title );
+            $return_reason .= sprintf( __( 'TwitchPress All-API Account Listener: No code returned from %s.', 'twitchpress' ), $this->allapi_service_title );
         }          
 
         // We require the local current state value stored in transient.
         // This transient is created when generating the oAuth2 URL and used to validate everything about the request. 
         elseif( !$transient_state = get_transient( 'twitchpress_oauth_' . $_GET['state'] ) ) {      
             $return = true;
-            $return_reason .= sprintf( __( 'All-API Account Listener: No matching transient when preparing %s.', 'twitchpress' ), $this->allapi_service_title );
+            $return_reason .= sprintf( __( 'TwitchPress All-API Account Listener: No matching transient when preparing %s.', 'twitchpress' ), $this->allapi_service_title );
         }  
         
         // Ensure the reason for this request is an attempt to set the main channels credentials
         elseif( !isset( $transient_state['reason'] ) ) {
             $return = true;
-            $return_reason .= sprintf( __( 'All-API Account Listener: Reason not provided for request to %s.', 'twitchpress' ), $this->allapi_service_title );            
+            $return_reason .= sprintf( __( 'TwitchPress All-API Account Listener: Reason not provided for request to %s.', 'twitchpress' ), $this->allapi_service_title );            
         }              
          
         // Ensure we have the admin view or page the user needs to be sent to. 
         elseif( $transient_state['reason'] !== 'mainadminaccountsetup' ) {         
             $return = true;
-            $return_reason .= sprintf( __( 'All-API Account Listener: Request reason rejected for %s procedure.', 'twitchpress' ), $this->allapi_service_title );    
+            $return_reason .= sprintf( __( 'TwitchPress All-API Account Listener: Request reason rejected for %s procedure.', 'twitchpress' ), $this->allapi_service_title );    
         }
                  
         // Ensure we have the admin view or page the user needs to be sent to. 
         elseif( !isset( $transient_state['redirectto'] ) ) {         
             $return = true;
-            $return_reason .= sprintf( __( 'All-API Account Listener: The "redirectto" value does not exist during %s setup.', 'twitchpress' ), $this->allapi_service_title );    
+            $return_reason .= sprintf( __( 'TwitchPress All-API Account Listener: The "redirectto" value does not exist during %s setup.', 'twitchpress' ), $this->allapi_service_title );    
         } 
           
         // For this procedure the userrole MUST be administrator.
         elseif( !isset( $transient_state['userrole'] ) ) {        
             $return = true;
-            $return_reason .= sprintf( __( 'All-API Account Listener: unexpected request, related to the main account for %s.', 'twitchpress' ), $this->allapi_service_title );    
+            $return_reason .= sprintf( __( 'TwitchPress All-API Account Listener: unexpected request, related to the main account for %s.', 'twitchpress' ), $this->allapi_service_title );    
         }          
         
         elseif( !isset( $transient_state['userrole'] ) || 'administrator' !== $transient_state['userrole'] ) {        
             $return = true;
-            $return_reason .= __( 'All-API Account Listener: User is not an administrator.', 'twitchpress' );    
+            $return_reason .= __( 'TwitchPress All-API Account Listener: User is not an administrator.', 'twitchpress' );    
         }         
                 
         // NEW IF - Validate the code as a measure to prevent URL spamming that gets further than here.
         elseif( !twitchpress_validate_code( $_GET['code'] ) ) {        
             $return = true;
-            $return_reason .= sprintf( __( 'All-API Account Listener: Code from %s is invalid.', 'twitchpress' ), $this->allapi_service_title );
+            $return_reason .= sprintf( __( 'TwitchPress All-API Account Listener: Code from %s is invalid.', 'twitchpress' ), $this->allapi_service_title );
         }
 
         // If we have a return reason, add it to the trace then do the return. 
@@ -356,21 +370,22 @@ class TWITCHPRESS_All_API {
     }     
     
     /**
-    * Create a class object of call methods for the giving API service. 
+    * Sets $this->call_methods with a class object of call methods.
     * 
     * @param mixed $app_service
-    * @return object from new TWITCHPRESS_Twitch_API_Calls()
     * 
-    * @version 1.23
+    * @version 2.0
     */
     public function load_calls_object( $app_service ) {
-        if( $app_service == 'twitchpress' || $app_service == 'kraken' || $app_service == 'helix' )
-        {
-            return new TWITCHPRESS_Twitch_API_Calls();
-        }    
-        
-        // Default to the Twitch API. 
-        return new TWITCHPRESS_Twitch_API_Calls();
+        switch ( $app_service ) {
+           case 'twitchpress':
+                $this->call_methods = TWITCHPRESS_Twitch_API_Calls();
+             break;
+           case 'streamlabs':
+                $this->call_methods = TwitchPress_Streamlabs_calls();
+             break;
+
+        }
     } 
     
     /**
@@ -546,98 +561,20 @@ class TWITCHPRESS_All_API {
         if( $scopes_only ) { return $this->twitch_scopes; }
               
         $scope = array(
-            'channel_check_subscription' => array(),
-            'channel_commercial'         => array(),
-            'channel_editor'             => array(),
-            'channel_feed_edit'          => array(),
-            'channel_feed_read'          => array(),
-            'channel_read'               => array(),
-            'channel_stream'             => array(),
-            'channel_subscriptions'      => array(),
-            'chat_login'                 => array(),
-            'collections_edit'           => array(),
-            'communities_edit'           => array(),
-            'communities_moderate'       => array(),
-            'user_blocks_edit'           => array(),
-            'user_blocks_read'           => array(),
-            'user_follows_edit'          => array(),
-            'user_read'                  => array(),
-            'user_subscriptions'         => array(),
-            'viewing_activity_read'      => array(),
-            'openid'                     => array()        
+            //'channel_check_subscription' => array(),        
         );
         
         // Add form input labels for use in form input labels. 
-        $scope['user_read']['label']                  = __( 'General Account Details', 'twitchpress' );
-        $scope['user_blocks_edit']['label']           = __( 'Ignore Users', 'twitchpress' );
-        $scope['user_blocks_read']['label']           = __( 'Get Ignored Users', 'twitchpress' );
-        $scope['user_follows_edit']['label']          = __( 'Follow Users', 'twitchpress' );
-        $scope['channel_read']['label']               = __( 'Get Channel Data', 'twitchpress' );
-        $scope['channel_editor']['label']             = __( 'Edit Channel', 'twitchpress' );
-        $scope['channel_commercial']['label']         = __( 'Trigger Commercials', 'twitchpress' );
-        $scope['channel_stream']['label']             = __( 'Reset Stream Key', 'twitchpress' );
-        $scope['channel_subscriptions']['label']      = __( 'Get Your Subscribers', 'twitchpress' );
-        $scope['user_subscriptions']['label']         = __( 'Get Your Subscriptions', 'twitchpress' );
-        $scope['channel_check_subscription']['label'] = __( 'Check Viewers Subscription', 'twitchpress' );
-        $scope['chat_login']['label']                 = __( 'Chat Permission', 'twitchpress' );
-        $scope['channel_feed_read']['label']          = __( 'Get Channel Feed', 'twitchpress' );
-        $scope['channel_feed_edit']['label']          = __( 'Post To Channels Feed', 'twitchpress' );
-        $scope['communities_edit']['label']           = __( 'Manage Users Communities', 'twitchpress' );
-        $scope['communities_moderate']['label']       = __( 'Manage Community Moderators', 'twitchpress' );
-        $scope['collections_edit']['label']           = __( 'Manage Video Collections', 'twitchpress' );
-        $scope['viewing_activity_read']['label']      = __( 'Viewer Heartbeat Service', 'twitchpress' );
-        $scope['openid']['label']                     = __( 'OpenID Connect Service', 'twitchpress' );
+        //$scope['user_read']['label']                  = __( 'General Account Details', 'twitchpress' );
                 
         // Add official api descriptions - copied from official API documention.
-        $scope['user_read']['apidesc']                  = __( 'Read access to non-public user information, such as email address.', 'twitchpress' );
-        $scope['user_blocks_edit']['apidesc']           = __( 'Ability to ignore or unignore on behalf of a user.', 'twitchpress' );
-        $scope['user_blocks_read']['apidesc']           = __( 'Read access to a user’s list of ignored users.', 'twitchpress' );
-        $scope['user_follows_edit']['apidesc']          = __( 'Access to manage a user’s followed channels.', 'twitchpress' );
-        $scope['channel_read']['apidesc']               = __( 'Read access to non-public channel information, including email address and stream key.', 'twitchpress' );
-        $scope['channel_editor']['apidesc']             = __( 'Write access to channel metadata (game, status, etc).', 'twitchpress' );
-        $scope['channel_commercial']['apidesc']         = __( 'Access to trigger commercials on channel.', 'twitchpress' );
-        $scope['channel_stream']['apidesc']             = __( 'Ability to reset a channel’s stream key.', 'twitchpress' );
-        $scope['channel_subscriptions']['apidesc']      = __( 'Read access to all subscribers to your channel.', 'twitchpress' );
-        $scope['user_subscriptions']['apidesc']         = __( 'Read access to subscriptions of a user.', 'twitchpress' );
-        $scope['channel_check_subscription']['apidesc'] = __( 'Read access to check if a user is subscribed to your channel.', 'twitchpress' );
-        $scope['chat_login']['apidesc']                 = __( 'Ability to log into chat and send messages', 'twitchpress' );
-        $scope['channel_feed_read']['apidesc']          = __( 'Ability to view to a channel feed.', 'twitchpress' );
-        $scope['channel_feed_edit']['apidesc']          = __( 'Ability to add posts and reactions to a channel feed.', 'twitchpress' );
-        $scope['communities_edit']['apidesc']           = __( 'Manage a user’s communities.', 'twitchpress' );
-        $scope['communities_moderate']['apidesc']       = __( 'Manage community moderators.', 'twitchpress' );
-        $scope['collections_edit']['apidesc']           = __( 'Manage a user’s collections (of videos).', 'twitchpress' );
-        $scope['viewing_activity_read']['apidesc']      = __( 'Turn on Viewer Heartbeat Service ability to record user data.', 'twitchpress' );
-        $scope['openid']['apidesc']                     = __( 'Use OpenID Connect authentication.', 'twitchpress' );
-                
-        // Add user-friendly descriptions.
-        $scope['user_read']['userdesc']                  = __( 'Get email address.', 'twitchpress' );
-        $scope['user_blocks_edit']['userdesc']           = __( 'Ability to ignore or unignore other users.', 'twitchpress' );
-        $scope['user_blocks_read']['userdesc']           = __( 'Access to your list of ignored users.', 'twitchpress' );
-        $scope['user_follows_edit']['userdesc']          = __( 'Permission to manage your followed channels.', 'twitchpress' );
-        $scope['channel_read']['userdesc']               = __( 'Read your non-public channel information. Including email address and stream key.', 'twitchpress' );
-        $scope['channel_editor']['userdesc']             = __( 'Ability to update meta data like game, status, etc.', 'twitchpress' );
-        $scope['channel_commercial']['userdesc']         = __( 'Access to trigger commercials on channel.', 'twitchpress' );
-        $scope['channel_stream']['userdesc']             = __( 'Ability to reset your channel’s stream key.', 'twitchpress' );
-        $scope['channel_subscriptions']['userdesc']      = __( 'Read access to all subscribers to your channel.', 'twitchpress' );
-        $scope['user_subscriptions']['userdesc']         = __( 'Permission to get your subscriptions.', 'twitchpress' );
-        $scope['channel_check_subscription']['userdesc'] = __( 'Read access to check if a user is subscribed to your channel.', 'twitchpress' );
-        $scope['chat_login']['userdesc']                 = __( 'Ability to log into your chat and send messages', 'twitchpress' );
-        $scope['channel_feed_read']['userdesc']          = __( 'Ability to import your channel feed.', 'twitchpress' );
-        $scope['channel_feed_edit']['userdesc']          = __( 'Ability to add posts and reactions to your channel feed.', 'twitchpress' );
-        $scope['communities_edit']['label']              = __( 'Manage your user’s communities.', 'twitchpress' );
-        $scope['communities_moderate']['label']          = __( 'Manage your community moderators.', 'twitchpress' );
-        $scope['collections_edit']['label']              = __( 'Manage your collections (of videos).', 'twitchpress' );
-        $scope['viewing_activity_read']['label']         = __( 'Turn on Viewer Heartbeat Service to record your user data.', 'twitchpress' );
-        $scope['openid']['label']                        = __( 'Allow your OpenID Connect for authentication on this site.', 'twitchpress' );
+        //$scope['user_read']['apidesc']                  = __( 'Read access to non-public user information, such as email address.', 'twitchpress' );
         
+        // Add user-friendly descriptions.
+        //$scope['user_read']['userdesc']                  = __( 'Get email address.', 'twitchpress' );
+
         return $scope;  
     }   
-    
-    
-    
-    
-    
-    
     
     /**
      * This operates a GET style command through cURL.  Will return raw data as an associative array
@@ -649,12 +586,19 @@ class TWITCHPRESS_All_API {
      * 
      * @return $result - [mixed] The raw return of the resulting query or the numerical status
      * 
-     * @version 1.6
+     * @version 2.0
      */
-    protected function cURL_get($url, array $get = array(), array $options = array(), $returnStatus = false, $function = '' ){
+    protected function cURL_get( $url, array $get = array(), array $options = array(), $returnStatus = false, $function = '' ){
 
+        return;
+        
         $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
-        $header = (( $this->twitch_client_id !== '') && ($this->twitch_client_id !== ' ')) ? array_merge($header, array('Client-ID: ' . $this->twitch_client_id)) : $header;
+        
+        
+        $header = (( !empty( $this->allapi_app_code ) ) ) ? array_merge( $header, array( 'Client-ID: ' . $this->twitch_client_id)) : $header;
+        
+        
+        
         $header = (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $get) === 1) 
                         || (array_key_exists('oauth_token', $get) === true))) 
                                 ? array_merge($header, array('Authorization: OAuth ' . $get['oauth_token'])) : $header ;
@@ -771,7 +715,7 @@ class TWITCHPRESS_All_API {
         // Specify the header
         $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
         $header = (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $post) === 1) || (array_key_exists('oauth_token', $post) === true))) ? array_merge($header, array('Authorization: OAuth ' . $post['oauth_token'])) : $header;
-        $header = (( $this->twitch_client_id !== '') && ($this->twitch_client_id !== ' ')) ? array_merge($header, array('Client-ID: ' . $this->twitch_client_id)) : $header;                           // v6 Authorization: Bearer    <access token>"  https://api.twitch.tv/helix/
+        $header = ( !empty( $this->twitch_client_id )) ? array_merge($header, array('Client-ID: ' . $this->allapi_app_code )) : $header;                           // v6 Authorization: Bearer    <access token>"  https://api.twitch.tv/helix/
     
         if (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $post) === 1) || (array_key_exists('oauth_token', $post) === true))) {
             unset($post['oauth_token']);
@@ -1552,10 +1496,10 @@ class TWITCHPRESS_All_API {
 
         $url = 'https://api.twitch.tv/kraken/oauth2/token';
         $post = array(
-            'client_id'     => $this->twitch_client_id,
-            'client_secret' => $this->twitch_client_secret,
+            'client_id'     => $this->allapi_app_code,
+            'client_secret' => $this->allapi_app_secret,
             'grant_type'    => 'client_credentials',
-            'scope'         => twitchpress_prepare_scopes( $this->get_global_accepted_scopes() ),
+            'scope'         => twitchpress_prepare_scopes( $this->get_global_accepted_scopes(  ) ),
         );
        
         $options = array();
@@ -1661,11 +1605,10 @@ class TWITCHPRESS_All_API {
      * @version 5.3
      */    
     public function check_application_token(){
-        $token = get_option( 'twitchpress_app_token' );
-        $url = 'https://api.twitch.tv/kraken';
+        $url = $this->allapi_app_uri;
         $post = array( 
-            'oauth_token' => $token, 
-            'client_id'   => $this->twitch_client_id,          
+            'oauth_token' => $this->allapi_app_token, 
+            'client_id'   => $this->allapi_app_code,          
         );
 
         $result = json_decode( $this->cURL_get( $url, $post, array(), false, __FUNCTION__ ), true );                   
@@ -1676,7 +1619,7 @@ class TWITCHPRESS_All_API {
         } 
         else 
         {
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'Invalid Twitch app token [%s]', 'twitchpress' ), array(), true, true ), $token );
+            $this->bugnet->log( __FUNCTION__, sprintf( __( 'Invalid Twitch app token [%s]', 'twitchpress' ), $this->allapi_app_token ), array(), true, true );
             return false;
         }
         
@@ -1966,13 +1909,15 @@ class TWITCHPRESS_All_API {
     * Usually when a scope name exists in options, it is an accepted scope. We will
     * not assume it though. 
     * 
-    * @version 2.0
+    * @version 3.0
     */
     public function get_global_accepted_scopes() {
         $global_accepted_scopes = array();
- 
-        foreach( $this->twitch_scopes as $scope ) {
-            if( get_option( 'twitchpress_scope_' . $scope ) == 'yes' ) {
+         
+        if( empty( $this->allapi_app_scope ) ) { return array(); }
+        
+        foreach( $this->allapi_app_scope as $scope ) {
+            if( get_option( 'twitchpress_scope_' . $scope . '_' . $this->allapi_service ) == 'yes' ) {
                 $global_accepted_scopes[] = $scope;
             }
         }       
@@ -1992,11 +1937,11 @@ class TWITCHPRESS_All_API {
     * 
     * @version 1.0
     */
-    public function get_user_scopes() {
+    public function get_user_scopes( $service ) {
         $visitor_scopes = array();
         
-        foreach( $this->twitch_scopes as $scope ) {
-            if( get_option( 'twitchpress_visitor_scope_' . $scope ) == 'yes' ) {
+        foreach( $this->accepted_scopes as $scope ) {
+            if( get_option( 'twitchpress_visitor_scope_' . $scope . '_' . $service ) == 'yes' ) {
                 $visitor_scopes[] = $scope;
             }
         }       
@@ -2004,31 +1949,24 @@ class TWITCHPRESS_All_API {
         return $visitor_scopes;        
     }
 
-    
-    
-    
-    public function get_objects_default_channel() {
-        return $this->twitch_default_channel;     
+    public function get_subjects_default_name( $service ) {
+   
     }
-    
-    
-    
-    
-    public function get_objects_main_channel_id() {
+    public function get_subjects_main_channel_id( $service ) {
         return $this->twitch_channel_id;
     }
     
     
     
     
-    public function get_objects_main_client_id() {
+    public function get_subjects_main_client_id( $service ) {
         return $this->twitch_client_id;
     }
     
     
     
     
-    public function get_objects_main_client_code() {
+    public function get_subjects_main_client_code( $service ) {
         return $this->twitch_client_code;
     }
     
@@ -2036,30 +1974,30 @@ class TWITCHPRESS_All_API {
     
     
 
-    public function get_objects_client_token() {
+    public function get_subjects_client_token( $service ) {
         return $this->twitch_client_token;
     } 
     
     
     
  
-    public function get_main_default_channel() {
-        return get_option( 'twitchpress_main_channel_name' );     
+    public function get_main_default_channel( $service ) {
+        return get_option( 'twitchpress_main_channel_name_' . $service  );     
     }    
     
     
      
     
-    public function get_main_channel_name() {
-        return get_option( 'twitchpress_main_channel_name' );     
+    public function get_main_channel_name( $service ) {
+        return get_option( 'twitchpress_main_channel_name_' . $service );     
     }
     
     
     
     
     
-    public function get_main_channel_id() {
-        return get_option( 'twitchpress_main_channel_id' );
+    public function get_main_channel_id( $service ) {
+        return get_option( 'twitchpress_main_channel_id_' . $service );
     }
     
     
@@ -2067,24 +2005,24 @@ class TWITCHPRESS_All_API {
     
     
     
-    public function get_main_client_id() {
-        return get_option( 'twitchpress_main_client_id' );
+    public function get_main_client_id( $service ) {
+        return get_option( 'twitchpress_main_client_id_' . $service );
     }
     
     
     
     
     
-    public function get_main_client_code() {
-        return get_option( 'twitchpress_main_code' );
+    public function get_main_client_code( $service ) {
+        return get_option( 'twitchpress_main_code_' . $service );
     }
 
     
     
     
     
-    public function get_main_client_token() {
-        return get_option( 'twitchpress_main_token' );
+    public function get_main_client_token( $service ) {
+        return get_option( 'twitchpress_main_token_' . $service );
     }  
     
     
@@ -2100,9 +2038,9 @@ class TWITCHPRESS_All_API {
     * 
     * @version 2.0
     */
-    public function update_main_client_token( $token, $scopes ) {
-        update_option( 'twitchpress_main_token', $token );
-        update_option( 'twitchpress_main_token_scopes', $scopes );
+    public function update_main_client_token( $token, $scopes, $service ) {
+        update_option( 'twitchpress_main_token_' . $service, $token );
+        update_option( 'twitchpress_main_token_scopes_' . $service, $scopes );
     }
     
     
@@ -2127,7 +2065,7 @@ class TWITCHPRESS_All_API {
         global $bugnet;
         
         // Confirm $scope is a real scope. 
-        if( !in_array( $scope, $this->twitch_scopes ) ) {
+        if( !in_array( $scope, $this->accepted_scopes ) ) {
             return $bugnet->log_error( 'twitchpressinvalidscope', sprintf( __( 'A Kraken5 call is using an invalid scope. See %s()', 'twitchpress' ), $function ), true );
         }    
         

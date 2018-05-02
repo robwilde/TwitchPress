@@ -1,7 +1,7 @@
 <?php 
 /*
 Plugin Name: TwitchPress UM Extension
-Version: 1.3.0
+Version: 1.4.0
 Plugin URI: http://twitchpress.wordpress.com
 Description: Integrate the Ultimate Member and TwitchPress plugins.
 Author: Ryan Bayne
@@ -15,7 +15,6 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 // Prohibit direct script loading
 defined( 'ABSPATH' ) || die( 'Direct script access is not allowed!' );
-
 /**
  * Check if TwitchPress is active, else avoid activation.
  **/
@@ -26,16 +25,16 @@ if ( !in_array( 'channel-solution-for-twitch/twitchpress.php', apply_filters( 'a
 /**
 * Check if Ultimate MEmber is active, else avoid activation.
 */
-if ( !in_array( 'ultimate-member/index.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+if ( !in_array( 'ultimate-member/ultimate-member.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
     return;
 }
 
 /**
  * Required minimums and constants
  */
-define( 'TWITCHPRESS_UM_VERSION', '1.3.0' );
+define( 'TWITCHPRESS_UM_VERSION', '1.4.0' );
 define( 'TWITCHPRESS_UM_MIN_PHP_VER', '5.6.0' );
-define( 'TWITCHPRESS_UM_MIN_TP_VER', '1.7.1' );
+define( 'TWITCHPRESS_UM_MIN_TP_VER', '2.0.2' );
 define( 'TWITCHPRESS_UM_MAIN_FILE', __FILE__ );
 define( 'TWITCHPRESS_UM_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'TWITCHPRESS_UM_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -97,9 +96,9 @@ class TwitchPress_UM {
      * @version 1.0
      */
     private function define_constants() {
-        
+  
         $upload_dir = wp_upload_dir();
-        
+
         // Main (package) constants.
         if ( ! defined( 'TWITCHPRESS_UM_ABSPATH' ) )  { define( 'TWITCHPRESS_UM_ABSPATH', __FILE__ ); }
         if ( ! defined( 'TWITCHPRESS_UM_BASENAME' ) ) { define( 'TWITCHPRESS_UM_BASENAME', plugin_basename( __FILE__ ) ); }
@@ -121,8 +120,9 @@ class TwitchPress_UM {
     * @version 1.0
     */
     public function pre_twitchpress_init() {
+
         $this->load_global_dependencies();
-        
+                         
         /**
             Do things here required before TwitchPress core plugin does init. 
         */
@@ -135,7 +135,7 @@ class TwitchPress_UM {
     * 
     * @version 1.0
     */
-    public function after_twitchpress_init() {   
+    public function after_twitchpress_init() {     
         $this->attach_hooks();                   
     }
 
@@ -167,11 +167,14 @@ class TwitchPress_UM {
      * 
      * @version 2.0
      */
-    private function attach_hooks() {
-                               
-        // Filters
-        add_filter( 'twitchpress_get_sections_users', array( $this, 'settings_add_section_users' ), 50 );
-        add_filter( 'twitchpress_get_settings_users', array( $this, 'settings_add_options_users' ), 50 );
+    private function attach_hooks() {   
+        // Add sections to users tab. 
+        add_filter( 'twitchpress_get_sections_users', array( $this, 'settings_add_section_users' ), 9 );
+        
+        // Add options to users section.
+        add_filter( 'twitchpress_get_settings_users', array( $this, 'settings_add_options_users' ), 9 );
+        
+        // Add links to the plugins
         add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) ); 
         add_filter( 'twitchpress_update_system_scopes_status', array( $this, 'update_system_scopes_status' ), 1, 1 );  
         add_filter( 'twitchpress_filter_public_notices_array', array( $this, 'public_notices_array' ), 1, 1 );
@@ -338,7 +341,7 @@ class TwitchPress_UM {
     */
     public function settings_add_section_users( $sections ) {  
         global $only_section;
-        
+                                   
         // We use this to apply this extensions settings as the default view...
         // i.e. when the tab is clicked and there is no "section" in URL. 
         if( empty( $sections ) ){ 
