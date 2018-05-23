@@ -101,6 +101,8 @@ New setup step added. Please open the Help tab and go to the Installation sectio
   - check_application_token() will now log the current token stated to be invalid even when it is very new.
   - AllAPI now allows the Streamlabs Extension to load it's own API. 
   - Other API view will no longer display switches for services that are not installed.
+  - twitchpress_redirect_tracking() now uses wp_redirect() instead of wp_safe_redirect() 
+  - Setup wizard now uses two methods to check if channel exists. See function twitchpress_setup_application_save().
   
 * Configuration: 
   - No changes.

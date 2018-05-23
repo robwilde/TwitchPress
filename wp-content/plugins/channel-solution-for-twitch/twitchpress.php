@@ -67,11 +67,11 @@ final class WordPressTwitchPress {
     public $session = null; 
 
     /**
-    * BugNet library object and is used as a global.
+    * Quick and dirty way to debug by adding values that are dumped in footer.
     * 
     * @var mixed
     */
-    public $bugnet = null;
+    public $dump = array();
             
     /**
      * Main TwitchPress Instance.

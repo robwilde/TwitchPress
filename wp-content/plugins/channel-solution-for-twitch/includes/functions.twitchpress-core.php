@@ -618,26 +618,31 @@ function twitchpress_is_posttype_shareable( $post_type ) {
 * @param mixed $function
 * @param mixed $file
 * 
-* @version 1.2
+* @version 2.0
 */
-function twitchpress_redirect_tracking( $url, $line, $function, $file = '' ) {
+function twitchpress_redirect_tracking( $url, $line, $function, $file = '', $safe = false ) {
     global $bugnet;
 
     $redirect_counter = 1;
     
-    // Refuse the redirect and log if twitchpressredirected=1 in giving $url. 
-    if( strstr( $url, 'twitchpressredirected=1' ) ) {
+    // Refuse the redirect and log if twitchpressredirected=2 in giving $url. 
+    if( strstr( $url, 'twitchpressredirected=1' ) ) 
+    {
         $bugnet->log_error( __FUNCTION__, __( 'Possible redirect loop in progress. The giving URL was used to redirect the visitor already.', 'twitchpress' ), array(), true );    
         ++$redirect_counter;
-    }elseif( strstr( $url, 'twitchpressredirected=2' ) ){
+    }
+    elseif( strstr( $url, 'twitchpressredirected=2' ) )
+    {
         $bugnet->log_error( __FUNCTION__, __( 'Redirect loop in progress. The giving URL was used twice.', 'twitchpress' ), array(), true );    
         return;
     }
-    
+              
+                       
     // Tracking adds more values to help trace where redirect was requested. 
-    if( get_option( 'twitchress_redirect_tracking_switch' ) == 'yes' ) {
-        $url = add_query_arg( array( 'redirected-line' => $line, 'redirected-function' => $function ), $url );
- 
+    if( get_option( 'twitchress_redirect_tracking_switch' ) == 'yes' ) 
+    {
+        $url = add_query_arg( array( 'redirected-line' => $line, 'redirected-function' => $function ), esc_url_raw( $url ) );
+              
         $bugnet->trace(
             'twitchpressredirects',
             $line,
@@ -647,10 +652,16 @@ function twitchpress_redirect_tracking( $url, $line, $function, $file = '' ) {
             __( 'TwitchPress System Redirect Visitor To: ' . $url, 'twitchpress' )           
         );
     }    
-
+    
+    if( $safe ) 
+    {
+        wp_safe_redirect( add_query_arg( array( 'twitchpressredirected' => $redirect_counter ), $url ) );
+        exit;
+    }  
+    
     // Add twitchpressredirected to show that the URL has had a redirect. 
     // If it ever becomes normal to redirect again, we can increase the integer.
-    wp_safe_redirect( add_query_arg( array( 'twitchpressredirected' => $redirect_counter ), $url ) );
+    wp_redirect( add_query_arg( array( 'twitchpressredirected' => $redirect_counter ), $url ) );
     exit;
 }
 

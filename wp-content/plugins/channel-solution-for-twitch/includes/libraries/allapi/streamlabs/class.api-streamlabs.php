@@ -18,20 +18,28 @@ if( !class_exists( 'TWITCHPRESS_All_API' ) ) { return; }
 if( !class_exists( 'TWITCHPRESS_All_API_Streamlabs' ) ) :
 
 class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
-       
-    public function __construct( $service = 'none', $profile = 'default' ){
-        parent::__construct( $service, $profile );
-    } 
     
-    /**
-     * Listen for administrators main account, for a giving service, being
-     * put through oAuth2 request at the point of redirection from service to WordPress. 
-     * 
-     * @version 1.23
-     */
-    public static function init() {  
-        $this->calls = new TwitchPress_All_API_Streamlabs_Calls();
-        add_action( 'plugins_loaded', array( __CLASS__, 'administrator_main_account_listener' ), 50 );
+    public $streamlabs_app_ready = false;
+    
+    protected $streamlabs_app_id     = null;
+    protected $streamlabs_app_secret = null;
+    protected $streamlabs_app_uri    = null; 
+    protected $streamlabs_app_code   = null;
+    protected $streamlabs_app_token  = null;
+    protected $streamlabs_app_scope  = array();
+         
+    public function __construct( $profile = 'default' ){      
+        parent::__construct( $profile );
+        $this->set_application( $profile );
+        $this->is_app_set();
+        add_action( 'wp_loaded', array( $this, 'oauth_admin_listener' ), 1 );
+    } 
+
+    public function set_application( $profile = 'default' ) {
+        $this->streamlabs_app_uri    = get_option( 'twitchpress_allapi_streamlabs_' . $profile . '_uri', null );
+        $this->streamlabs_app_id     = get_option( 'twitchpress_allapi_streamlabs_' . $profile . '_id', null );
+        $this->streamlabs_app_secret = get_option( 'twitchpress_allapi_streamlabs_' . $profile . '_secret', null );
+        $this->streamlabs_app_token  = get_option( 'twitchpress_allapi_streamlabs_' . $profile . '_token', null );
     }
     
     /**
@@ -43,8 +51,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
     * 
     * @version 1.23
     */
-    public static function administrator_main_account_listener() {
-        
+    public static function oauth_admin_listener() {                                         
         if ( $_SERVER['REQUEST_METHOD'] !== 'GET' ) {   
             return;
         }
@@ -72,7 +79,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
             return;
         } 
          
-        if( !isset( $_GET['scope'] ) ) {       
+        if( !isset( $_GET['code'] ) ) {       
             return;
         }     
             
@@ -91,54 +98,41 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
                         __FUNCTION__,
                         __FILE__,
                         false,
-                        sprintf( __( 'Streamlabs Listener: doing listener for main Streamlabs account setup.', 'twitchpress' ), $this->allapi_service_title )
+                        __( 'Streamlabs Listener: doing listener for main Streamlabs account setup.', 'twitchpress' )
         );
-                     
-        if( !isset( $_GET['code'] ) ) {       
+               
+        if( !$transient_state = get_transient( 'twitchpress_streamlabs_oauthstate_' . $_GET['state'] ) ) {      
             $return = true;
-            $return_reason .= sprintf( __( 'Streamlabs Listener: No code returned.', 'twitchpress' ), $this->allapi_service_title );
-        }          
-
-        // We require the local current state value stored in transient.
-        // This transient is created when generating the oAuth2 URL and used to validate everything about the request. 
-        elseif( !$transient_state = get_transient( 'twitchpress_oauth_' . $_GET['state'] ) ) {      
-            $return = true;
-            $return_reason .= sprintf( __( 'Streamlabs Listener: No matching transient.', 'twitchpress' ), $this->allapi_service_title );
-        }  
-        
+            $return_reason .= __( 'Streamlabs Listener: No matching transient.', 'twitchpress' );
+        }
         // Ensure the reason for this request is an attempt to set the main channels credentials
         elseif( !isset( $transient_state['reason'] ) ) {
             $return = true;
-            $return_reason .= sprintf( __( 'Streamlabs Listener: no reason for request.', 'twitchpress' ), $this->allapi_service_title );            
-        }              
-         
-        // Ensure we have the admin view or page the user needs to be sent to. 
-        elseif( $transient_state['reason'] !== 'mainadminaccountsetup' ) {         
-            $return = true;
-            $return_reason .= sprintf( __( 'Streamlabs Listener: reason rejected.', 'twitchpress' ), $this->allapi_service_title );    
+            $return_reason .= __( 'Streamlabs Listener: no reason for request.', 'twitchpress' );            
         }
-                 
+        // Ensure we have the admin view or page the user needs to be sent to. 
+        elseif( $transient_state['reason'] !== 'streamlabsextensionowneroauth2request' ) {         
+            $return = true;
+            $return_reason .= __( 'Streamlabs Listener: reason rejected.', 'twitchpress' );    
+        }        
         // Ensure we have the admin view or page the user needs to be sent to. 
         elseif( !isset( $transient_state['redirectto'] ) ) {         
             $return = true;
-            $return_reason .= sprintf( __( 'Streamlabs Listener: "redirectto" value does not exist.', 'twitchpress' ), $this->allapi_service_title );    
+            $return_reason .= __( 'Streamlabs Listener: "redirectto" value does not exist.', 'twitchpress' );    
         } 
-          
         // For this procedure the userrole MUST be administrator.
         elseif( !isset( $transient_state['userrole'] ) ) {        
             $return = true;
-            $return_reason .= sprintf( __( 'Streamlabs Listener: unexpected request, related to the main account.', 'twitchpress' ), $this->allapi_service_title );    
-        }          
-        
+            $return_reason .= __( 'Streamlabs Listener: unexpected request, related to the main account.', 'twitchpress' );    
+        }
         elseif( !isset( $transient_state['userrole'] ) || 'administrator' !== $transient_state['userrole'] ) {        
             $return = true;
             $return_reason .= __( 'Streamlabs Listener: not an administrator.', 'twitchpress' );    
-        }         
-                
+        }       
         // NEW IF - Validate the code as a measure to prevent URL spamming that gets further than here.
-        elseif( !twitchpress_validate_code( $_GET['code'] ) ) {        
+        elseif( !$this->validate_code( $_GET['code'] ) ) {        
             $return = true;
-            $return_reason .= sprintf( __( 'Streamlabs Listener: invalid code.', 'twitchpress' ), $this->allapi_service_title );
+            $return_reason .= __( 'Streamlabs Listener: invalid code.', 'twitchpress' );
         }
 
         // If we have a return reason, add it to the trace then do the return. 
@@ -155,26 +149,36 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
             return false;
         } 
         
-        // Create API calls object for the current service. 
-        $service_calls_object = $this->load_calls_object( $transient_state['app_service'] );
+        $this->streamlabs_app_code = $_GET['code'];
         
-        // Generate oAuth token (current user, who is admin, for the giving profile)
-        $token_array = $this->request_user_access_token( $_GET['code'], __FUNCTION__ );
+        // Request a token on behalf of the main administrator (current user).
+        $token_request = $this->api_request_token();
+        
+        
+        
+        
+                
+        
+        
+        
+        
+        
+        echo '<pre>';
+        var_dump( $token_request );
+        echo '</pre>';
+        
+        wp_die($token_request);
         
         // Update this administrators access to the giving service.
-        $this->update_user_code( $wp_user_id, $_GET['code'] );
-        $this->update_user_token( $wp_user_id, $token_array['access_token'] );
-        $this->update_user_refresh_token( $wp_user_id, $token_array['refresh_token'] );
-
-        // Start storing main channel credentials.  
-        $this->update_app_code( $service, $_GET['code'] );
-        $this->update_app_wpowner_id( $service, $wp_user_id );
-        $this->update_app_token( $service, $token_array['access_token'] );
-        $this->update_app_refresh_token( $service, $token_array['refresh_token'] );
-        $this->update_app_scope( $service, $token_array['scope'] );
+        
+        
+        #$this->update_user_code( $wp_user_id, $_GET['code'] );
+        #$this->update_user_token( $wp_user_id, $token_array['access_token'] );
+        #$this->update_user_refresh_token( $wp_user_id, $token_array['refresh_token'] );
+        #$this->update_user_scope( $service, $token_array['scope'] );
 
         // Token notice
-        TwitchPress_Admin_Notices::add_custom_notice( 'streamlabs_mainapplicationsetup', sprintf( __( '%s provided a token, allowing this site to access your channel based on the permissions gave.'), $this->allapi_service_title )  );
+        TwitchPress_Admin_Notices::add_custom_notice( 'streamlabs_mainapplicationsetup', __( '%s provided a token, allowing this site to access your channel based on the permissions gave.') );
                
         // Run a test to ensure all credentials are fine and that the services subject exists i.e. the users Twitch username/channel.
         // The response from the service is stored, the data is used to populate required values.  
@@ -298,6 +302,140 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
     }   
 
     /**
+    * Checks if minimum application credentials are set and ready in object.
+    * 
+    * @returns boolean true (all set) else array of missing values.
+    * 
+    * @version 1.23
+    */
+    public function is_app_set() {
+        $missing = array(); 
+
+        if( !$this->streamlabs_app_id ) {
+            $missing[] = __( 'Client ID', 'twitchpress' );        
+        } 
+
+        if( !$this->streamlabs_app_secret ) {
+            $missing[] = __( 'Client Secret', 'twitchpress' );        
+        } 
+                 
+        if( !$this->streamlabs_app_uri ) {
+            $missing[] = __( 'Client URI', 'twitchpress' );        
+        }    
+
+        if( !$this->streamlabs_app_token ) {
+            $missing[] = __( 'Client Token', 'twitchpress' );        
+        }       
+        
+        if( $missing ) {
+            return $missing;
+        }
+
+        $this->streamlabs_app_ready = true;
+        return true;
+    }
+    
+    public function validate_code( $code ) {
+        if( strlen ( $code ) !== 40  ) {
+            return false;
+        }           
+        
+        if( !ctype_alnum( $code ) ) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+    * Request user access token after oAuth2 success. 
+    * 
+    * @version 1.0
+    */
+    public function api_request_token( $return = 'token' ) {
+        
+        // Endpoint
+        $url = 'https://streamlabs.com/api/v1.0/token';
+                    
+        // Call Parameters
+        $body = array(
+            'grant_type'       => 'authorization_code',
+            'client_id'        => $this->streamlabs_app_id,
+            'client_secret'    => $this->streamlabs_app_secret,
+            'redirect_uri'     => $this->streamlabs_app_uri,
+            'code'             => $this->streamlabs_app_code
+        );                           
+
+        $curl = new WP_Http_Curl();
+
+        $response = $curl->request( $url, 
+            array( 'method' => 'POST', 'body' => $body ) 
+        );         
+echo '<pre>';
+var_dump( json_decode( $response['body'] ) );
+echo '</pre>';
+
+
+object(stdClass)#1150 (4) {
+  ["access_token"]=>
+  string(40) "fMWBwpWsTq32l2Ysa5tvyjageCLt7SK5phIEbkVm"
+  ["token_type"]=>
+  string(6) "Bearer"
+  ["expires_in"]=>
+  int(3600)
+  ["refresh_token"]=>
+  string(40) "YX43DPwydDmJ44BLwzaS4DAUpl4CQCboZNkSUrZH"
+}
+
+
+        if( $return == 'token' ) { return array( 'access_token' => $response['body']['access_token'], 'refresh_token' => $response['body']['refresh_token'] ); }
+        
+        return $response;           
+    }
+        
+    public function api_refresh_users_token() {
+        
+        # STILL TO DO 
+        
+        // Endpoint
+        $endpoint = 'https://streamlabs.com/api/v1.0/token';
+                    
+        // Call Parameters
+        $parameters = array(
+            'access_token'     => $this->get_users_token(),
+            'refresh_token'    => $this->get_users_refresh_token(),
+            'token_lifetime'   => $this->get_users_token_lifetime(),
+            'token_created_at' => $this->get_users_token_birthtime(),
+            'token_expires_at' => $created_at + $lifetime,
+            'grant_type'       => 'refresh_token',
+            'client_id'        => $this->allapi_app_key,
+            'client_secret'    => $this->allapi_app_secret,
+            'redirect_uri'     => $this->allapi_app_uri
+        );                           
+                
+        // Ensure required scope is permitted by client and by user during oAuth2.
+        $confirm_scope = $this->confirm_scope( 'user_read', 'both', __FUNCTION__ );
+        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
+                                                                                       
+        // Has the users access token expired?
+        if ( $parameters['token_expires_at'] > time() ) { return false; }
+        
+        // Build our cURL query and store the array
+        $usersObject = json_decode( $this->cURL_get( $endpoint, $parameters, array(), false, __FUNCTION__ ), true );
+        return $usersObject;                   
+    }      
+    
+    public function oauth2_url_mainaccount() {
+        $scope = 'donations.read+donations.create';
+        return 'https://www.streamlabs.com/api/v1.0/authorize?client_id=' . $this->streamlabs_app_id . '&redirect_uri=' . $this->streamlabs_app_uri . '&response_type=code&scope=' . $scope;   
+    } 
+            
+    public function oauth2_url_visitors() {
+        $scope = 'donations.read+donations.create';
+        return 'https://www.streamlabs.com/api/v1.0/authorize?client_id=' . $this->streamlabs_app_id . '&redirect_uri=' . $this->streamlabs_app_uri . '&response_type=code&scope=' . $scope;    
+    }
+            
+    /**
      * This operates a GET style command through cURL.  Will return raw data as an associative array
      * 
      * @param $url - [string] URL supplied for the connection
@@ -311,18 +449,31 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      */                             
     protected function cURL_get( $url, array $get = array(), array $options = array(), $returnStatus = false, $function = '' ){
         
+        global $wp_version;
+        $args = array(
+            'timeout'     => 5,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'user-agent'  => 'WordPress/' . $wp_version . '; ' . home_url(),
+            'blocking'    => true,
+            'headers'     => array(),
+            'cookies'     => array(),
+            'body'        => null,
+            'compress'    => false,
+            'decompress'  => true,
+            'sslverify'   => true,
+            'stream'      => false,
+            'filename'    => null
+        ); 
+
+        $response = wp_remote_get( $url, $args );
+        
         return;
         
-        $url = 'https://streamlabs.com/api/v1.0/token';
         
         // Header
-        $header = array('Accept: application/vnd.twitchtv.v1+json'); // Always included
-        $header = (( $this->twitch_client_id !== '') && ($this->twitch_client_id !== ' ')) ? array_merge($header, array('Client-ID: ' . $this->twitch_client_id)) : $header;
-        $header = (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $get) === 1) 
-                        || (array_key_exists('oauth_token', $get) === true))) 
-                                ? array_merge($header, array('Authorization: OAuth ' . $get['oauth_token'])) : $header ;
-                                                        // v6 Authorization: Bearer    <access token>"  https://api.twitch.tv/helix/
-
+        $header = array('Accept: application/vnd.streamlabs.v1+json'); // Always included
+        
         if (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $get) === 1) || (array_key_exists('oauth_token', $get) === true))) {
             unset($get['oauth_token']);
         }
@@ -366,14 +517,22 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         $result = curl_exec( $handle );
         $httpdStatus = curl_getinfo( $handle, CURLINFO_HTTP_CODE );
         
+        
+        echo '<pre>';
+        var_dump( $result );
+        echo '</pre>';
+        
+        wp_die( __FILE__ );
+        
+        
         // Check our HTTPD status that was returned for error returns
         $error_string = '';
         $error_no = '';
         if (($httpdStatus == 404) || ($httpdStatus == 0) || ($httpdStatus == 503)) 
         {
-            $error_string = curl_error($handle);
-            $error_no = curl_errno($handle);
-            $this->bugnet->log_error( __FUNCTION__, sprintf( __( 'TwitchPress Error %s: %s', 'twitchpress' ), $error_no, $error_string ), array(), true );
+            //$error_string = curl_error($handle);
+            //$error_no = curl_errno($handle);
+            //$this->bugnet->log_error( __FUNCTION__, sprintf( __( 'TwitchPress Error %s: %s', 'twitchpress' ), $error_no, $error_string ), array(), true );
         }
         
         curl_close($handle);
@@ -381,9 +540,9 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         // Log the HTTP status in more detail if it isn't a good response. 
         if( $httpdStatus !== 200 ) 
         {
-            $status_meaning = kraken_httpstatuses( $httpdStatus, 'wiki' );
-            if( !is_string( $status_meaning ) ) { $status_meaning = __( 'Sorry, no more information could be retrieved for this status.', 'twitchpress' ); }
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'TwitchPress HTTPDStatus: %s - %s', 'twitchpress' ), $httpdStatus, $status_meaning ), array(), true, false );
+            //$status_meaning = kraken_httpstatuses( $httpdStatus, 'wiki' );
+            //if( !is_string( $status_meaning ) ) { $status_meaning = __( 'Sorry, no more information could be retrieved for this status.', 'twitchpress' ); }
+            //$this->bugnet->log( __FUNCTION__, sprintf( __( 'TwitchPress HTTPDStatus: %s - %s', 'twitchpress' ), $httpdStatus, $status_meaning ), array(), true, false );
         }
         
         if ($returnStatus) {
@@ -425,7 +584,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.7
      */ 
-    protected function cURL_post_NOTUSED($url, array $post = array(), array $options = array(), $returnStatus = false){
+    protected function cURL_post($url, array $post = array(), array $options = array(), $returnStatus = false){
         $postfields = '';
         
         // Specify the header
@@ -521,7 +680,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.6
      */ 
-    protected function cURL_put_NOTUSED($url, array $put = array(), array $options = array(), $returnStatus = false) {
+    protected function cURL_put($url, array $put = array(), array $options = array(), $returnStatus = false) {
         $postfields = '';
 
         // Specify the header
@@ -612,7 +771,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.2
      */ 
-    protected function cURL_delete_NOTUSED($url, array $post = array(), array $options = array(), $returnStatus = true) {
+    protected function cURL_delete($url, array $post = array(), array $options = array(), $returnStatus = true) {
         // Specify the header
         $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
         $header = ((TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $post) === 1) || (array_key_exists('oauth_token', $post) === true))) ? array_merge($header, array('Authorization: OAuth ' . $post['oauth_token'])) : $header ;
@@ -705,7 +864,7 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
      * 
      * @version 1.5
      */ 
-    protected function get_iterated_NOTUSED( $url, $options, $limit, $offset, $arrayKey = null, $authKey = null, $hls = null, $direction = null, $channels = null, $embedable = null, $client_id = null, $broadcasts = null, $period = null, $game = null, $returnTotal = false, $sortBy = null) {
+    protected function get_iterated( $url, $options, $limit, $offset, $arrayKey = null, $authKey = null, $hls = null, $direction = null, $channels = null, $embedable = null, $client_id = null, $broadcasts = null, $period = null, $game = null, $returnTotal = false, $sortBy = null) {
 
         // Check to make sure limit is an int
         if ((gettype($limit) != 'integer') && (gettype($limit) != 'double') && (gettype($limit) != 'float')) {
