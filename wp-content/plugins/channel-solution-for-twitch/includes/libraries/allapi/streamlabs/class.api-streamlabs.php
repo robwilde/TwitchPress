@@ -74,7 +74,11 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         }      
         
         $wp_user_id = get_current_user_id();  
-            
+        
+        if( !current_user_can( 'activate_plugins' ) ) {
+            return; 
+        } 
+                      
         if( isset( $_GET['error'] ) ) {  
             return;
         } 
@@ -148,42 +152,38 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
             
             return false;
         } 
-        
+
+        // Update the main Streamlab account details using the current admins credentials.
+        $this->update_main_code( $_GET['code'] );
+        $this->update_main_owner( $wp_user_id );        
         $this->streamlabs_app_code = $_GET['code'];
         
         // Request a token on behalf of the main administrator (current user).
-        $token_request = $this->api_request_token();
+        $request_body = $this->api_request_token();
         
-        
-        
-        
-                
-        
-        
-        
-        
-        
-        echo '<pre>';
-        var_dump( $token_request );
-        echo '</pre>';
-        
-        wp_die($token_request);
-        
-        // Update this administrators access to the giving service.
-        
-        
-        #$this->update_user_code( $wp_user_id, $_GET['code'] );
-        #$this->update_user_token( $wp_user_id, $token_array['access_token'] );
-        #$this->update_user_refresh_token( $wp_user_id, $token_array['refresh_token'] );
-        #$this->update_user_scope( $service, $token_array['scope'] );
+        if( $request_body === false ) 
+        {
+            TwitchPress_Admin_Notices::add_custom_notice( 'streamlabs_main_tokenrequest', __( 'The request for a Streamlabs access token has failed this time, please try again.') );
+            return false;                
+        }
+
+        $this->update_main_access_token( $request_body->access_token );
+        $this->update_main_expires_in( $request_body->expires_in );
+        $this->update_main_refresh_token( $request_body->refresh_token );
+
+        // Update current users Streamlabs API credentials just as we would any other user.
+        $this->update_user_code( $wp_user_id, $_GET['code'] );
+        $this->update_user_access_token( $wp_user_id, $request_body->access_token );
+        $this->update_user_expires_in( $wp_user_id, $request_body->expires_in );
+        $this->update_user_refresh_token( $wp_user_id, $request_body->refresh_token );
 
         // Token notice
-        TwitchPress_Admin_Notices::add_custom_notice( 'streamlabs_mainapplicationsetup', __( '%s provided a token, allowing this site to access your channel based on the permissions gave.') );
+        TwitchPress_Admin_Notices::add_custom_notice( 'streamlabs_mainapplicationsetup', __( 'Streamlabs API provided a token, allowing this site to access the main account based on the permissions gave.') );
                
         // Run a test to ensure all credentials are fine and that the services subject exists i.e. the users Twitch username/channel.
         // The response from the service is stored, the data is used to populate required values.  
-        $test_result = $this->app_credentials_test( $service, $service_calls_object );
-        
+        $test_result = $this->main_credentials_test();
+                              
         if( !$test_result )
         {
             TwitchPress_Admin_Notices::add_custom_notice( 'streamlabs_listener_test_failed', __( '<strong>Final Test Failed:</strong> The administrator account listener has passed validation but failed the first attempt to request data from the services server.', 'twitchpress' ) );      
@@ -198,24 +198,6 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
             
             return;
         }     
-               
-        switch ( $this->allapi_service ) {
-           case 'twitch':
-                // Subject (Twitch.tv channel) is owned or under control by the admin user.  
-                twitchpress_update_user_oauth( 
-                    get_current_user_id(), 
-                    $_GET['code'], 
-                    $token_array['access_token'], 
-                    $user_objects['users'][0]['_id'] 
-                );
-             break;
-           case 'streamlabs':
-        
-             break;
-           case 'youtube':
-        
-             break;
-        }
   
         // Not going to end trace here, will end it on Setup Wizard. 
         $bugnet->trace( 'streamlabs_oauth2mainaccount',
@@ -229,18 +211,123 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         // Forward user to the custom destinaton i.e. where they were before oAuth2. 
         twitchpress_redirect_tracking( $transient_state['redirectto'], __LINE__, __FUNCTION__ );
         exit;
-    }     
+    }   
+    
+    public function update_main_code( $code ) {
+        update_option( 'twitchpress_streamlabs_main_code', $code );    
+    }    
+    
+    public function update_main_owner( $wp_user_id ) {
+        update_option( 'twitchpress_streamlabs_main_owner', $wp_user_id );    
+    }  
+
+    public function update_main_access_token( $access_token ) {
+        update_option( 'twitchpress_streamlabs_main_access_token', $access_token );
+    }
+    
+    public function update_main_expires_in( $expires_in ) {
+        update_option( 'twitchpress_streamlabs_main_expires_in', $expires_in );        
+    }
+    
+    public function update_main_refresh_token( $refresh_token ) {
+        update_option( 'twitchpress_streamlabs_main_refresh_token', $refresh_token );        
+    }
+
+    public function update_user_code( $wp_user_id, $code ) {
+        update_user_meta( $wp_user_id, 'twitchpress_streamlabs_code', $code );  
+    }
+    
+    public function update_user_access_token( $wp_user_id, $access_token ) {
+        update_user_meta( $wp_user_id, 'twitchpress_streamlabs_access_token', $access_token );
+    }
+    
+    public function update_user_expires_in( $wp_user_id, $expires_in ) {
+        update_user_meta( $wp_user_id, 'twitchpress_streamlabs_expires_in ', $expires_in );
+    }
+        
+    public function update_user_refresh_token( $wp_user_id, $refresh_token ) {
+        update_user_meta( $wp_user_id, 'twitchpress_streamlabs_refresh_token', $refresh_token );
+    }
+    
+    public function update_user_scope( $wp_user_id, $scope ) {
+        update_user_meta( $wp_user_id, 'twitchpress_streamlabs_scope', $scope );
+    }
+
+    public function get_main_code( $code ) {
+        return get_option( 'twitchpress_streamlabs_main_code', $code );    
+    }    
+    
+    public function get_main_owner() {
+        return get_option( 'twitchpress_streamlabs_main_owner' );    
+    }  
+
+    public function get_main_access_token() {
+        return get_option( 'twitchpress_streamlabs_main_access_token' );
+    }
+    
+    public function get_main_expires_in() {
+        return get_option( 'twitchpress_streamlabs_main_expires_in' );        
+    }
+    
+    public function get_main_refresh_token() {
+        return get_option( 'twitchpress_streamlabs_main_refresh_token' );        
+    }
+
+    public function get_user_code() {
+        return get_user_meta( $wp_user_id, 'twitchpress_streamlabs_code', true );  
+    }
+    
+    public function get_user_access_token() {
+        return get_user_meta( $wp_user_id, 'twitchpress_streamlabs_access_token', true );
+    }
+    
+    public function get_user_expires_in() {
+        return get_user_meta( $wp_user_id, 'twitchpress_streamlabs_expires_in ', true );
+    }
+        
+    public function get_user_refresh_token() {
+        return get_user_meta( $wp_user_id, 'twitchpress_streamlabs_refresh_token', true );
+    }
+    
+    public function get_user_scope() {
+        return get_user_meta( $wp_user_id, 'twitchpress_streamlabs_scope', true );
+    }
     
     /**
-    * Runs a different test for each service.  
+    * Tests the main code and access token.  
     * 
     * @param mixed $service
     * @param mixed $service_object
     * 
     * @version 1.0
     */
-    public function app_credentails_test( $service, $service_calls_object ) {
+    public function main_credentials_test() {
 
+        // Endpoint
+        $url = 'https://streamlabs.com/api/v1.0/user?access_token=' . $this->get_main_access_token();
+     
+        // Call Parameters
+        $body = array(
+            'client_id'        => $this->streamlabs_app_id,
+            'client_secret'    => $this->streamlabs_app_secret,
+            'redirect_uri'     => $this->streamlabs_app_uri,
+        );                           
+
+        $curl = new WP_Http_Curl();
+
+        $response = $curl->request( $url, 
+            array( 'method' => 'GET', 'body' => $body ) 
+        );
+
+        if( isset( $response['response']['code'] ) && $response['response']['code'] == 200 ) {
+            if( isset( $response['body'] ) ) {
+                $body = json_decode( $response['body'] );
+                if( isset( $body->streamlabs ) ) {
+                    return true;
+                }
+            }
+        }
+         
         return false;  
     }
          
@@ -350,9 +437,10 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
     /**
     * Request user access token after oAuth2 success. 
     * 
+    * @returns body as stdClass
     * @version 1.0
     */
-    public function api_request_token( $return = 'token' ) {
+    public function api_request_token() {
         
         // Endpoint
         $url = 'https://streamlabs.com/api/v1.0/token';
@@ -370,59 +458,35 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
 
         $response = $curl->request( $url, 
             array( 'method' => 'POST', 'body' => $body ) 
-        );         
-echo '<pre>';
-var_dump( json_decode( $response['body'] ) );
-echo '</pre>';
+        );        
 
-
-object(stdClass)#1150 (4) {
-  ["access_token"]=>
-  string(40) "fMWBwpWsTq32l2Ysa5tvyjageCLt7SK5phIEbkVm"
-  ["token_type"]=>
-  string(6) "Bearer"
-  ["expires_in"]=>
-  int(3600)
-  ["refresh_token"]=>
-  string(40) "YX43DPwydDmJ44BLwzaS4DAUpl4CQCboZNkSUrZH"
-}
-
-
-        if( $return == 'token' ) { return array( 'access_token' => $response['body']['access_token'], 'refresh_token' => $response['body']['refresh_token'] ); }
+        if( is_string( $response ) ) {
+            $response = json_decode( $response );
+        }
         
-        return $response;           
+        if( !isset( $response['body'] ) ) {
+            return false;
+        }   
+        
+        $body = json_decode( $response['body'] );
+
+        if( !isset( $body->access_token ) ) 
+        {
+            return false;
+        }
+        elseif( isset( $response['error'] ) ) 
+        {
+            return false;
+        }
+        
+        // Store the credentials in transient while we finish the request. 
+        set_transient( 'twitchpress_streamlabs_token_request_response', $response, 120 );
+
+        return $body;           
     }
         
     public function api_refresh_users_token() {
-        
-        # STILL TO DO 
-        
-        // Endpoint
-        $endpoint = 'https://streamlabs.com/api/v1.0/token';
-                    
-        // Call Parameters
-        $parameters = array(
-            'access_token'     => $this->get_users_token(),
-            'refresh_token'    => $this->get_users_refresh_token(),
-            'token_lifetime'   => $this->get_users_token_lifetime(),
-            'token_created_at' => $this->get_users_token_birthtime(),
-            'token_expires_at' => $created_at + $lifetime,
-            'grant_type'       => 'refresh_token',
-            'client_id'        => $this->allapi_app_key,
-            'client_secret'    => $this->allapi_app_secret,
-            'redirect_uri'     => $this->allapi_app_uri
-        );                           
-                
-        // Ensure required scope is permitted by client and by user during oAuth2.
-        $confirm_scope = $this->confirm_scope( 'user_read', 'both', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
-                                                                                       
-        // Has the users access token expired?
-        if ( $parameters['token_expires_at'] > time() ) { return false; }
-        
-        // Build our cURL query and store the array
-        $usersObject = json_decode( $this->cURL_get( $endpoint, $parameters, array(), false, __FUNCTION__ ), true );
-        return $usersObject;                   
+                  
     }      
     
     public function oauth2_url_mainaccount() {
