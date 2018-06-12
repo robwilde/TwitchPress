@@ -173,17 +173,36 @@ function twitchpress_get_sub_plan( $wp_user_id, $twitch_channel_id ) {
 #                                                                    #
 ######################################################################
 
+/**
+* Get the main channel name.
+* This is entered by the key holder during the setup wizard.
+* 
+* @version 2.0
+*/
 function twitchpress_get_main_channels_name() {
-    return get_option( 'twitchpress_main_channel_name' );
+    global $GLOBALS;
+    if( isset( $GLOBALS['twitchpress']->main_channel_name ) )
+    {
+        return $GLOBALS['twitchpress']->main_channel_name;    
+    } 
+
+    $GLOBALS['twitchpress']->main_channel_name = get_option( 'twitchpress_main_channel_name' );
+    return $GLOBALS['twitchpress']->main_channel_name;
 }
 
 /**
 * Get the main/default/official channel ID for the WP site.
 * 
-* @version 1.0
+* @version 2.0
 */
 function twitchpress_get_main_channels_twitchid() {
-    return get_option( 'twitchpress_main_channel_id' );   
+    global $GLOBALS;
+    if( isset( $GLOBALS['twitchpress']->main_channel_id ) )
+    {
+        return $GLOBALS['twitchpress']->main_channel_id;    
+    }    
+    $GLOBALS['twitchpress']->main_channel_id = get_option( 'twitchpress_main_channel_id' ); 
+    return $GLOBALS['twitchpress']->main_channel_id;  
 }
 
 /**
@@ -203,8 +222,20 @@ function twitchpress_get_main_channels_code() {
     return get_option( 'twitchpress_main_channels_code' );
 }
 
+/**
+* Returns the WordPress ID of the main channel owner.
+* This is added to the database during the plugin Setup Wizard.
+* 
+* @version 2.0
+*/
 function twitchpress_get_main_channels_wpowner_id() {
-    return get_option( 'twitchpress_main_channels_wpowner_id' ); 
+    global $GLOBALS;
+    if( isset( $GLOBALS['twitchpress']->main_channel_owner_wpid ) )
+    {
+        return $GLOBALS['twitchpress']->main_channel_owner_wpid;    
+    }    
+    $GLOBALS['twitchpress']->main_channel_owner_wpid = get_option( 'twitchpress_main_channels_wpowner_id' ); 
+    return $GLOBALS['twitchpress']->main_channel_owner_wpid;
 }
 
 function twitchpress_get_main_channels_refresh() {

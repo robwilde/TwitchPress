@@ -72,7 +72,7 @@ final class WordPressTwitchPress {
     * @var mixed
     */
     public $dump = array();
-            
+
     /**
      * Main TwitchPress Instance.
      *
@@ -209,6 +209,17 @@ final class WordPressTwitchPress {
     }
 
     /**
+    * These values are intended for access using $GLOBAL['twitchpress']
+    * 
+    * @version 1.0
+    */
+    private function define_globals() {
+        $this->main_channel_name = twitchpress_get_main_channels_name(); 
+        $this->main_channel_id = twitchpress_get_main_channels_twitchid();
+        $this->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();           
+    }
+    
+    /**
      * Include required core files.
      * 
      * @version 1.4
@@ -233,6 +244,7 @@ final class WordPressTwitchPress {
         require_once( 'includes/class.twitchpress-feeds.php' );
         require_once( 'includes/class.twitchpress-sync.php' );
         require_once( 'includes/class.twitchpress-history.php' );
+        require_once( 'includes/functions.twitchpress-shortcodes.php' );
         
         // Load Core Objects
         $this->load_core_objects();
@@ -448,9 +460,16 @@ if( !function_exists( 'TwitchPress' ) ) {
     }
 
     // Global for backwards compatibility.
+    global $GLOBALS;
     $GLOBALS['twitchpress'] = TwitchPress();
     // ["version"]=> string(5) "2.0.0" 
     // ["min_wp_version"]=> string(3) "4.7" 
     // ["session"]=> NULL ["bugnet"]=> NULL 
     // ["available_languages"]=> array(0) { } }  
+    
+    // Define some of these globals to make it easy for extensiosn to access them. 
+    $GLOBALS['twitchpress']->main_channel_name = twitchpress_get_main_channels_name(); 
+    $GLOBALS['twitchpress']->main_channel_id = twitchpress_get_main_channels_twitchid();
+    $GLOBALS['twitchpress']->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();  
+
 }

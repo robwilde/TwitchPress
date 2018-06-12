@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 * 
 * @version 1.1
 */
-function twitchpress_channel_status( $atts ) {   
+function twitchpress_channel_status_shortcode( $atts ) {          
     $html_output = null;
            
     $atts = shortcode_atts( array(             
@@ -80,14 +80,14 @@ function twitchpress_channel_status( $atts ) {
     
     return $html_output;
 }
-add_shortcode( 'twitchpress_channel_status', 'twitchpress_channel_status' );
+add_shortcode( 'twitchpress_channel_status', 'twitchpress_channel_status_shortcode' );
 
 /**
 * Shortcode outputs a status line for the giving channel. 
 * 
 * @version 1.0
 */
-function twitchpress_channel_status_line( $atts ) {          
+function twitchpress_channel_status_line_shortcode( $atts ) {          
     $atts = shortcode_atts( array(             
             'channel_id'   => null,
             'channel_name' => null,
@@ -147,14 +147,14 @@ function twitchpress_channel_status_line( $atts ) {
     
     return $html_output;
 }
-add_shortcode( 'twitchpress_channel_status_line', 'twitchpress_channel_status_line' );
+add_shortcode( 'twitchpress_channel_status_line', 'twitchpress_channel_status_line_shortcode' );
 
 /**
 * Shortcode outputs a status box with some extra information for the giving channel.
 * 
 * @version 1.0
 */
-function twitchpress_channel_status_box( $atts ) {
+function twitchpress_channel_status_box_shortcode( $atts ) {       
     $atts = shortcode_atts( array(             
             'channel_id'   => null,
             'channel_name' => null,
@@ -218,14 +218,87 @@ function twitchpress_channel_status_box( $atts ) {
     
     return $html_output;    
 }
-add_shortcode( 'twitchpress_channel_status_box', 'twitchpress_channel_status_box' );
+add_shortcode( 'twitchpress_channel_status_box', 'twitchpress_channel_status_box_shortcode' );
 
 /**
 * Shortcode outputs an unordered list of channels with status.
 * 
 * @version 1.0
 */
-function twitchpress_channels_status_list( $channels_array ) {
-    
+function twitchpress_channels_status_list_shortcode( $atts ) {       
+
 }
-add_shortcode( 'twitchpress_channels_status_list', 'twitchpress_channels_status_list' );
+add_shortcode( 'twitchpress_channels_status_list', 'twitchpress_channels_status_list_shortcode' );
+
+/**
+* Displays a list of buttons for initiating oAuth for each API.
+* 
+* @version 1.0
+*/
+function shortcode_visitor_api_services_buttons( $atts ) {
+    global $post; 
+    
+    $html_output = '        
+    <table class="form-table">
+        <tbody>';
+        
+    $permalink = get_post_permalink( $post->ID, true );
+    
+    $atts = shortcode_atts( array(             
+            //'channel_id'   => null
+    ), $atts, 'twitchpress_channels_status_list' );    
+    
+    // Twitch
+    if( class_exists( 'TWITCHPRESS_Twitch_API' ) )
+    {
+        // Create a local API state. 
+        $state = array( 'redirectto' => $permalink,
+                        'userrole'   => 'visitor',
+                        'outputtype' => 'public',
+                        'reason'     => 'personaloauth',
+                        'function'   => __FUNCTION__
+        );  
+        
+              
+        $twitch_api = new TWITCHPRESS_Twitch_API();
+        $url = $twitch_api->generate_authorization_url( $twitch_api->get_visitor_scopes(), $twitch_api->get_visitor_scopes() );
+        unset($twitch_api); 
+        
+        $nonce = wp_create_nonce( 'tool_action' );
+        $profile_url = admin_url( 'profile.php?_wpnonce=' . $nonce . '&toolname=tool_user_sync_twitch_sub_data' );
+        
+        $html_output = '                
+        <tr>
+            <th>
+                <p>
+                    <a href="' . $profile_url . '" class="button button-primary">Authorize Twitch</a>
+                </p>
+            </th>
+            <td> 
+                <p>
+                    <a href="' . $profile_url . '" class="button button-primary">Authorize Twitch</a>
+                </p>                        
+            </td>
+        </tr>';           
+    }
+
+    // Streamlabs 
+    if( class_exists( 'TWITCHPRESS_Streamlabs_API' ) )
+    {
+        $state = array( 'redirectto' => $permalink,
+                        'userrole'   => 'visitor',
+                        'outputtype' => 'public',
+                        'reason'     => 'personaloauth',
+                        'function'   => __FUNCTION__
+        );        
+        $twitch_api = new TWITCHPRESS_Twitch_API();
+        $url = $twitch_api->generate_authorization_url( $twitch_api->get_visitor_scopes(), $state );              
+    }
+    
+    $html_output = '            
+        </tbody>
+    </table>';
+                          
+    return $html_output;    
+}
+add_shortcode( 'visitor_api_services_buttons', 'shortcode_visitor_api_services_buttons' );

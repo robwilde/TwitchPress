@@ -15,9 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if( !class_exists( 'TWITCHPRESS_All_API' ) ) { return; }
 
-if( !class_exists( 'TWITCHPRESS_All_API_Streamlabs' ) ) :
+if( !class_exists( 'TWITCHPRESS_Streamlabs_API' ) ) :
 
-class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
+class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     
     public $streamlabs_app_ready = false;
     
@@ -27,13 +27,28 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
     protected $streamlabs_app_code   = null;
     protected $streamlabs_app_token  = null;
     protected $streamlabs_app_scope  = array();
-         
+    
+    protected $url = 'https://streamlabs.com/api/';
+    public $version = '1.0';// API version
+    
+    /**
+    * Store user data here during a procedure to help avoid 
+    * repeating database queries.  
+    * 
+    * @var mixed
+    */
+    public $users = array();
+        
     public function __construct( $profile = 'default' ){      
         parent::__construct( $profile );
         $this->set_application( $profile );
         $this->is_app_set();
         add_action( 'wp_loaded', array( $this, 'oauth_admin_listener' ), 1 );
     } 
+    
+    public function url() {
+        return $this->url . $this->version . '/';
+    }
 
     public function set_application( $profile = 'default' ) {
         $this->streamlabs_app_uri    = get_option( 'twitchpress_allapi_streamlabs_' . $profile . '_uri', null );
@@ -180,11 +195,10 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         // Token notice
         TwitchPress_Admin_Notices::add_custom_notice( 'streamlabs_mainapplicationsetup', __( 'Streamlabs API provided a token, allowing this site to access the main account based on the permissions gave.') );
                
-        // Run a test to ensure all credentials are fine and that the services subject exists i.e. the users Twitch username/channel.
-        // The response from the service is stored, the data is used to populate required values.  
-        $test_result = $this->main_credentials_test();
-                              
-        if( !$test_result )
+        // Populate the main users Streamlabs user-meta values.
+        $result = $this->update_main_users_meta();   
+      
+        if( !$result )
         {
             TwitchPress_Admin_Notices::add_custom_notice( 'streamlabs_listener_test_failed', __( '<strong>Final Test Failed:</strong> The administrator account listener has passed validation but failed the first attempt to request data from the services server.', 'twitchpress' ) );      
             
@@ -294,20 +308,47 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
     }
     
     /**
-    * Tests the main code and access token.  
+    * Updates the MAIN WP USER credentials which should be the key holder. 
+    * 
+    * @version 1.0
+    */
+    public function update_main_users_meta() {
+        global $GLOBALS;
+        
+        $wp_user_id = $this->get_main_users_wp_id();
+        if ( !$wp_user_id ) { return false; }
+        $main_user = $this->get_main_streamlabs_user();
+        if( $main_user ) {
+            update_user_meta( $wp_user_id, 'streamlabs_id', $main_user->streamlabs->id );
+            update_user_meta( $wp_user_id, 'streamlabs_display_name', $main_user->streamlabs->display_name );
+                                  
+            // Update points for main channel, this is simply to satisfy the UI as the main owner will not have points for their own channel.  
+            $this->update_users_points_meta( $wp_user_id, $GLOBALS['twitchpress']->main_channel_id, 0 );
+            return true;
+        }
+        return false;   
+    }
+    
+    public function update_users_points_meta( $wp_user_id, $channel, $points ) {
+        update_user_meta( $wp_user_id, 'streamlabs_points_' . $channel, 0 );
+        update_user_meta( $wp_user_id, 'streamlabs_points_time_' . $channel, time() );      
+    }
+                         
+    /**
+    * Get the main users Streamlab credentails.  
     * 
     * @param mixed $service
     * @param mixed $service_object
     * 
     * @version 1.0
     */
-    public function main_credentials_test() {
+    public function get_main_streamlabs_user() {
 
         // Endpoint
         $url = 'https://streamlabs.com/api/v1.0/user?access_token=' . $this->get_main_access_token();
      
         // Call Parameters
-        $body = array(
+        $request_body = array(
             'client_id'        => $this->streamlabs_app_id,
             'client_secret'    => $this->streamlabs_app_secret,
             'redirect_uri'     => $this->streamlabs_app_uri,
@@ -316,19 +357,21 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         $curl = new WP_Http_Curl();
 
         $response = $curl->request( $url, 
-            array( 'method' => 'GET', 'body' => $body ) 
+            array( 'method' => 'GET', 'body' => $request_body ) 
         );
 
         if( isset( $response['response']['code'] ) && $response['response']['code'] == 200 ) {
             if( isset( $response['body'] ) ) {
-                $body = json_decode( $response['body'] );
-                if( isset( $body->streamlabs ) ) {
-                    return true;
-                }
+                $response_body = json_decode( $response['body'] );
+                return $response_body;
             }
         }
          
         return false;  
+    }
+    
+    public function get_main_users_wp_id() {
+        return $this->get_main_owner();    
     }
          
     /**
@@ -484,10 +527,104 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
 
         return $body;           
     }
-        
+    
+    /**
+    * Checks if the giving WordPress user has authorized their Streamlabs
+    * account to be accessed by the site. 
+    * 
+    * @return boolean
+    * 
+    * @version 1.0
+    */
+    public function is_user_ready( $wp_user_id ) {
+        $username = get_user_meta( $wp_user_id, 'streamlabs_display_name', true );
+        if( !$username || !is_string( $username ) ) 
+        {
+            return false;
+        }
+
+        return true;
+    }   
+     
     public function api_refresh_users_token() {
                   
     }      
+        
+    public function get_users_points_meta( $wp_user_id, $channel_name ) {
+        global $GLOBAL; 
+        
+        // Ensure the current user has authorized streamlabs for this site. 
+        if( !$this->is_user_ready( $wp_user_id ) ) 
+        { 
+            return false; 
+        } 
+        
+        // Return recently synced points and sync if due.
+        $points_array = get_user_meta( $wp_user_id, 'streamlabs_points', true );
+
+        if( !$points_array || !is_array( $points_array ) || !isset( $points_array['synced_time'] ) || !isset( $points_array['points'] ) ) 
+        {
+            return $this->api_get_users_points( $wp_user_id, $channel_name );
+        }
+        
+        // Call Streamlabs for the latest points.
+        $earliest_sync_time = $points_array['synced_time'] + 120;
+        if( time() > $earliest_sync_time )
+        {
+            return $this->api_get_users_points( $wp_user_id, $channel_name );
+        }
+
+        return $points_array['points'];
+    } 
+            
+    public function api_get_users_points( $wp_user_id, $channel_name ) {
+        if( !$this->is_user_ready( $wp_user_id ) )
+        {
+            return false;
+        }
+
+        // Endpoint
+        $url = 'https://streamlabs.com/api/v1.0/token';
+                    
+        // Call Parameters
+        $body = array(
+            'access_token'  => $this->get_main_access_token(),
+            'username'      => get_user_meta( $wp_user_id, 'streamlabs_display_name', true ),
+            'channel'       => $channel_name,
+            'client_id'     => $this->streamlabs_app_id,
+            'client_secret' => $this->streamlabs_app_secret,
+        );                           
+
+        $curl = new WP_Http_Curl();
+
+        $response = $curl->request( $url, 
+            array( 'method' => 'GET', 'body' => $body ) 
+        );        
+
+        if( is_string( $response ) ) {
+            $response = json_decode( $response );
+        }
+
+        if( !isset( $response['body'] ) ) {
+            return false;
+        }   
+        
+        $body = json_decode( $response['body'] );
+
+        if( !isset( $body->access_token ) ) 
+        {
+            return false;
+        }
+        elseif( isset( $response['error'] ) ) 
+        {
+            return false;
+        }
+        
+        // Store the credentials in transient while we finish the request. 
+        set_transient( 'twitchpress_streamlabs_token_request_response', $response, 120 );
+
+        return $body; 
+    }
     
     public function oauth2_url_mainaccount() {
         $scope = 'donations.read+donations.create';
@@ -499,405 +636,6 @@ class TWITCHPRESS_All_API_Streamlabs extends TWITCHPRESS_All_API {
         return 'https://www.streamlabs.com/api/v1.0/authorize?client_id=' . $this->streamlabs_app_id . '&redirect_uri=' . $this->streamlabs_app_uri . '&response_type=code&scope=' . $scope;    
     }
             
-    /**
-     * This operates a GET style command through cURL.  Will return raw data as an associative array
-     * 
-     * @param $url - [string] URL supplied for the connection
-     * @param $get - [array]  All supplied data used to define what data to get
-     * @param $options - [array] Set options for the cURL session
-     * @param $returnStatus - [bool] Sets the function to return the numerical status instead of the raw result
-     * 
-     * @return $result - [mixed] The raw return of the resulting query or the numerical status
-     * 
-     * @version 1.6
-     */                             
-    protected function cURL_get( $url, array $get = array(), array $options = array(), $returnStatus = false, $function = '' ){
-        
-        global $wp_version;
-        $args = array(
-            'timeout'     => 5,
-            'redirection' => 5,
-            'httpversion' => '1.0',
-            'user-agent'  => 'WordPress/' . $wp_version . '; ' . home_url(),
-            'blocking'    => true,
-            'headers'     => array(),
-            'cookies'     => array(),
-            'body'        => null,
-            'compress'    => false,
-            'decompress'  => true,
-            'sslverify'   => true,
-            'stream'      => false,
-            'filename'    => null
-        ); 
-
-        $response = wp_remote_get( $url, $args );
-        
-        return;
-        
-        
-        // Header
-        $header = array('Accept: application/vnd.streamlabs.v1+json'); // Always included
-        
-        if (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $get) === 1) || (array_key_exists('oauth_token', $get) === true))) {
-            unset($get['oauth_token']);
-        }
-
-        $cURL_URL = rtrim($url . '?' . http_build_query($get), '?');
-              
-        $default = array(
-            CURLOPT_URL => $cURL_URL, 
-            CURLOPT_HEADER => 0, 
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_SSL_VERIFYPEER => 0,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_CONNECTTIMEOUT => TWITCHPRESS_DEFAULT_RETURN_TIMEOUT,
-            CURLOPT_TIMEOUT => TWITCHPRESS_DEFAULT_TIMEOUT,
-            CURLOPT_HTTPHEADER => $header
-        );
-    
-        // Do we have a certificate to use?  if OpenSSL is available, there will be a certificate
-        if ( TWITCHPRESS_CERT_PATH != '' ){
-
-            // Overwrite outr defaults to include the SSL cert and options
-            array_merge($default, array(
-                CURLOPT_SSL_VERIFYPEER => 1,
-                CURLOPT_SSL_VERIFYHOST => 1,
-                CURLOPT_CAINFO         => realpath( TWITCHPRESS_CERT_PATH ) // This requires the real path of the certificate (Strict, may use CAPATH instead if it causes problems)
-            ));
-        }
-
-        $handle = curl_init();
-        
-        if (function_exists('curl_setopt_array')) {
-            curl_setopt_array($handle, ($options + $default));
-        } else { 
-            // nope, set them one at a time
-            // Options are set last so you can override anything you don't want to keep from defaults
-            foreach (($default + $options) as $key => $opt) {
-                curl_setopt($handle, $key, $opt);
-            }
-        }
-        
-        $result = curl_exec( $handle );
-        $httpdStatus = curl_getinfo( $handle, CURLINFO_HTTP_CODE );
-        
-        
-        echo '<pre>';
-        var_dump( $result );
-        echo '</pre>';
-        
-        wp_die( __FILE__ );
-        
-        
-        // Check our HTTPD status that was returned for error returns
-        $error_string = '';
-        $error_no = '';
-        if (($httpdStatus == 404) || ($httpdStatus == 0) || ($httpdStatus == 503)) 
-        {
-            //$error_string = curl_error($handle);
-            //$error_no = curl_errno($handle);
-            //$this->bugnet->log_error( __FUNCTION__, sprintf( __( 'TwitchPress Error %s: %s', 'twitchpress' ), $error_no, $error_string ), array(), true );
-        }
-        
-        curl_close($handle);
-        
-        // Log the HTTP status in more detail if it isn't a good response. 
-        if( $httpdStatus !== 200 ) 
-        {
-            //$status_meaning = kraken_httpstatuses( $httpdStatus, 'wiki' );
-            //if( !is_string( $status_meaning ) ) { $status_meaning = __( 'Sorry, no more information could be retrieved for this status.', 'twitchpress' ); }
-            //$this->bugnet->log( __FUNCTION__, sprintf( __( 'TwitchPress HTTPDStatus: %s - %s', 'twitchpress' ), $httpdStatus, $status_meaning ), array(), true, false );
-        }
-        
-        if ($returnStatus) {
-            $result_details = $httpdStatus;
-        } else {
-            $result_details = $result; 
-        }
-        
-        // Store the get request - this is done using transients. 
-        $this->store_curl_get( $function, 
-                               json_decode( $result_details ), 
-                               $httpdStatus, 
-                               $header, 
-                               $get, 
-                               $url,
-                               $cURL_URL, 
-                               $error_string, 
-                               $error_no, 
-                               array( /* args */)     
-        ); 
-        
-        // Are we returning the HHTPD status?
-        if ($returnStatus) {
-            return $httpdStatus;
-        } else {
-            return $result; 
-        }
-    }
-
-    /**
-     * This operates a POST style cURL command.  Will return success.
-     * 
-     * @param $url - [string] URL supplied for the connection
-     * @param $post - [array] All supplied data used to define what data to post
-     * @param $options - [array] Set options for the cURL session
-     * @param $returnStatus - [bool] Sets the function to return the numerical status instead of the raw result
-     * 
-     * @return $result - [mixed] The raw return of the resulting query or the numerical status
-     * 
-     * @version 1.7
-     */ 
-    protected function cURL_post($url, array $post = array(), array $options = array(), $returnStatus = false){
-        $postfields = '';
-        
-        // Specify the header
-        $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
-        $header = (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $post) === 1) || (array_key_exists('oauth_token', $post) === true))) ? array_merge($header, array('Authorization: OAuth ' . $post['oauth_token'])) : $header;
-        $header = (( $this->twitch_client_id !== '') && ($this->twitch_client_id !== ' ')) ? array_merge($header, array('Client-ID: ' . $this->twitch_client_id)) : $header;                           // v6 Authorization: Bearer    <access token>"  https://api.twitch.tv/helix/
-    
-        if (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $post) === 1) || (array_key_exists('oauth_token', $post) === true))) {
-            unset($post['oauth_token']);
-        }
-
-        // Custom build the post fields
-        foreach ($post as $field => $value) {
-            $postfields .= $field . '=' . $value . '&';
-        }
-        
-        // Strip the trailing &
-        $postfields = rtrim($postfields, '&');
-        
-        $default = array( 
-            CURLOPT_CONNECTTIMEOUT => TWITCHPRESS_DEFAULT_RETURN_TIMEOUT,
-            CURLOPT_TIMEOUT => TWITCHPRESS_DEFAULT_TIMEOUT,
-            CURLOPT_POSTFIELDS => $postfields,
-            CURLOPT_URL => $url, 
-            CURLOPT_POST => count($post),
-            CURLOPT_HEADER => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_FRESH_CONNECT => 1, 
-            CURLOPT_RETURNTRANSFER => 1, 
-            CURLOPT_FORBID_REUSE => 1,
-            CURLOPT_HTTPHEADER => $header
-        );
-                  
-        // Do we have a certificate to use?  if OpenSSL is available, there will be a certificate
-        if ( TWITCHPRESS_CERT_PATH != '' ){
-            // Overwrite outr defaults to include the SSL cert and options
-            array_merge($default, array(
-                CURLOPT_SSL_VERIFYPEER => 1,
-                CURLOPT_SSL_VERIFYHOST => 1,
-                CURLOPT_CAINFO         => realpath( TWITCHPRESS_CERT_PATH ) // This requires the real path of the certificate (Strict, may use CAPATH instead if it causes problems)
-            ));
-        }
-
-        $handle = curl_init();
-        
-        if (function_exists('curl_setopt_array')) {
-            curl_setopt_array($handle, ($options + $default));
-        } else { // nope, set them one at a time
-            // Options are set last so you can override anything you don't want to keep from defaults.
-            foreach (($default + $options) as $key => $opt) {
-                curl_setopt($handle, $key, $opt);
-            }
-        }
-      
-        $result = curl_exec( $handle );
-        
-        $httpdStatus = curl_getinfo( $handle, CURLINFO_HTTP_CODE );
-        
-        // Check our HTTPD status that was returned for error returns
-        if (($httpdStatus == 404) || ($httpdStatus == 0) || ($httpdStatus == 503)) {
-            $error_string = curl_error($handle);
-            $error_no = curl_errno($handle);
-            $this->bugnet->log_error( __FUNCTION__, sprintf( __( 'TwitchPress Error %s: %s', 'twitchpress' ), $error_no, $error_string ), array(), true );
-        }
-        
-        curl_close($handle);
-        
-        // Log anything that isn't a good response. 
-        if( $httpdStatus !== 200 ) {
-            $status_meaning = kraken_httpstatuses( $httpdStatus, 'wiki' );
-            if( !is_string( $status_meaning ) ) { $status_meaning = __( 'Sorry, no more information could be retrieved for this status.', 'twitchpress' ); }
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'TwitchPress HTTPDStatus: %s - %s', 'twitchpress' ), $httpdStatus, $status_meaning ), array(), true, false );
-        }
-        
-        // Are we returning the HHTPD status?
-        if ($returnStatus) {
-            return $httpdStatus;
-        } else {
-            return $result; 
-        }
-    }
-  
-    /**
-     * This operates a PUT style cURL command.  Will return success.
-     * 
-     * @param $url - [string] URL supplied for the connection
-     * @param $put - [array] All supplied data used to define what data to put
-     * @param $options - [array] Set options for the cURL session
-     * @param $returnStatus - [bool] Sets the function to return the numerical status instead of the raw result
-     * 
-     * @return $result - [mixed] The raw return of the resulting query or the numerical status
-     * 
-     * @version 1.6
-     */ 
-    protected function cURL_put($url, array $put = array(), array $options = array(), $returnStatus = false) {
-        $postfields = '';
-
-        // Specify the header
-        $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
-        $header = ((TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $put) === 1) || (array_key_exists('oauth_token', $put) === true))) ? array_merge($header, array('Authorization: OAuth ' . $put['oauth_token'])) : $header ;
-        $header = (($this->twitch_client_id !== '') && ($this->twitch_client_id !== ' ')) ? array_merge($header, array('Client-ID: ' . $this->twitch_client_id)) : $header;                         // v6 Authorization: Bearer    <access token>"  https://api.twitch.tv/helix/
-        
-        if ((TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $put) === 1) || (array_key_exists('oauth_token', $put) === true))) {
-            unset($put['oauth_token']);
-        }
-
-        // Custom build the post fields
-        $postfields = (is_array($put)) ? http_build_query($put) : $put;
-        
-        $default = array( 
-            CURLOPT_CONNECTTIMEOUT => TWITCH_DEFAULT_RETURN_TIMEOUT,
-            CURLOPT_TIMEOUT => TWITCH_DEFAULT_TIMEOUT,
-            CURLOPT_POSTFIELDS => $postfields,
-            CURLOPT_CUSTOMREQUEST => 'PUT',
-            CURLOPT_URL => $url,
-            CURLOPT_HEADER => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_FRESH_CONNECT => 1, 
-            CURLOPT_RETURNTRANSFER => 1, 
-            CURLOPT_FORBID_REUSE => 1,
-            CURLOPT_HTTPHEADER => $header
-        );
-        
-        // Do we have a certificate to use?  if OpenSSL is available, there will be a certificate
-        if ( TWITCHPRESS_CERT_PATH != '' ){
-
-            // Overwrite outr defaults to include the SSL cert and options
-            array_merge($default, array(
-                CURLOPT_SSL_VERIFYPEER => 1,
-                CURLOPT_SSL_VERIFYHOST => 1,
-                CURLOPT_CAINFO         => realpath( TWITCHPRESS_CERT_PATH ) // This requires the real path of the certificate (Strict, may use CAPATH instead if it causes problems)
-            ));
-        }
-
-        $handle = curl_init();
-        
-        if ( function_exists('curl_setopt_array') ) {
-            curl_setopt_array($handle, ($options + $default));
-        } else { // nope, set them one at a time
-            // Options are set last so you can override anything you don't want to keep from defaults.
-            foreach (($default + $options) as $key => $opt) {
-                curl_setopt($handle, $key, $opt);
-            }
-        }
-        
-        $result = curl_exec($handle);
-        $httpdStatus = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-        
-        // Check our HTTPD status that was returned for error returns
-        if (($httpdStatus == 404) || ($httpdStatus == 0) || ($httpdStatus == 503)) {
-            $error_string = curl_error($handle);
-            $error_no = curl_errno($handle);
-            $this->bugnet->log_error( __FUNCTION__, sprintf( __( 'TwitchPress Error %s: %s', 'twitchpress' ), $error_no, $error_string ), array(), true );       
-        }
-
-        curl_close($handle);
-        
-        // Log anything that isn't a good response. 
-        if( $httpdStatus !== 200 ) {
-            $status_meaning = kraken_httpstatuses( $httpdStatus, 'wiki' );
-            if( !is_string( $status_meaning ) ) { $status_meaning = __( 'Sorry, no more information could be retrieved for this status.', 'twitchpress' ); }
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'TwitchPress HTTPDStatus: %s - %s', 'twitchpress' ), $httpdStatus, $status_meaning ), array(), true, false );
-        }
-        
-        // Are we returning the HHTPD status?
-        if ($returnStatus) {
-            return $httpdStatus;
-        } else {
-            return $result; 
-        }
-    }
-
-    /**
-     * This operates a POST style cURL command with the DELETE custom command option.
-     * 
-     * @param $url - [string] URL supplied for the connection
-     * @param $post = [array]  All supplied data used to define what data to delete
-     * @param $options - [array] Set options for the cURL session
-     * @param $returnStatus - [bool] Sets the function to return the numerical status instead of the raw result {DEFAULTS TRUE}
-     * 
-     * @return $result - [mixed] The raw return of the resulting query or the numerical status
-     * 
-     * @version 1.2
-     */ 
-    protected function cURL_delete($url, array $post = array(), array $options = array(), $returnStatus = true) {
-        // Specify the header
-        $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
-        $header = ((TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $post) === 1) || (array_key_exists('oauth_token', $post) === true))) ? array_merge($header, array('Authorization: OAuth ' . $post['oauth_token'])) : $header ;
-        $header = (($this->twitch_client_id !== '') && ($this->twitch_client_id !== ' ')) ? array_merge($header, array('Client-ID: ' . $this->twitch_client_id)) : $header;                           // v6 Authorization: Bearer    <access token>"  https://api.twitch.tv/helix/
-        
-        if ((TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $post) === 1) || (array_key_exists('oauth_token', $post) === true))) {
-            unset($post['oauth_token']);
-        }
-        
-        $default = array(
-            CURLOPT_URL => $url,
-            CURLOPT_CONNECTTIMEOUT => TWITCHPRESS_DEFAULT_RETURN_TIMEOUT, 
-            CURLOPT_TIMEOUT => TWITCHPRESS_DEFAULT_TIMEOUT,
-            CURLOPT_HEADER => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_CUSTOMREQUEST => 'DELETE',
-            CURLOPT_HTTPHEADER => $header
-        );
-                
-        // Do we have a certificate to use?  if OpenSSL is available, there will be a certificate
-        if (TWITCHPRESS_CERT_PATH != '') {
-            // Overwrite outr defaults to include the SSL cert and options
-            array_merge($default, array(
-                CURLOPT_SSL_VERIFYPEER => 1,
-                CURLOPT_SSL_VERIFYHOST => 1,
-                CURLOPT_CAINFO         => realpath(TWITCHPRESS_CERT_PATH) // This requires the real path of the certificate (Strict, may use CAPATH instead if it causes problems)
-            ));
-        }
-        
-        $handle = curl_init();
-        
-        if (function_exists('curl_setopt_array')) {
-            curl_setopt_array($handle, ($options + $default));
-        } else { // nope, set them one at a time
-            // Options are set last so you can override anything you don't want to keep from defaults.
-            foreach (($default + $options) as $key => $opt) {
-                curl_setopt($handle, $key, $opt);
-            }
-        }
-
-        ob_start();
-        $result = curl_exec($handle);
-        $httpdStatus = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-        curl_close($handle); 
-        ob_end_clean();
-        
-        // Log anything that isn't a good response. 
-        if( $httpdStatus !== 200 ) {
-            $status_meaning = kraken_httpstatuses( $httpdStatus, 'wiki' );
-            if( !is_string( $status_meaning ) ) { $status_meaning = __( 'Sorry, no more information could be retrieved for this status.', 'twitchpress' ); }
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'TwitchPress HTTPDStatus: %s - %s', 'twitchpress' ), $httpdStatus, $status_meaning ), array(), true, false );
-        }
-        
-        // Are we returning the HHTPD status?
-        if ($returnStatus){
-            return $httpdStatus;
-        } else {
-            return $result; 
-        }
-    }
-  
     /**
      * This function iterates through calls.  Put in here to keep the code the exact same every time
      * This assumes that all values are checked before being passed to here, PLEASE CHECK YOUR PARAMS
