@@ -24,15 +24,15 @@ defined( 'ABSPATH' ) || die( 'Direct script access is not allowed!' );
 * 
 * @returns boolean false if no credentials else true
 * 
-* @param mixed $user_id
+* @param mixed $wp_user_id
 * 
-* @version 1.0
+* @version 2.0
 */
-function twitchpress_is_user_authorized( $user_id ) { 
-    if( !get_user_meta( $user_id, 'twitchpress_code', true ) ) {
+function twitchpress_is_user_authorized( $wp_user_id ) { 
+    if( !get_user_meta( $wp_user_id, 'twitchpress_code', false ) ) {
         return false;
     }    
-    if( !get_user_meta( $user_id, 'twitchpress_token', true ) ) {
+    if( !get_user_meta( $wp_user_id, 'twitchpress_token', false ) ) {
         return false;
     }    
     return true;

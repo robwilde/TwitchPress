@@ -188,8 +188,8 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             add_action( 'twitchpress_allapi_application_update_streamlabs' , array( $this, 'do_application_being_updated' ), 5, 4 );
 
             // Shortcodes
-            add_shortcode( 'visitor_api_services_buttons', 'shortcode_visitor_api_services_buttons' );
-            
+            add_shortcode( 'twitchpress_streamlabs_current_users_points', array( $this, 'shortcode_twitchpress_streamlabs_current_users_points') );
+                                  
             // Filters
             add_filter( 'twitchpress_get_sections_users', array( $this, 'settings_add_section_users' ), 50 );
             add_filter( 'twitchpress_get_settings_users', array( $this, 'settings_add_options_users' ), 50 );
@@ -445,7 +445,30 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             }
             return $val;
         }               
-                                              
+        
+        public function shortcode_twitchpress_streamlabs_current_users_points( $atts ) {
+
+            if( !is_user_logged_in() ) {
+                return __( 'Please Login', 'twitchpress' );
+            }
+            
+            if( !$this->streamlabs_api->is_user_ready( get_current_user_id() ) ) {
+                return __( 'Not Setup', 'twitchpress' );
+            }
+
+            $points = $this->get_current_users_points();
+            
+            if( !$points ) {
+                return 0;
+            }       
+                           
+            return $html_output;      
+        }          
+        
+        public function get_current_users_points() {
+            global $GLOBALS;
+            return $this->streamlabs_api->get_users_points_meta( get_current_user_id(), $GLOBALS['twitchpress']->main_channel_name );
+        }                            
     }
     
 endif;    

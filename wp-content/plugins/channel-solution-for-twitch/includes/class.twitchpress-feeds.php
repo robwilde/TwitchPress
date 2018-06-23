@@ -24,7 +24,7 @@ class TwitchPress_Feeds {
     }  
   
     public static function init() {         
-        add_action( 'save_post', array( __CLASS__, 'publish_to_feed' ), 2, 3 );
+        //add_action( 'save_post', array( __CLASS__, 'publish_to_feed' ), 2, 3 );
     }
     
     /**

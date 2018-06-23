@@ -96,6 +96,7 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 * Bugfixes:
   - Function was missing "twitchpress_sync_currentusers_twitchsub_mainchannel", copied from sync plugin to new sync class.
   - Subscribers table was outputting the first item for all rows, reported by Shady in Discord. 
+  - Changed boolean in twitchpress_is_user_authorized() which would cause a false positive if the values are not set for a user. 
   
 * Enhancements:
   - check_application_token() will now log the current token stated to be invalid even when it is very new.
@@ -104,12 +105,14 @@ New setup step added. Please open the Help tab and go to the Installation sectio
   - twitchpress_redirect_tracking() now uses wp_redirect() instead of wp_safe_redirect() 
   - Setup wizard now uses two methods to check if channel exists. See function twitchpress_setup_application_save().
   - Main file now has a list of $GLOBALS that will make it easier to development extensions. 
+  - New shortcode for creating a WP subscriber (logged-in visitor) page that allows third-party services to be authorized. 
+  - Disabled the share to feed service as Twitch.tv has disabled that feature on all channels. 
   
 * Configuration: 
   - No changes.
 
 * Database: 
-  - No changes. 
+  - No Changes. 
  
 = 2.0.2 = 
 * DONE - Identical "Channel Not Confirmed" notices have been changed to help identify what instance is being displayed. 

@@ -558,7 +558,7 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         { 
             return false; 
         } 
-        
+
         // Return recently synced points and sync if due.
         $points_array = get_user_meta( $wp_user_id, 'streamlabs_points', true );
 

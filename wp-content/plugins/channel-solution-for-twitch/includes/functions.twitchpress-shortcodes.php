@@ -235,22 +235,53 @@ add_shortcode( 'twitchpress_channels_status_list', 'twitchpress_channels_status_
 * 
 * @version 1.0
 */
-function shortcode_visitor_api_services_buttons( $atts ) {
+function shortcode_visitor_api_services_buttons( $atts ) {         
     global $post; 
+    
+    // Ensure visitor is logged into WordPress. 
+    if( !is_user_logged_in() ) {
+        return '<p>' . __( 'You must be logged into WordPress to view the full contents of this page.', 'twitchpress' );
+    }
     
     $html_output = '        
     <table class="form-table">
-        <tbody>';
+        <tbody>        
+            <tr>
+                <th>
+                    <p>
+                        Service
+                    </p>
+                </th>
+                <th> 
+                    <p>
+                        Status
+                    </p>                        
+                </th>
+                <th> 
+                    <p>
+                        Authorize
+                    </p>                        
+                </th>                
+            </tr>';
         
     $permalink = get_post_permalink( $post->ID, true );
     
     $atts = shortcode_atts( array(             
             //'channel_id'   => null
     ), $atts, 'twitchpress_channels_status_list' );    
-    
+                          
     // Twitch
     if( class_exists( 'TWITCHPRESS_Twitch_API' ) )
-    {
+    {   
+        $twitch_api = new TWITCHPRESS_Twitch_API();
+        
+        // Set the users current Twitch oAuth status. 
+        $twitchpress_oauth_status = __( 'Not Setup', 'twitchpress' );
+        if( twitchpress_is_user_authorized( get_current_user_id() ) )
+        {
+            $twitchpress_oauth_status = __( 'Ready', 'twitchpress' );
+        }
+        
         // Create a local API state. 
         $state = array( 'redirectto' => $permalink,
                         'userrole'   => 'visitor',
@@ -258,44 +289,61 @@ function shortcode_visitor_api_services_buttons( $atts ) {
                         'reason'     => 'personaloauth',
                         'function'   => __FUNCTION__
         );  
-        
-              
-        $twitch_api = new TWITCHPRESS_Twitch_API();
+                                                                      
         $url = $twitch_api->generate_authorization_url( $twitch_api->get_visitor_scopes(), $twitch_api->get_visitor_scopes() );
         unset($twitch_api); 
-        
-        $nonce = wp_create_nonce( 'tool_action' );
-        $profile_url = admin_url( 'profile.php?_wpnonce=' . $nonce . '&toolname=tool_user_sync_twitch_sub_data' );
-        
-        $html_output = '                
+
+        $html_output .= '                
         <tr>
-            <th>
-                <p>
-                    <a href="' . $profile_url . '" class="button button-primary">Authorize Twitch</a>
-                </p>
-            </th>
-            <td> 
-                <p>
-                    <a href="' . $profile_url . '" class="button button-primary">Authorize Twitch</a>
-                </p>                        
+            <td>
+                Twitch.tv
             </td>
+            <td> 
+                ' . $twitchpress_oauth_status . '                        
+            </td>
+            <td> 
+                <a href="' . $url . '" class="button button-primary">Setup</a>                          
+            </td>            
         </tr>';           
     }
 
     // Streamlabs 
     if( class_exists( 'TWITCHPRESS_Streamlabs_API' ) )
     {
+        $streamlabs_api = new TWITCHPRESS_Streamlabs_API();
+        
         $state = array( 'redirectto' => $permalink,
                         'userrole'   => 'visitor',
                         'outputtype' => 'public',
                         'reason'     => 'personaloauth',
                         'function'   => __FUNCTION__
-        );        
-        $twitch_api = new TWITCHPRESS_Twitch_API();
-        $url = $twitch_api->generate_authorization_url( $twitch_api->get_visitor_scopes(), $state );              
+        );   
+             
+        // Set the users current Twitch oAuth status. 
+        $streamlabs_oauth_status = __( 'Not Setup', 'twitchpress' );
+        if( $streamlabs_api->is_user_ready( get_current_user_id() ) )
+        {
+            $streamlabs_oauth_status = __( 'Ready', 'twitchpress' );
+        }
+        
+        $url = $streamlabs_api->oauth2_url_visitors( $state );
+        unset($streamlabs_api); 
+
+        $html_output .= '                
+        <tr>
+            <td>
+                Streamlabs.com
+            </td>
+            <td> 
+                ' . $streamlabs_oauth_status . '                        
+            </td>            
+            <td>
+                <a href="' . $url . '" class="button button-primary">Setup</a>               
+            </td>            
+        </tr>';                      
     }
     
-    $html_output = '            
+    $html_output .= '            
         </tbody>
     </table>';
                           
