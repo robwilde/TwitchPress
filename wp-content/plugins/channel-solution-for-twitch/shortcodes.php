@@ -15,6 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Only include files in this file. 
+include_once( 'includes/shortcodes/' );
 include_once( 'includes/functions.twitchpress-frontend.php' );
         

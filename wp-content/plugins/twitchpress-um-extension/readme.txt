@@ -64,6 +64,11 @@ Translator needed to localize our Channel Solution for Twitch: TwitchPress, and 
 No special upgrade instructions this time. 
 
 == Changelog ==
+= 1.4.1: NOT RELEASED = 
+* Proceduring for applying Twitch subscription paired WP roles has been updated to work strictly with WP roles and not the old UM approach. 
+* The user meta named 'role' (Ultimate Members old approach) is no longer in use. 
+* Function set_twitch_subscribers_um_role() was duplicated (one in class), the standard function has been removed to prevent confusion. 
+ 
 = 1.4.0: April 17, 2018 =
 
 * Bugfixes:

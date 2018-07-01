@@ -215,7 +215,6 @@ function twitchpress_error( $message, $message_type = 0, $destination = null, $e
 * @version 1.2
 */
 function twitchpress_returning_url_nonced( $new_parameters_array, $action, $specified_url = null  ) {
-
     $url = add_query_arg( $new_parameters_array, $specified_url );
     
     $url = wp_nonce_url( $url, $action );

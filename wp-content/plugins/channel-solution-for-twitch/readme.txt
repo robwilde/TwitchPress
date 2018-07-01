@@ -107,6 +107,7 @@ New setup step added. Please open the Help tab and go to the Installation sectio
   - Main file now has a list of $GLOBALS that will make it easier to development extensions. 
   - New shortcode for creating a WP subscriber (logged-in visitor) page that allows third-party services to be authorized. 
   - Disabled the share to feed service as Twitch.tv has disabled that feature on all channels. 
+  - New shortcode [twitchpress_sync_buttons_public] for listing manual data sync buttons, intended for tests and as a backup. 
   
 * Configuration: 
   - No changes.

@@ -463,8 +463,8 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             }       
                            
             return $html_output;      
-        }          
-        
+        }       
+     
         public function get_current_users_points() {
             global $GLOBALS;
             return $this->streamlabs_api->get_users_points_meta( get_current_user_id(), $GLOBALS['twitchpress']->main_channel_name );
