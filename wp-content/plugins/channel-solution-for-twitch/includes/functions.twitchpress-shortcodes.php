@@ -14,7 +14,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
-   
+
 /**
 * Shortcode outputs a basic status for the giving channel. 
 * 
@@ -350,94 +350,3 @@ function shortcode_visitor_api_services_buttons( $atts ) {
     return $html_output;    
 }
 add_shortcode( 'twitchpress_visitor_api_services_buttons', 'shortcode_visitor_api_services_buttons' );
-
-/**
-* List of buttons for manual sync for all services. This will initially server for testing
-* and early builds until specific requirements are better understood. 
-* 
-* @param mixed $atts
-* 
-* @version 1.0
-*/
-function shortcode_visitor_api_sync_buttons( $atts ) {         
-    global $post; 
-                       
-    // Ensure visitor is logged into WordPress. 
-    if( !is_user_logged_in() ) {
-        return '<p>' . __( 'You must be logged into WordPress to view the data sync buttons.', 'twitchpress' );
-    }
-    
-    $html_output = '        
-    <table class="form-table">
-        <tbody>        
-            <tr>
-                <th>
-                    <p>
-                        Service
-                    </p>
-                </th>
-                <th> 
-                    <p>
-                        Data
-                    </p>                        
-                </th>
-                <th> 
-                    <p>
-                        Action
-                    </p>                        
-                </th>                
-            </tr>';
-        
-    $permalink = get_post_permalink( $post->ID, true );
-    
-    $atts = shortcode_atts( array(             
-            //'channel_id'   => null
-    ), $atts, 'twitchpress_sync_buttons_public' );    
-                          
-    // Twitch
-    if( class_exists( 'TWITCHPRESS_Twitch_API' ) && twitchpress_is_user_authorized( get_current_user_id() ) )
-    {   
-        $url = admin_url( 'admin-post.php?&action=twitchpress_sync_twitch_public' );
-        $url = wp_nonce_url( $url, 'twitchpress_sync_twitch_public' );            
-
-        $html_output .= '                
-        <tr>
-            <td>
-                Twitch.tv
-            </td>
-            <td> 
-                ' . __( 'All', 'twitchpress' ) . '                        
-            </td>
-            <td> 
-                <a href="' . $url . '" class="button button-primary">Sync</a>                          
-            </td>            
-        </tr>';           
-    }
-
-    // Streamlabs 
-    if( class_exists( 'TWITCHPRESS_Streamlabs_API' ) )
-    {
-        $url = admin_url( 'admin-post.php?&action=twitchpress_sync_streamlabs_public' );
-        $url = wp_nonce_url( $url, 'twitchpress_sync_streamlabs_public' ); 
-
-        $html_output .= '                
-        <tr>
-            <td>
-                Streamlabs.com
-            </td>
-            <td> 
-                ' . __( 'All', 'twitchpress' ) . '                        
-            </td>            
-            <td>
-                <a href="' . $url . '" class="button button-primary">Sync</a>               
-            </td>            
-        </tr>';                      
-    }
-    
-    $html_output .= '            
-        </tbody>
-    </table>';
-                          
-    return $html_output;    
-}
-add_shortcode( 'twitchpress_sync_buttons_public', 'shortcode_visitor_api_sync_buttons' );

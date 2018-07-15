@@ -18,10 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Output the shortcode. 
 add_shortcode( 'twitchpress_subman_update_um_role', 'twitchpress_shortcode_subman_update_um_role' );
 
-// (admin_post) Listen for visitors clicking the link.  
+// (admin_post) Listen for authenticated users clicking the link.  
 add_action( 'admin_post_twitchpress_subman_um_role_sync', 'twitchpress_admin_post_subman_um_role_sync' );
 
-// (admin_post_nopriv) Listen for non-authenticated users clicking the link.
+// (admin_post_nopriv) Listen for non-authenticated visitors clicking the link.
 add_action( 'admin_post_nopriv_twitchpress_subman_um_role_sync', 'twitchpress_admin_post_nopriv_reject' );
    
 /**

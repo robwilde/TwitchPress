@@ -122,9 +122,10 @@ final class WordPressTwitchPress {
      */
     public function __construct() {
         $this->define_constants();
+        $this->load_debugger();
         $this->includes();
         $this->init_hooks();
-        $this->load_debugger();
+        
         
         $this->available_languages = array(
             //'en_US' => 'English (US)',
@@ -225,9 +226,12 @@ final class WordPressTwitchPress {
      * @version 1.4
      */
     public function includes() {
- 
+        
         // SPL Autoloader Class
         include_once( 'includes/class.twitchpress-autoloader.php' );
+        
+        // Load the most common functions that need to be easily accessed by the entire site.
+        include_once( plugin_basename( 'functions.php' ) );
         
         // Load class and libraries.
         require_once( 'includes/libraries/class.async-request.php' );
@@ -244,7 +248,7 @@ final class WordPressTwitchPress {
         require_once( 'includes/class.twitchpress-feeds.php' );
         require_once( 'includes/class.twitchpress-sync.php' );
         require_once( 'includes/class.twitchpress-history.php' );
-        require_once( 'includes/functions.twitchpress-shortcodes.php' );
+        include_once( plugin_basename( 'shortcodes.php' ) );
         
         // Load Core Objects
         $this->load_core_objects();
@@ -261,10 +265,11 @@ final class WordPressTwitchPress {
     */
     private function load_core_objects() {
         // Create CORE Objects (new approach April 2018)
+        $this->twitch_calls   = new TWITCHPRESS_Twitch_API_Calls();
         $this->sync           = new TwitchPress_Systematic_Syncing();
-        $this->public_notices = new TwitchPress_Public_Notices();
+        $this->public_notices = new TwitchPress_Public_PreSet_Notices();
                      
-        // Initialize full system.
+        // Initialize systematic syncing.
         $this->sync->init();
         
         // Load CORE files only required when logged into the administration side.     
@@ -335,9 +340,9 @@ final class WordPressTwitchPress {
      */
     public function frontend_includes() {
         include_once( plugin_basename( 'includes/class.twitchpress-frontend-scripts.php' ) );  
+        include_once( plugin_basename( 'includes/functions.twitchpress-frontend-notices.php' ) );  
         include_once( plugin_basename( 'includes/functions.twitchpress-frontend.php' ) );
-        include_once( plugin_basename( 'includes/class.twitchpress-public-notices.php' ) );        
-        include_once( plugin_basename( 'shortcodes.php' ) );                
+        include_once( plugin_basename( 'includes/class.twitchpress-public-preset-notices.php' ) );              
     }
 
     /**

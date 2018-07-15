@@ -7,14 +7,12 @@ Tags: Twitch, TwitchPress, Twitch.tv, TwitchPress Extension, TwitchPress Streaml
 Requires at least: 4.4
 Tested up to: 4.9
 Stable tag: 1.0.0
-Minimum core version: 2.0.2
+Minimum core version: 2.0.3
 Requires PHP: 5.6
                         
 Streamlabs extension for the TwitchPress system.
                        
 == Description ==
-
-Plugin is still BETA. 
 
 TwitchPress offers a platform to build a Twitch.tv powered website. This
 extension will add Streamlabs features to the TwitchPress system. 
@@ -60,7 +58,7 @@ backup your site files and database.
 == Changelog ==
 
 = 1.0.0 =
-* DEV - Released ???
+* DEV - Released 15th July 2018
 
 == Version Numbers and Updating ==
 

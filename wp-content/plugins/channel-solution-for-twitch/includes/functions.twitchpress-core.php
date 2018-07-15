@@ -986,7 +986,6 @@ function twitchpress_is_current_user_main_channel_owner( $user_id = null ) {
     return false;    
 }
 
-
 /**
 * Returns the user meta value for the last time their Twitch data
 * was synced with WordPress. Value is 

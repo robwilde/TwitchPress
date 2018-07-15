@@ -132,10 +132,8 @@ class WP_Http_Curl {
 			curl_setopt( $handle, CURLOPT_CAINFO, $r['sslcertificates'] );
 		}
 
-        if( isset( $r['user-agent'] ) ) {
-		    curl_setopt( $handle, CURLOPT_USERAGENT, $r['user-agent'] );
-        }
-        
+		curl_setopt( $handle, CURLOPT_USERAGENT, $r['user-agent'] );
+
 		/*
 		 * The option doesn't work with safe mode or when open_basedir is set, and there's
 		 * a bug #17490 with redirected POST requests, so handle redirections outside Curl.
@@ -176,7 +174,7 @@ class WP_Http_Curl {
 			$this->max_body_length = false;
 
 		// If streaming to a file open a file handle, and setup our curl streaming handler.
-		if ( isset( $r['stream'] ) && $r['stream'] ) {
+		if ( $r['stream'] ) {
 			if ( ! WP_DEBUG )
 				$this->stream_handle = @fopen( $r['filename'], 'w+' );
 			else
@@ -276,25 +274,22 @@ class WP_Http_Curl {
 
 		curl_close( $handle );
 
-		if ( isset( $r['stream'] ) && $r['stream'] )
+		if ( $r['stream'] )
 			fclose( $this->stream_handle );
 
 		$response = array(
 			'headers' => $theHeaders['headers'],
 			'body' => null,
 			'response' => $theHeaders['response'],
-			'cookies' => $theHeaders['cookies']
+			'cookies' => $theHeaders['cookies'],
+			'filename' => $r['filename']
 		);
-        
-        if( isset( $r['filename'] ) ) {
-            $response = array_merge( $response, array( 'filename' => $r['filename'] ) );
-        }
 
 		// Handle redirects.
 		if ( false !== ( $redirect_response = WP_HTTP::handle_redirects( $url, $r, $response ) ) )
 			return $redirect_response;
 
-		if ( isset( $r['decompress'] ) && true === $r['decompress'] && true === WP_Http_Encoding::should_decode($theHeaders['headers']) )
+		if ( true === $r['decompress'] && true === WP_Http_Encoding::should_decode($theHeaders['headers']) )
 			$theBody = WP_Http_Encoding::decompress( $theBody );
 
 		$response['body'] = $theBody;

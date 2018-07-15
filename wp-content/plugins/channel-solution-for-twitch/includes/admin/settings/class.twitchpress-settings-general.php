@@ -46,10 +46,10 @@ class TwitchPress_Settings_General extends TwitchPress_Settings_Page {
         // Add more sections to the settings tab.
         $this->sections_array = array(
         
-            'default'   => __( 'General', 'twitchpress' ),
+            'default'   => __( 'General', 'twitchpress' ), 
             'removal'   => __( 'Plugin Removal', 'twitchpress' ),
             'advanced'  => __( 'Advanced', 'twitchpress' ),
-            'bugnet'  => __( 'BugNet', 'twitchpress' ),
+            'bugnet'    => __( 'BugNet', 'twitchpress' ),
 
         );
         
@@ -91,7 +91,7 @@ class TwitchPress_Settings_General extends TwitchPress_Settings_Page {
             $settings = apply_filters( 'twitchpress_general_settings', array(
 
                 array(
-                    'title' => __( 'Improvement Program', 'twitchpress' ),
+                    'title' => __( 'General Settings', 'twitchpress' ),
                     'type'     => 'title',
                     'desc'     => __( 'You can support development by opting into the improvement program. It does not send sensitive data. The plugin can also request feedback occasionally, this is rare to avoid harassing you or users. Data collected is send to Ryan Bayne.', 'twitchpress' ),
                     'id'     => 'generalsettings'
@@ -193,7 +193,7 @@ class TwitchPress_Settings_General extends TwitchPress_Settings_Page {
 
             ));
         
-        // Advanced settings for developers only.
+         // Advanced settings for developers only.
         } elseif( 'advanced' == $current_section ) {
             
             $settings = apply_filters( 'twitchpress_general_advanced_settings', array(

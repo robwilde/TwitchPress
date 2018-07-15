@@ -91,7 +91,7 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
-= 2.0.3: April 23, 2018 NOT RELEASED =
+= 2.0.3: July 15, 2018 =
 
 * Bugfixes:
   - Function was missing "twitchpress_sync_currentusers_twitchsub_mainchannel", copied from sync plugin to new sync class.
@@ -108,6 +108,7 @@ New setup step added. Please open the Help tab and go to the Installation sectio
   - New shortcode for creating a WP subscriber (logged-in visitor) page that allows third-party services to be authorized. 
   - Disabled the share to feed service as Twitch.tv has disabled that feature on all channels. 
   - New shortcode [twitchpress_sync_buttons_public] for listing manual data sync buttons, intended for tests and as a backup. 
+  - Moved function twitchpress_shortcode_procedure_redirect() from UM extension to the frontend-notices.php (temporary approach).
   
 * Configuration: 
   - No changes.

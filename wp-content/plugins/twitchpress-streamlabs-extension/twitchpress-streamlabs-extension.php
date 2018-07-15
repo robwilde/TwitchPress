@@ -44,7 +44,7 @@ if ( !in_array( 'channel-solution-for-twitch/twitchpress.php', apply_filters( 'a
  */
 define( 'TWITCHPRESS_STREAMLABS_VERSION', '1.0.0' );
 define( 'TWITCHPRESS_STREAMLABS_MIN_PHP_VER', '5.6.0' );
-define( 'TWITCHPRESS_STREAMLABS_MIN_TP_VER', '1.6.1' );
+define( 'TWITCHPRESS_STREAMLABS_MIN_TP_VER', '2.0.3' );
 define( 'TWITCHPRESS_STREAMLABS_MAIN_FILE', __FILE__ );
 define( 'TWITCHPRESS_STREAMLABS_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'TWITCHPRESS_STREAMLABS_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -446,8 +446,8 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             return $val;
         }               
         
-        public function shortcode_twitchpress_streamlabs_current_users_points( $atts ) {
-
+        public function shortcode_twitchpress_streamlabs_current_users_points( $atts ) {     
+            $html_output = 0;
             if( !is_user_logged_in() ) {
                 return __( 'Please Login', 'twitchpress' );
             }
@@ -459,7 +459,7 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             $points = $this->get_current_users_points();
             
             if( !$points ) {
-                return 0;
+                return $html_output;
             }       
                            
             return $html_output;      
