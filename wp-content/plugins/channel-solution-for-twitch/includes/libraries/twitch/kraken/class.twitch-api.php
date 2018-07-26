@@ -98,7 +98,15 @@ class TWITCHPRESS_Twitch_API {
     public function __construct(){
         // Load logging, reporting and debugging service. 
         $this->bugnet = new BugNet();
+                                               global $GLOBALS;
+        $GLOBALS['twitchpress']->app_id;
         
+        echo '<pre>';
+        var_dump( $GLOBALS['twitchpress']->app_id );
+        var_dump( $GLOBALS['twitchpress']->app_redirect );
+        var_dump( $GLOBALS['twitchpress']->app_token );
+        echo '</pre>';
+                    
         // Set all app credentials for this library to use. 
         $this->set_application_credentials();
         
@@ -116,19 +124,20 @@ class TWITCHPRESS_Twitch_API {
     * @version 5.0
     */
     public function set_application_credentials( $app = 'main' ) {
-        
+
         $this->twitch_default_channel = get_option( 'twitchpress_' . $app . '_channel_name' );   
         $this->twitch_channel_id      = get_option( 'twitchpress_' . $app . '_channel_id' );   
         $this->twitch_client_url      = get_option( 'twitchpress_' . $app . '_redirect_uri' );   
         $this->twitch_client_id       = get_option( 'twitchpress_' . $app . '_client_id' ); 
         $this->twitch_client_secret   = get_option( 'twitchpress_' . $app . '_client_secret' );                           
         $this->twitch_client_code     = get_option( 'twitchpress_' . $app . '_code' ); 
-        
-        // Tokens expire so we will check our current token and update option if needed.  
+        $this->twitch_client_token    = get_option( 'twitchpress_app_token' );
+                       
+        // Ensure our token is still valid, this will generate and set a new one if not.  
         $this->establish_application_token( __FUNCTION__ );
         
         // Set token which should be old and valid or new and valid.                           
-        $this->twitch_client_token = get_option( 'twitchpress_' . $app . '_token' );   
+        //$this->twitch_client_token = get_option( 'twitchpress_' . $app . '_token' );   
         
         // Set users token.
         $this->twitch_user_token = twitchpress_get_user_token( get_current_user_id() );               
@@ -489,7 +498,7 @@ class TWITCHPRESS_Twitch_API {
      * @version 1.6
      */
     protected function cURL_get($url, array $get = array(), array $options = array(), $returnStatus = false, $function = '' ){
-
+  
         $header = array('Accept: application/vnd.twitchtv.v' . TWITCHPRESS_API_VERSION . '+json'); // Always included
         $header = (( $this->twitch_client_id !== '') && ($this->twitch_client_id !== ' ')) ? array_merge($header, array('Client-ID: ' . $this->twitch_client_id)) : $header;
         $header = (( TWITCHPRESS_TOKEN_SEND_METHOD == 'HEADER') && ((array_key_exists('oauth_token', $get) === 1) 
@@ -1399,6 +1408,8 @@ class TWITCHPRESS_Twitch_API {
             // Store the new token for the entire TwitchPress system to use.
             $this->update_main_client_token( $token['token'], $token['scopes'] );
             
+            $this->twitch_client_token = $token['token'];
+            
             return $token;
         } 
         else 
@@ -1469,18 +1480,20 @@ class TWITCHPRESS_Twitch_API {
      * 
      * @version 5.2
      */    
-    public function check_application_token(){
-        $token = get_option( 'twitchpress_app_token' );
+    public function check_application_token(){                    
+        //$token = get_option( 'twitchpress_app_token' );
+                                //$this->twitch_client_token
         $url = 'https://api.twitch.tv/kraken';
         $post = array( 
-            'oauth_token' => $token, 
+            'oauth_token' => $this->twitch_client_token, 
             'client_id'   => $this->twitch_client_id,          
         );
 
         $result = json_decode( $this->cURL_get( $url, $post, array(), false, __FUNCTION__ ), true );                   
     
         if ( isset( $result['token']['valid'] ) && $result['token']['valid'] )
-        {       
+        {   
+            //$this->twitch_client_token = $token;    
             return $result;
         } 
         else 
@@ -1844,7 +1857,7 @@ class TWITCHPRESS_Twitch_API {
     */
     public function update_main_client_token( $token, $scopes ) {
         update_option( 'twitchpress_main_token', $token );
-        update_option( 'twitchpress_main_token_scopes', $scopes );
+        update_option( 'twitchpress_main_token_scopes', $scopes );     
     }
     
     /**
@@ -1892,4 +1905,10 @@ class TWITCHPRESS_Twitch_API {
 }
 
 endif;
-TWITCHPRESS_Twitch_API::init();
+
+echo '<pre>';
+var_dump( __LINE__ );
+echo '</pre>';
+TWITCHPRESS_Twitch_API::init();echo '<pre>';
+var_dump( __LINE__ );
+echo '</pre>';

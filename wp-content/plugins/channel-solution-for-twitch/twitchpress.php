@@ -72,7 +72,56 @@ final class WordPressTwitchPress {
     * @var mixed
     */
     public $dump = array();
-
+    
+    /* Main application credentials */
+    public $app_id = null; 
+    public $app_secret = null;// Possibly change to protected?
+    public $app_redirect = null;
+    public $app_token = null;
+    public $app_token_scopes = null; 
+    
+    /* Main users Twitch oauth credentials for channel specific requests */
+    public $main_channels_code = null;
+    public $main_channels_wpowner_id  = null;
+    public $main_channels_token = null;
+    public $main_channels_refresh = null; 
+    public $main_channels_scopes = null;
+    public $main_channels_name = null;
+    public $main_channels_id = null;
+     
+    /*
+    
+        $arr[ 'twitchpress_apiversion' ] = array();
+    
+    // Twitch Application Credentials Group
+    $arr[ 'twitchpress_app_id' ] = array();// Client ID
+    $arr[ 'twitchpress_app_secret' ] = array();// Client Secret
+    $arr[ 'twitchpress_app_redirect' ] = array();// Redirect URL
+    $arr[ 'twitchpress_app_token' ] = array();// Generated Token
+    $arr[ 'twitchpress_app_token_scopes' ] = array();// Tokens Scopes
+    
+    // API calls made on behalf 
+    $arr[ 'twitchpress_main_channels_code' ] = array();// Main users own channel oauth code. 
+    $arr[ 'twitchpress_main_channels_wpowner_id' ] = array();// WordPress ID of the main channel owner. 
+    $arr[ 'twitchpress_main_channels_token' ] = array();// Main channels oauth token. 
+    $arr[ 'twitchpress_main_channels_refresh' ] = array();// Main channels oauth refresh token. 
+    $arr[ 'twitchpress_main_channels_scopes' ] = array();// Main users accepted API scope. 
+    $arr[ 'twitchpress_main_channel_name' ] = array();// Main channel name (this might be the title of channel and not lowercase, please confirm)
+    $arr[ 'twitchpress_main_channel_id' ] = array();// Main channels Twitch ID (same as user ID)
+    
+    
+    $arr[ 'twitchpress_main_code' ] = array();// Generated on behalf of the main user. // depreciated 
+    $arr[ 'twitchpress_main_token' ] = array();// Generated on behalf of the main user. // depreciated
+    $arr[ 'twitchpress_main_token_scopes' ] = array();// Generated on behalf of the main user. // depreciated  
+    
+    // Depreciated
+    $arr[ 'twitchpress_main_client_secret' ] = array();// Depreciated use twitchpress_app_secret
+    $arr[ 'twitchpress_main_client_id' ] = array();// Depreciated use twitchpress_main_client_id
+    $arr[ 'twitchpress_main_redirect_uri' ] = array();// Depreciated use twitchpress_app_redirect
+    $arr[ 'twitchpress_main_channel_postid' ] = array();// Generated on behalf of the main user.
+    
+    */
+    
     /**
      * Main TwitchPress Instance.
      *
@@ -122,10 +171,9 @@ final class WordPressTwitchPress {
      */
     public function __construct() {
         $this->define_constants();
-        $this->load_debugger();
+        $this->load_debugger();        
         $this->includes();
         $this->init_hooks();
-        
         
         $this->available_languages = array(
             //'en_US' => 'English (US)',
@@ -208,17 +256,6 @@ final class WordPressTwitchPress {
         // Library Integration
         if ( ! defined( 'BUGNET_LOG_DIR' ) ) { define( 'BUGNET_LOG_DIR', TWITCHPRESS_LOG_DIR ); }        
     }
-
-    /**
-    * These values are intended for access using $GLOBAL['twitchpress']
-    * 
-    * @version 1.0
-    */
-    private function define_globals() {
-        $this->main_channel_name = twitchpress_get_main_channels_name(); 
-        $this->main_channel_id = twitchpress_get_main_channels_twitchid();
-        $this->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();           
-    }
     
     /**
      * Include required core files.
@@ -254,7 +291,7 @@ final class WordPressTwitchPress {
         $this->load_core_objects();
         
         // Load Public Objects
-        $this->load_public_objects();
+        $this->load_public_objects();                    
     }
     
     /**
@@ -264,11 +301,30 @@ final class WordPressTwitchPress {
     * @version 1.0
     */
     private function load_core_objects() {
-        // Create CORE Objects (new approach April 2018)
+        
+        // Create CORE Objects (new approach April 2018) 
+        
+        
+        
+             $this->set_twitch_application();
+    $this->set_main_channel_oauth_credentails();
+    $this->set_current_users_oauth_credentials(); 
+        
+        echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';                       this is calling $GLOBAL['twitchpress'] before it exists  
+                                            need to establish credentails before this object 
         $this->twitch_calls   = new TWITCHPRESS_Twitch_API_Calls();
+        echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';        
+        
+        
+        
+        
         $this->sync           = new TwitchPress_Systematic_Syncing();
         $this->public_notices = new TwitchPress_Public_PreSet_Notices();
-                     
+                        
         // Initialize systematic syncing.
         $this->sync->init();
         
@@ -356,6 +412,73 @@ final class WordPressTwitchPress {
         $bugnet = new BugNet();
         $bugnet->log_directory = TWITCHPRESS_LOG_DIR;
         $bugnet->plugin_name = 'twitchpress';    
+    }
+    
+    /**
+    * Set the values required for the Twitch API application to make any request
+    * to Twitch.tv (Kraken or Helix). 
+    * 
+    * @version 1.0
+    */
+    public function set_twitch_application() {
+
+        $this->app_id = get_option( 'twitchpress_app_id', 0 ); 
+        $this->app_secret = get_option( 'twitchpress_app_secret', 0 );
+        $this->app_redirect = get_option( 'twitchpress_app_redirect', 0 );
+        $this->app_token = get_option( 'twitchpress_app_token', 0 );
+        $this->app_token_scopes = get_option( 'twitchpress_app_token_scopes', 0 ); 
+
+    }
+    
+    /**
+    * Set the values required to make channel specific queries to the site owners
+    * main/official channel as setup when that user completes oAuth2. 
+    * 
+    * @version 1.0
+    */
+    public function set_main_channel_oauth_credentails() {
+                    
+        $this->main_channels_code = get_option( 'twitchpress_main_channels_code', 0 );
+        $this->main_channels_wpowner_id  = get_option( 'twitchpress_main_channels_wpowner_id', 0 );
+        $this->main_channels_token = get_option( 'twitchpress_main_channels_token', 0 );
+        $this->main_channels_refresh = get_option( 'twitchpress_main_channels_refresh', 0 ); 
+        $this->main_channels_scopes = get_option( 'twitchpress_main_channels_scopes', 0 );
+        $this->main_channels_name = get_option( 'twitchpress_main_channel_name', 0 );
+        $this->main_channels_id = get_option( 'twitchpress_main_channel_id', 0 );
+         
+        /*
+
+        // API calls made on behalf 
+        $arr[ 'twitchpress_main_channels_code' ] = array();// Main users own channel oauth code. 
+        $arr[ 'twitchpress_main_channels_wpowner_id' ] = array();// WordPress ID of the main channel owner. 
+        $arr[ 'twitchpress_main_channels_token' ] = array();// Main channels oauth token. 
+        $arr[ 'twitchpress_main_channels_refresh' ] = array();// Main channels oauth refresh token. 
+        $arr[ 'twitchpress_main_channels_scopes' ] = array();// Main users accepted API scope. 
+        $arr[ 'twitchpress_main_channel_name' ] = array();// Main channel name (this might be the title of channel and not lowercase, please confirm)
+        $arr[ 'twitchpress_main_channel_id' ] = array();// Main channels Twitch ID (same as user ID)
+        
+        
+        $arr[ 'twitchpress_main_code' ] = array();// Generated on behalf of the main user. // depreciated 
+        $arr[ 'twitchpress_main_token' ] = array();// Generated on behalf of the main user. // depreciated
+        $arr[ 'twitchpress_main_token_scopes' ] = array();// Generated on behalf of the main user. // depreciated  
+        
+        // Depreciated
+        $arr[ 'twitchpress_main_client_secret' ] = array();// Depreciated use twitchpress_app_secret
+        $arr[ 'twitchpress_main_client_id' ] = array();// Depreciated use twitchpress_main_client_id
+        $arr[ 'twitchpress_main_redirect_uri' ] = array();// Depreciated use twitchpress_app_redirect
+        $arr[ 'twitchpress_main_channel_postid' ] = array();// Generated on behalf of the main user.
+        
+        */        
+    }
+    
+    /**
+    * Set current users Twitch API oauth credentials. Current user would need to have completed
+    * the oAuth2 procedure for the option values to exist.
+    * 
+    * @version 1.0
+    */
+    public function set_current_users_oauth_credentials() {
+  
     }
     
     /**
@@ -467,6 +590,7 @@ if( !function_exists( 'TwitchPress' ) ) {
     // Global for backwards compatibility.
     global $GLOBALS;
     $GLOBALS['twitchpress'] = TwitchPress();
+    
     // ["version"]=> string(5) "2.0.0" 
     // ["min_wp_version"]=> string(3) "4.7" 
     // ["session"]=> NULL ["bugnet"]=> NULL 
@@ -477,4 +601,9 @@ if( !function_exists( 'TwitchPress' ) ) {
     $GLOBALS['twitchpress']->main_channel_id = twitchpress_get_main_channels_twitchid();
     $GLOBALS['twitchpress']->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();  
 
+    // Set Twitch API credentials.
+    $GLOBALS['twitchpress']->set_twitch_application();
+    $GLOBALS['twitchpress']->set_main_channel_oauth_credentails();
+    $GLOBALS['twitchpress']->set_current_users_oauth_credentials(); 
+                        
 }

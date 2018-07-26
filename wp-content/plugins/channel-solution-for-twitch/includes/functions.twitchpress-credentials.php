@@ -283,16 +283,9 @@ function twitchpress_get_app_code() {
     return get_option( 'twitchress_app_code'); 
 }
 
-/**
-* @deprecated use twitchpress_get_app_token()
-*/
 function twitchpress_get_main_client_token() {
     return get_option( 'twitchpress_main_token' );
 }  
-
-function twitchpress_get_app_token() {
-    return get_option( 'twitchpress_app_token' );    
-}
 
 function twitchpress_get_app_redirect() {
     return get_option( 'twitchpress_app_redirect' ); 

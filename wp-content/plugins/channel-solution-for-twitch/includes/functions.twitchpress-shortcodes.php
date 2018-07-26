@@ -273,8 +273,15 @@ function shortcode_visitor_api_services_buttons( $atts ) {
     // Twitch
     if( class_exists( 'TWITCHPRESS_Twitch_API' ) )
     {   
-        $twitch_api = new TWITCHPRESS_Twitch_API();
         
+        echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
+        $twitch_api = new TWITCHPRESS_Twitch_API();
+        echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
+                
         // Set the users current Twitch oAuth status. 
         $twitchpress_oauth_status = __( 'Not Setup', 'twitchpress' );
         if( twitchpress_is_user_authorized( get_current_user_id() ) )

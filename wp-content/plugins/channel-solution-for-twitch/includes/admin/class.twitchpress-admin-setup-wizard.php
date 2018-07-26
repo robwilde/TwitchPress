@@ -604,9 +604,13 @@ class TwitchPress_Admin_Setup_Wizard {
             TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', sprintf( __( 'Please select one or more scopes. Each will enable services and features using the permissions each scope gives. It is best practice to avoid requesting permissions your site does not need.'), esc_html( $main_channel ) ) );
             return;
         }
-   
+                echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
         // Delete options for scopes that are not in $_POST (not checked) and add those that are.
-        $pre_credentials_kraken = new TWITCHPRESS_Twitch_API();
+        $pre_credentials_kraken = new TWITCHPRESS_Twitch_API();                 echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
         $all_scopes = $pre_credentials_kraken->scopes();
         foreach( $all_scopes as $scope => $scope_info ) {  
             if( in_array( $scope, $_POST['twitchpress_scopes'] ) ) {     
@@ -695,10 +699,10 @@ class TwitchPress_Admin_Setup_Wizard {
         {
             $post_id = $existing_channelpost_id;
         } 
-
+              
         // Confirm storage of application and that oAuth2 is next.        
         TwitchPress_Admin_Notices::add_custom_notice( 'applicationcredentialssaved', __( 'Your application credentials have been stored and your WordPress site is ready to communicate with Twitch.' ) );
-        
+                      
         // Create a Twitch API oAuth2 URL
         // REMOVVE $post_credentials_kraken = new TWITCHPRESS_Twitch_API();
         
@@ -1051,10 +1055,14 @@ class TwitchPress_Admin_Setup_Wizard {
         
         //wp_redirect( esc_url_raw( $this->get_next_step_link() ) );
         //exit;
-        
+                    echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
         // Send user to authorise their main Twitch channel.
         $post_credentials_kraken = new TWITCHPRESS_Twitch_API();
-                                             
+                   echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';                                  
         $state = array( 'redirectto' => admin_url( 'index.php?page=twitchpress-setup&step=next_steps' ),
                         'userrole'   => 'administrator',
                         'outputtype' => 'admin',

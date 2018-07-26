@@ -209,8 +209,16 @@ class TwitchPress_Tools {
             Your tools unique code goes here. Make it do something!
         */
         
+        
+                echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
         // Create a Twitch API oAuth2 URL
         $post_credentials_kraken = new TWITCHPRESS_Twitch_API();
+                echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
+        
                                              
         $state = array( 'redirectto' => admin_url( 'admin.php?page=twitchpress' ),
                         'userrole'   => 'administrator',

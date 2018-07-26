@@ -91,6 +91,17 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
+= 2.0.4: NOT RELEASED = 
+* Bugfixes
+    -
+* Enhancements
+    - Twitch API application credentials are now set in the core plugins main file for easier access.
+    - Twitch user oauth credentials are now set in the core plugins main file. 
+* Configuration
+    - No changes
+* Database
+    - No changes
+
 = 2.0.3: July 15, 2018 =
 
 * Bugfixes:

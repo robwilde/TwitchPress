@@ -545,10 +545,14 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
                     }
                 }
             }
-                                       
+                     echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';                          
             // Load Kraken.
             $kraken = new TWITCHPRESS_Twitch_API();
-
+                       echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
             // Lets make sure TwitchPress app is setup properly else do not display button/link.
             $is_app_set = $kraken->is_app_set();
             if( !$is_app_set ) {  
@@ -1075,9 +1079,13 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
         public function twitch_button_below() {
             // This is the top (above) position button.
             if( 'below' !== get_option( 'twitchpress_login_loginpage_position' ) ) { return; }
-            
+                                    echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
             $kraken = new TWITCHPRESS_Twitch_API();
-            
+                              echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
             // Ensure Twitch app is setup to avoid pointless API calls.
             $is_app_set = $kraken->is_app_set();
             if( !$is_app_set ) { return; }
@@ -1118,10 +1126,14 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
             // Is auto login active? (sends visitors straight to Twitch oAuth2)
             $do_autologin = false;
             $temp_option_autologin = false;
-
+                           echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
             // Generate oAuth2 URL.
             $kraken = new TWITCHPRESS_Twitch_API();
-            
+                           echo '<pre>';
+        var_dump( __LINE__ );
+        echo '</pre>';
             // Ensure Twitch app is setup to avoid pointless API calls.
             $is_app_set = $kraken->is_app_set();
             if( !$is_app_set ) {
