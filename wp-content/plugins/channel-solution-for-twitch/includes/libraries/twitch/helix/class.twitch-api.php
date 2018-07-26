@@ -253,43 +253,36 @@ class TWITCHPRESS_Twitch_API {
             $return = true;
             $return_reason .= __( 'Main Account Listener: No code returned.', 'twitchpress' );
         }          
-
         // We require the local state value stored in transient. 
         elseif( !$transient_state = get_transient( 'twitchpress_oauth_' . $_GET['state'] ) ) {       
             $return = true;
             $return_reason .= __( 'Main Account Listener: No matching transient.', 'twitchpress' );
         }  
-        
         // Ensure the reason for this request is an attempt to set the main channels credentials
         elseif( !isset( $transient_state['reason'] ) ) {
             $return = true;
             $return_reason .= __( 'Main Account Listener: Reason not provided for this request.', 'twitchpress' );            
         }              
-         
         // Ensure we have the admin view or page the user needs to be sent to. 
         elseif( $transient_state['reason'] !== 'mainchannelsetup' ) {         
             $return = true;
             $return_reason .= __( 'Main Account Listener: Request reason rejected for this procedure.', 'twitchpress' );    
-        }
-                 
+        }        
         // Ensure we have the admin view or page the user needs to be sent to. 
         elseif( !isset( $transient_state['redirectto'] ) ) {         
             $return = true;
             $return_reason .= __( 'Main Account Listener: The redirectto value does not exist.', 'twitchpress' );    
-        } 
-          
+        }   
         // For this procedure the userrole MUST be administrator.
         elseif( !isset( $transient_state['userrole'] ) ) {        
             $return = true;
             $return_reason .= __( 'Main Account Listener: this request is not an expected operation related to the main account.', 'twitchpress' );    
         }          
-        
         elseif( !isset( $transient_state['userrole'] ) || 'administrator' !== $transient_state['userrole'] ) {        
             $return = true;
             $return_reason .= __( 'Main Account Listener: User is not an administrator.', 'twitchpress' );    
-        }         
-                
-        // NEW IF - Validate the code as a measure to prevent URL spamming that gets further than here.
+        }                
+        // Validate the code as a measure to prevent URL spamming that gets further than here.
         elseif( !twitchpress_validate_code( $_GET['code'] ) ) {        
             $return = true;
             $return_reason .= __( 'Main Account Listener: Code is invalid.', 'twitchpress' );
@@ -1440,7 +1433,7 @@ class TWITCHPRESS_Twitch_API {
             $appending = '';
             if( $requesting_function == null ) { $appending = $token; }
             else{ $appending = sprintf( __( 'Requesting function was %s() and the token is %s.', 'twitchpress' ), $requesting_function, $result['access_token'] ); }
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'Access token returned. %s', 'twitchpress' ), $appending ), array(), true, false );
+            $this->bugnet->log( __FUNCTION__, sprintf( __( 'Twitch API Access token returned. %s', 'twitchpress' ), $appending ), array(), true, false );
 
             return $result;
         } 
@@ -1449,7 +1442,7 @@ class TWITCHPRESS_Twitch_API {
             $request_string = '';
             if( $requesting_function == null ) { $request_string = __( 'Requesting function is not known!', 'twitchpress' ); }
             else{ $request_string = __( 'Requesting function is ', 'twitchpress' ) . $requesting_function; }
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'No access token returned: %s()', 'twitchpress' ), $request_string ), array(), true, false );
+            $this->bugnet->log( __FUNCTION__, sprintf( __( 'No Twitch API access token returned: %s()', 'twitchpress' ), $request_string ), array(), true, false );
         
             return false;
         }
@@ -1478,7 +1471,7 @@ class TWITCHPRESS_Twitch_API {
         } 
         else 
         {
-            $this->bugnet->log( __FUNCTION__, __( 'Invalid app token', 'twitchpress' ), array(), true, true );
+            $this->bugnet->log( __FUNCTION__, __( 'Invalid Twitch API app token', 'twitchpress' ), array(), true, true );
             return false;
         }
         

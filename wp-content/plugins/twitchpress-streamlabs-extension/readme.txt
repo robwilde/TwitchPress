@@ -7,7 +7,7 @@ Tags: Twitch, TwitchPress, Twitch.tv, TwitchPress Extension, TwitchPress Streaml
 Requires at least: 4.4
 Tested up to: 4.9
 Stable tag: 1.0.0
-Minimum core version: 1.7.0
+Minimum core version: 2.0.3
 Requires PHP: 5.6
                         
 Streamlabs extension for the TwitchPress system.
@@ -29,7 +29,7 @@ extension will add Streamlabs features to the TwitchPress system.
 
 = Features List = 
 
-* Coming Soon
+* Shortcode: [twitchpress_streamlabs_current_users_points] 
 
 == Installation ==
 
@@ -58,7 +58,7 @@ backup your site files and database.
 == Changelog ==
 
 = 1.0.0 =
-* DEV - Released ???
+* DEV - Released 15th July 2018
 
 == Version Numbers and Updating ==
 

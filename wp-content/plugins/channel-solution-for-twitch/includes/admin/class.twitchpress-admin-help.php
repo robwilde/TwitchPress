@@ -79,10 +79,10 @@ class TwitchPress_Admin_Help {
             'id'        => 'twitchpress_installation_tab',
             'title'     => __( 'Installation', 'twitchpress' ),
             'content'   =>
-                '<h2>' . __( '1. Setup Wizard (Developer or Owner)', 'twitchpress' ) . '</h2>' .
+                '<h2>' . __( 'Setup Wizard', 'twitchpress' ) . '</h2>' .
                 '<p>' . __( 'You must complete the Setup Wizard and you can go through it again to correct mistakes in the plugins initial configuration.', 'twitchpress' ) . '</p>' .
                 '<p><a href="' . admin_url( 'index.php?page=twitchpress-setup' ) . '" class="button button-primary">' . __( 'Setup wizard', 'twitchpress' ) . '</a></p>' .
-                '<h2>' . __( '2. Authorize Main Channel (Owner Only)', 'twitchpress' ) . '</h2>' .
+                '<h2>' . __( 'Re-authorize Main Channel', 'twitchpress' ) . '</h2>' .
                 '<p>' . __( 'This procedure is included in the Setup Wizard but you can run it here if you need to re-authorize your main Twitch channel. This procedure will take you through oAuth and generate an API user token.', 'twitchpress' ) . '</p>' .
                 '<p><a href="' . admin_url( 'admin.php?page=twitchpress_tools&_wpnonce=' . $nonce . '&toolname=tool_authorize_main_channel' ) . '" class="button button-primary">' . __( 'Authorize Main Account', 'twitchpress' ) . '</a></p>',
             'callback'  => array( $this, 'installation' ),
@@ -651,7 +651,8 @@ class TwitchPress_Admin_Help {
     }
     
     public function testing() {
- 
+
+
     }
 }
 

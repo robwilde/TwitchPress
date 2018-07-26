@@ -1770,8 +1770,14 @@ class TWITCHPRESS_Twitch_API {
     * @returns array 
     * 
     * @version 1.0
+    * 
+    * @deprecated use get_visitor_scopes()
     */
     public function get_user_scopes() {
+        return $this->get_visitor_scopes();        
+    }
+    
+    public function get_visitor_scopes() {
         $visitor_scopes = array();
         
         foreach( $this->twitch_scopes as $scope ) {
@@ -1781,7 +1787,7 @@ class TWITCHPRESS_Twitch_API {
         }       
 
         return $visitor_scopes;        
-    }
+    }    
 
     public function get_objects_default_channel() {
         return $this->twitch_default_channel;     

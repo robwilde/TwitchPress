@@ -729,7 +729,7 @@ class TwitchPress_Tools {
         */
         $tool_info = array(
             'title'       => __( 'Update Twitch Subscription', 'multitool' ),
-            'description' => __( 'Requests a single users subscription data from Twitch.tv and stores it in WordPress.', 'multitool' ),
+            'description' => __( 'Requests a single users subscription data from Twitch.tv and stores it in WordPress.', 'twitchpress' ),
             'version'     => '1.1',
             'author'      => 'Ryan Bayne',
             'url'         => '',
@@ -779,7 +779,7 @@ class TwitchPress_Tools {
         */
         $tool_info = array(
             'title'       => __( 'Sync All Users', 'multitool' ),
-            'description' => __( 'Import all WP users Twitch user data if not already done recently.', 'multitool' ),
+            'description' => __( 'Import all WP users Twitch user data if not already done recently.', 'twitchpress' ),
             'version'     => '1.1',
             'author'      => 'Ryan Bayne',
             'plugin'      => 'Sync Extension',      
@@ -825,7 +825,7 @@ class TwitchPress_Tools {
         }    
         
         $notices = new TwitchPress_Admin_Notices();
-        $notices->success( __( 'User Sync Finished', 'twitchpress-sync' ), __( 'Your request to import data from Twitch and update your WordPress users has been complete. Due to the technical level of this action it is not easy to generate a summary. Please see log entries for specifics.', 'twitchpress-sync' ) );   
+        $notices->success( __( 'User Sync Finished', 'twitchpress-sync' ), __( 'Your request to import data from Twitch and update your WordPress users has been complete. Due to the technical level of this action it is not easy to generate a summary. Please see log entries for specifics.', 'twitchpress' ) );   
     }    
 
 }

@@ -67,12 +67,12 @@ final class WordPressTwitchPress {
     public $session = null; 
 
     /**
-    * BugNet library object and is used as a global.
+    * Quick and dirty way to debug by adding values that are dumped in footer.
     * 
     * @var mixed
     */
-    public $bugnet = null;
-            
+    public $dump = array();
+
     /**
      * Main TwitchPress Instance.
      *
@@ -122,9 +122,10 @@ final class WordPressTwitchPress {
      */
     public function __construct() {
         $this->define_constants();
+        $this->load_debugger();
         $this->includes();
         $this->init_hooks();
-        $this->load_debugger();
+        
         
         $this->available_languages = array(
             //'en_US' => 'English (US)',
@@ -209,14 +210,28 @@ final class WordPressTwitchPress {
     }
 
     /**
+    * These values are intended for access using $GLOBAL['twitchpress']
+    * 
+    * @version 1.0
+    */
+    private function define_globals() {
+        $this->main_channel_name = twitchpress_get_main_channels_name(); 
+        $this->main_channel_id = twitchpress_get_main_channels_twitchid();
+        $this->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();           
+    }
+    
+    /**
      * Include required core files.
      * 
      * @version 1.4
      */
     public function includes() {
- 
+        
         // SPL Autoloader Class
         include_once( 'includes/class.twitchpress-autoloader.php' );
+        
+        // Load the most common functions that need to be easily accessed by the entire site.
+        include_once( plugin_basename( 'functions.php' ) );
         
         // Load class and libraries.
         require_once( 'includes/libraries/class.async-request.php' );
@@ -233,6 +248,7 @@ final class WordPressTwitchPress {
         require_once( 'includes/class.twitchpress-feeds.php' );
         require_once( 'includes/class.twitchpress-sync.php' );
         require_once( 'includes/class.twitchpress-history.php' );
+        include_once( plugin_basename( 'shortcodes.php' ) );
         
         // Load Core Objects
         $this->load_core_objects();
@@ -249,10 +265,11 @@ final class WordPressTwitchPress {
     */
     private function load_core_objects() {
         // Create CORE Objects (new approach April 2018)
+        $this->twitch_calls   = new TWITCHPRESS_Twitch_API_Calls();
         $this->sync           = new TwitchPress_Systematic_Syncing();
-        $this->public_notices = new TwitchPress_Public_Notices();
+        $this->public_notices = new TwitchPress_Public_PreSet_Notices();
                      
-        // Initialize full system.
+        // Initialize systematic syncing.
         $this->sync->init();
         
         // Load CORE files only required when logged into the administration side.     
@@ -323,9 +340,9 @@ final class WordPressTwitchPress {
      */
     public function frontend_includes() {
         include_once( plugin_basename( 'includes/class.twitchpress-frontend-scripts.php' ) );  
+        include_once( plugin_basename( 'includes/functions.twitchpress-frontend-notices.php' ) );  
         include_once( plugin_basename( 'includes/functions.twitchpress-frontend.php' ) );
-        include_once( plugin_basename( 'includes/class.twitchpress-public-notices.php' ) );        
-        include_once( plugin_basename( 'shortcodes.php' ) );                
+        include_once( plugin_basename( 'includes/class.twitchpress-public-preset-notices.php' ) );              
     }
 
     /**
@@ -448,9 +465,16 @@ if( !function_exists( 'TwitchPress' ) ) {
     }
 
     // Global for backwards compatibility.
+    global $GLOBALS;
     $GLOBALS['twitchpress'] = TwitchPress();
     // ["version"]=> string(5) "2.0.0" 
     // ["min_wp_version"]=> string(3) "4.7" 
     // ["session"]=> NULL ["bugnet"]=> NULL 
     // ["available_languages"]=> array(0) { } }  
+    
+    // Define some of these globals to make it easy for extensiosn to access them. 
+    $GLOBALS['twitchpress']->main_channel_name = twitchpress_get_main_channels_name(); 
+    $GLOBALS['twitchpress']->main_channel_id = twitchpress_get_main_channels_twitchid();
+    $GLOBALS['twitchpress']->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();  
+
 }

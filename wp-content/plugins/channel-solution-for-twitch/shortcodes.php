@@ -15,6 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Only include files in this file. 
-include_once( 'includes/functions.twitchpress-frontend.php' );
-        
+// Basic approach with multiple shortcodes in a single file.                                                                         
+include_once( 'includes/functions.twitchpress-shortcodes.php' );
+
+// Expanded approach with a file per shortcode. 
+include_once( 'includes/shortcodes/shortcode-sync-buttons-public.php' );        
+
+// Advanced approach using a class to make logging, debugging and UI output easier.
+# TODO

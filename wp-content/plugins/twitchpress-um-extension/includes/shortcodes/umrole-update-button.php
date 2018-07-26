@@ -13,8 +13,8 @@
  
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
-}
-
+}               
+         
 // Output the shortcode. 
 add_shortcode( 'twitchpress_update_um_role_button', 'twitchpress_update_um_role_button' );
 
@@ -39,7 +39,7 @@ function twitchpress_update_um_role_button( $atts ) {
     ), $atts, 'twitchpress_update_um_role_button' );
          
     $href = admin_url( 'admin-post.php?action=twitchpress_subman_um_role_sync' ); 
-    $html_output = '<a href="' . $href . '">' . __( 'Update Ultimate Member Role', 'twitchpress-subman' ) . '</a>';
+    $html_output = '<a href="' . $href . '">' . __( 'Update Ultimate Member Role', 'twitchpress-um' ) . '</a>';
     
     return $html_output;
 }
@@ -100,7 +100,6 @@ function twitchpress_subman_um_role_sync() {
             exit;
         }
 
-       
         // Log any change in history. 
         if( $current_role !== $next_role ) {
             $history_obj = new TwitchPress_History();
@@ -118,34 +117,11 @@ function twitchpress_subman_um_role_sync() {
 }
 
 /**
-* Redirect during shortcode processing, with parameters for displaying
-* a notice with a message that applies to the result. 
-* 
-* @param mixed $message_source is the plugin name i.e. "core" or "subscribermanagement" or "loginextension" etc
-* @param mixed $message_key
-* 
-* @version 1.0
-*/
-function twitchpress_shortcode_procedure_redirect( $message_key, $title_values_array = array(), $info_values_array = array(), $message_source = 'umextension' ) {
-    
-    // Store values array in shortlife transient and use when generating output.
-    set_transient( 'twitchpress_shortcode_' . $message_source . $message_key, 
-        array( 'title_values' => $title_values_array, 'info_values' => $info_values_array ), 120 );
-    
-    wp_redirect( add_query_arg( array(
-        'twitchpress_notice' => time(),
-        'key'                => $message_key,        
-        'source'             => $message_source,
-    ), wp_get_referer() ) );
-    exit;    
-}
-
-/**
 * 
 * 
 */
 function twitchpress_admin_post_nopriv_reject() {
-    wp_die( __( 'The action you requested requires you to be logged into this website.', 'twitchpress-subman' ), __( 'Please Login First', 'twitchpress-subman' ));
+    wp_die( __( 'The action you requested requires you to be logged into this website.', 'twitchpress-um' ), __( 'Please Login First', 'twitchpress-subman' ));
     exit;
 }
 

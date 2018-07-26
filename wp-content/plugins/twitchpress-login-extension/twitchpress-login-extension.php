@@ -627,7 +627,7 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
             // We require the local state value stored in transient. 
             if( !$transient_state = get_transient( 'twitchpress_oauth_' . $state_code ) ) { 
                 // Trace
-                $bugnet->trace( 'twitchpressloginextensionlistener',__LINE__,__FUNCTION__,__FILE__,false,__( 'Login listener ended on missing transient.', 'twitchpress' ),array(),true);
+                $bugnet->trace( 'twitchpressloginextensionlistener',__LINE__,__FUNCTION__,__FILE__,false,__( 'Login listener ended - no transient found!', 'twitchpress' ),array(),true);
                 return;
             }             
             
@@ -642,7 +642,7 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
             if( $transient_state['view'] == 'post' ) { 
                 if( !$transient_state['loginpageid'] || !is_numeric( $transient_state['loginpageid'] ) ) { 
                     // Log
-                    $bugnet->log_error( __FUNCTION__, sprintf( __( 'Listener ended on missing login page ID.', 'twitchpress' ), $_GET['error'] ), array(), true );
+                    $bugnet->log_error( __FUNCTION__, sprintf( __( 'Login kistener ended - missing login page ID.', 'twitchpress' ), $_GET['error'] ), array(), true );
                     // Die
                     wp_die( __( 'After attempting to login using your Twitch account. This website could not establish where you begun the login process and return you there. This is a fault that needs to be reported. Please copy and send this message to the site owner.', 'twitchpress' ), __( 'Twitch Login Page Unknown', 'twitchpress' ) );
                 }                           

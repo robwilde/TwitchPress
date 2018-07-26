@@ -44,7 +44,7 @@ if ( !in_array( 'channel-solution-for-twitch/twitchpress.php', apply_filters( 'a
  */
 define( 'TWITCHPRESS_STREAMLABS_VERSION', '1.0.0' );
 define( 'TWITCHPRESS_STREAMLABS_MIN_PHP_VER', '5.6.0' );
-define( 'TWITCHPRESS_STREAMLABS_MIN_TP_VER', '1.6.1' );
+define( 'TWITCHPRESS_STREAMLABS_MIN_TP_VER', '2.0.3' );
 define( 'TWITCHPRESS_STREAMLABS_MAIN_FILE', __FILE__ );
 define( 'TWITCHPRESS_STREAMLABS_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'TWITCHPRESS_STREAMLABS_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -55,7 +55,15 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
         /**
          * @var Singleton
          */
-        private static $instance;        
+        private static $instance;
+        
+        /**
+        * Store user data here during a procedure to help avoid 
+        * repeating database queries.  
+        * 
+        * @var mixed
+        */
+        public $users = array();        
 
         /**
          * Get a *Singleton* instance of this class.
@@ -133,18 +141,20 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
         }
         
         public function after_twitchpress_init() {
-            
+
             // Load the Streamlabs API with default profile.
             //$this->streamlabs_api = new TWITCHPRESS_All_API( 'streamlabs', 'default' );
-            $this->streamlabs_api = new TWITCHPRESS_All_API_Streamlabs( 'streamlabs', 'default' );
-                                
-            // TEST
-            var_dump( $this->streamlabs_api->is_app_set() );
+            $this->streamlabs_api = new TWITCHPRESS_Streamlabs_API( 'default' );
+            
+            // Set a false value to prevent any attempt to make requests.  
+            if( !$this->streamlabs_api->is_app_set() ) {
+    
+            }
 
             // Attack the rest of our hooks.
             $this->attach_remaining_hooks();    
         }
-        
+            
         /**
          * Load all plugin dependencies.
          */
@@ -173,18 +183,23 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
          * @version 1.0
          */
         private function attach_remaining_hooks() {
+                                      
+            // Actions
+            add_action( 'twitchpress_allapi_application_update_streamlabs' , array( $this, 'do_application_being_updated' ), 5, 4 );
 
+            // Shortcodes
+            add_shortcode( 'twitchpress_streamlabs_current_users_points', array( $this, 'shortcode_twitchpress_streamlabs_current_users_points') );
+                                  
             // Filters
             add_filter( 'twitchpress_get_sections_users', array( $this, 'settings_add_section_users' ), 50 );
             add_filter( 'twitchpress_get_settings_users', array( $this, 'settings_add_options_users' ), 50 );
             add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
             add_filter( 'twitchpress_update_system_scopes_status', array( $this, 'update_system_scopes_status' ), 1, 1 );
-                                                   
-            // Actions
-            
-            // Shortcodes
-            add_shortcode( apply_filters( "twitchpress_connect_button_filter", 'twitchpress_connect_button' ), array( $this, 'shortcode_connect_button' ) );                        
-        
+
+            // User Table Filters
+            add_filter( 'manage_users_columns', array( $this, 'user_table_streamlabs_points' ) );
+            add_filter( 'manage_users_custom_column', array( $this, 'user_table_streamlabs_points_row' ), 10, 3 );
+                                          
             // Add sections and settings to core pages.
             add_filter( 'twitchpress_get_sections_users', array( $this, 'settings_add_section_users' ) );
             add_filter( 'twitchpress_get_settings_users', array( $this, 'settings_add_options_users' ) );
@@ -252,6 +267,27 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             $merged[] = $last;
 
             return $merged;
+        }
+
+        public function do_application_being_updated( $service, $redirect_uri, $key, $secret ) { 
+            // Update Streamlabs object with newly submitted redirect URI.   
+            $this->streamlabs_api->allapi_app_uri = $redirect_uri; 
+                                                 
+            // Generate local oauth state credentials for security.
+            $new_state = $this->streamlabs_api->new_state( array (             
+                'redirectto' => admin_url( 'admin.php?page=twitchpress&tab=otherapi&section=streamlabs' ),
+                'userrole'   => 'administrator',
+                'outputtype' => 'admin',// use to configure output levels, sensitivity of data and styling.
+                'reason'     => 'streamlabsextensionowneroauth2request',// use in conditional statements to access applicable procedures.
+                'function'   => __FUNCTION__,
+                'file'       => __FILE__,
+            ));  
+            
+            // Add the random state key for our credentials to the API request for validation on return. 
+            $uri = add_query_arg( 'state', $new_state['statekey'], $this->streamlabs_api->oauth2_url_mainaccount() );
+
+            twitchpress_redirect_tracking( $uri, __LINE__, __FUNCTION__, __FILE__ );
+            exit;
         }
         
         /**
@@ -382,7 +418,57 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
          */
         public function plugin_path() {              
             return untrailingslashit( plugin_dir_path( __FILE__ ) );
-        }                                                         
+        }  
+     
+        public function user_table_streamlabs_points( $column ) {
+            $column['streamlabs_points'] = 'Streamlabs Points';
+            return $column;
+        }
+
+        public function user_table_streamlabs_points_row( $val, $column_name, $wp_user_id ) {
+            switch ($column_name) {
+                case 'streamlabs_points' :
+                
+                    // Confirm that the current user has setup Streamlabs access. 
+                    if( !$this->streamlabs_api->is_user_ready( $wp_user_id ) )
+                    {
+                        return __( 'Not Ready', 'twitchpress' );
+                    }
+                    
+                    global $GLOBALS;
+
+                    $points = $this->streamlabs_api->get_users_points_meta( $wp_user_id, $GLOBALS['twitchpress']->main_channel_name );
+                    if( !$points ) { return 0; }
+
+                    break;
+                default:
+            }
+            return $val;
+        }               
+        
+        public function shortcode_twitchpress_streamlabs_current_users_points( $atts ) {     
+            $html_output = 0;
+            if( !is_user_logged_in() ) {
+                return __( 'Please Login', 'twitchpress' );
+            }
+            
+            if( !$this->streamlabs_api->is_user_ready( get_current_user_id() ) ) {
+                return __( 'Not Setup', 'twitchpress' );
+            }
+
+            $points = $this->get_current_users_points();
+            
+            if( !$points ) {
+                return $html_output;
+            }       
+                           
+            return $html_output;      
+        }       
+     
+        public function get_current_users_points() {
+            global $GLOBALS;
+            return $this->streamlabs_api->get_users_points_meta( get_current_user_id(), $GLOBALS['twitchpress']->main_channel_name );
+        }                            
     }
     
 endif;    

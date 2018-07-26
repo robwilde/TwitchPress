@@ -583,7 +583,7 @@ class TwitchPress_Admin_Setup_Wizard {
     /**
      * Save application settings and then forwards user to kraken oauth2.
      * 
-     * @version 2.0
+     * @version 2.1
      */
     public function twitchpress_setup_application_save() {          
         check_admin_referer( 'twitchpress-setup' );
@@ -650,7 +650,13 @@ class TwitchPress_Admin_Setup_Wizard {
         $user_objects = $kraken_calls_obj->get_users( $main_channel );
 
         if( !isset( $user_objects['users'][0]['_id'] ) ) {
-            TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', __( '<strong>Channel Not Found:</strong> TwitchPress could not find your channel. Please check the spelling of your channel and try again.', 'twitchpress' ) );      
+            // Attempt another method of confirming the channel exists. 
+            $headers = @get_headers( 'https://www.twitch.tv/' . $main_channel );
+            if( !$headers ) {
+                TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', sprintf( __( 'The channel you entered was not found. You entered %s. Please check the spelling and try again.'), esc_html( $main_channel ) ) );
+            }
+            
+            //TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', __( '<strong>Channel Not Found:</strong> TwitchPress could not find your channel. Please check the spelling of your channel and try again.', 'twitchpress' ) );      
             return;                         
         } 
         

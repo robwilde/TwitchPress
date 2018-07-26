@@ -65,7 +65,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     }
     
     /**
-     * Gets the current authenticated users Twitch user object.
+     * Gets a users Twitch.tv object by their oAuth token stored in user meta.
      * 
      * @param $user - [string] Username to grab the object for
      * @param $token - [string] Authentication key used for the session
@@ -88,6 +88,20 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
         $userObject = json_decode( $this->cURL_get( $url, $get, array(), false, __FUNCTION__ ), true );
 
         return $userObject;
+    }
+    
+    /**
+    * User current users oauth token and the app code to get Twitch.tv user object.
+    * 
+    * @version 1.0
+    */
+    public function get_current_userobject_authd() {
+    
+        if( !$wp_user_id = get_current_user_id() ) {
+            return false;    
+        }
+        
+        return $this->getUserObject_Authd( get_user_meta( $wp_user_id, 'twitchpress_token', true ), $this->twitch_client_code );    
     }
     
     /**
@@ -136,6 +150,8 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     * 
     * @author Ryan R. Bayne
     * @version 5.3
+    * 
+    * @deprecated because the Twitch.tv feed feature was removed May 2018.
     */ 
     public function getFeedPosts( $chan, $limit = -1, $offset = 0, $returnTotal = false ) {
         $feedpostsObjects = array();     
@@ -175,6 +191,8 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     * @param mixed $value
     * 
     * @version 1.0
+    * 
+    * @deprecated because the Twitch.tv feed feature was removed May 2018.
     */
     public function getLatestFeed( $channel = 'ZypheREvolved', $value = null ){
         $post = self::getFeedPosts( $channel, 1, -1 );
@@ -198,6 +216,8 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     * 
     * @author Ryan R. Bayne
     * @version 6.0
+    * 
+    * @deprecated because the Twitch.tv feed feature was removed May 2018.
     */
     public function postFeedPost( $postparam = array(), $token ){
 
