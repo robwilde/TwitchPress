@@ -4,10 +4,10 @@
  * Plugin URI: https://twitchpress.wordpress.com/
  * Github URI: https://github.com/RyanBayne/TwitchPress
  * Description: Add Twitch stream and channel management services to WordPress. 
- * Version: 2.0.2
+ * Version: 2.0.4
  * Author: Ryan Bayne
  * Author URI: https://ryanbayne.wordpress.com/
- * Requires at least: 4.7
+ * Requires at least: 4.9
  * Tested up to: 4.9
  * License: GPL3
  * License URI: http://www.gnu.org/licenses/gpl-3.0.txt
@@ -25,7 +25,10 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
                  
 if ( ! class_exists( 'WordPressTwitchPress' ) ) :
 
-// Core files.                                            
+// Load object registry class to handle class objects without using $global. 
+include_once( plugin_basename( 'includes/class.twitchpress-object-registry.php' ) );
+
+// Load core functions with importance on making them available to third-party.                                            
 include_once( 'includes/functions.twitchpress-core.php' );
 include_once( 'includes/functions.twitchpress-credentials.php' );
 include_once( 'includes/functions.twitchpress-validate.php' );
@@ -42,14 +45,14 @@ final class WordPressTwitchPress {
      *
      * @var string
      */
-    public $version = '2.0.2';
+    public $version = '2.0.4';
 
     /**
      * Minimum WP version.
      *
      * @var string
      */
-    public $min_wp_version = '4.7';
+    public $min_wp_version = '4.9';
     
     /**
      * The single instance of the class.
@@ -264,13 +267,20 @@ final class WordPressTwitchPress {
      */
     public function includes() {
         
+        $registry = apply_filters( 'filter_twitchpress_object_registry', NULL );
+        
         // SPL Autoloader Class
         include_once( 'includes/class.twitchpress-autoloader.php' );
         
-        // Load the most common functions that need to be easily accessed by the entire site.
+        // Include the most common functions that need to be easily accessed by the entire site.
         include_once( plugin_basename( 'functions.php' ) );
         
-        // Load class and libraries.
+        // Classes added in version 2.0.4
+        include_once( plugin_basename( 'includes/class.twitchpress-set-app.php' ) );
+        include_once( plugin_basename( 'includes/class.twitchpress-set-user-auth.php' ) );
+        include_once( plugin_basename( 'includes/class.twitchpress-set-main-channel-auth.php' ) );
+        
+        // Classes and libraries. 
         require_once( 'includes/libraries/class.async-request.php' );
         require_once( 'includes/libraries/class.background-process.php' );            
         require_once( 'includes/class.twitchpress-post-types.php' );                
@@ -301,27 +311,8 @@ final class WordPressTwitchPress {
     * @version 1.0
     */
     private function load_core_objects() {
-        
+
         // Create CORE Objects (new approach April 2018) 
-        
-        
-        
-             $this->set_twitch_application();
-    $this->set_main_channel_oauth_credentails();
-    $this->set_current_users_oauth_credentials(); 
-        
-        echo '<pre>';
-        var_dump( __LINE__ );
-        echo '</pre>';                       this is calling $GLOBAL['twitchpress'] before it exists  
-                                            need to establish credentails before this object 
-        $this->twitch_calls   = new TWITCHPRESS_Twitch_API_Calls();
-        echo '<pre>';
-        var_dump( __LINE__ );
-        echo '</pre>';        
-        
-        
-        
-        
         $this->sync           = new TwitchPress_Systematic_Syncing();
         $this->public_notices = new TwitchPress_Public_PreSet_Notices();
                         
@@ -412,73 +403,6 @@ final class WordPressTwitchPress {
         $bugnet = new BugNet();
         $bugnet->log_directory = TWITCHPRESS_LOG_DIR;
         $bugnet->plugin_name = 'twitchpress';    
-    }
-    
-    /**
-    * Set the values required for the Twitch API application to make any request
-    * to Twitch.tv (Kraken or Helix). 
-    * 
-    * @version 1.0
-    */
-    public function set_twitch_application() {
-
-        $this->app_id = get_option( 'twitchpress_app_id', 0 ); 
-        $this->app_secret = get_option( 'twitchpress_app_secret', 0 );
-        $this->app_redirect = get_option( 'twitchpress_app_redirect', 0 );
-        $this->app_token = get_option( 'twitchpress_app_token', 0 );
-        $this->app_token_scopes = get_option( 'twitchpress_app_token_scopes', 0 ); 
-
-    }
-    
-    /**
-    * Set the values required to make channel specific queries to the site owners
-    * main/official channel as setup when that user completes oAuth2. 
-    * 
-    * @version 1.0
-    */
-    public function set_main_channel_oauth_credentails() {
-                    
-        $this->main_channels_code = get_option( 'twitchpress_main_channels_code', 0 );
-        $this->main_channels_wpowner_id  = get_option( 'twitchpress_main_channels_wpowner_id', 0 );
-        $this->main_channels_token = get_option( 'twitchpress_main_channels_token', 0 );
-        $this->main_channels_refresh = get_option( 'twitchpress_main_channels_refresh', 0 ); 
-        $this->main_channels_scopes = get_option( 'twitchpress_main_channels_scopes', 0 );
-        $this->main_channels_name = get_option( 'twitchpress_main_channel_name', 0 );
-        $this->main_channels_id = get_option( 'twitchpress_main_channel_id', 0 );
-         
-        /*
-
-        // API calls made on behalf 
-        $arr[ 'twitchpress_main_channels_code' ] = array();// Main users own channel oauth code. 
-        $arr[ 'twitchpress_main_channels_wpowner_id' ] = array();// WordPress ID of the main channel owner. 
-        $arr[ 'twitchpress_main_channels_token' ] = array();// Main channels oauth token. 
-        $arr[ 'twitchpress_main_channels_refresh' ] = array();// Main channels oauth refresh token. 
-        $arr[ 'twitchpress_main_channels_scopes' ] = array();// Main users accepted API scope. 
-        $arr[ 'twitchpress_main_channel_name' ] = array();// Main channel name (this might be the title of channel and not lowercase, please confirm)
-        $arr[ 'twitchpress_main_channel_id' ] = array();// Main channels Twitch ID (same as user ID)
-        
-        
-        $arr[ 'twitchpress_main_code' ] = array();// Generated on behalf of the main user. // depreciated 
-        $arr[ 'twitchpress_main_token' ] = array();// Generated on behalf of the main user. // depreciated
-        $arr[ 'twitchpress_main_token_scopes' ] = array();// Generated on behalf of the main user. // depreciated  
-        
-        // Depreciated
-        $arr[ 'twitchpress_main_client_secret' ] = array();// Depreciated use twitchpress_app_secret
-        $arr[ 'twitchpress_main_client_id' ] = array();// Depreciated use twitchpress_main_client_id
-        $arr[ 'twitchpress_main_redirect_uri' ] = array();// Depreciated use twitchpress_app_redirect
-        $arr[ 'twitchpress_main_channel_postid' ] = array();// Generated on behalf of the main user.
-        
-        */        
-    }
-    
-    /**
-    * Set current users Twitch API oauth credentials. Current user would need to have completed
-    * the oAuth2 procedure for the option values to exist.
-    * 
-    * @version 1.0
-    */
-    public function set_current_users_oauth_credentials() {
-  
     }
     
     /**
@@ -599,11 +523,5 @@ if( !function_exists( 'TwitchPress' ) ) {
     // Define some of these globals to make it easy for extensiosn to access them. 
     $GLOBALS['twitchpress']->main_channel_name = twitchpress_get_main_channels_name(); 
     $GLOBALS['twitchpress']->main_channel_id = twitchpress_get_main_channels_twitchid();
-    $GLOBALS['twitchpress']->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();  
-
-    // Set Twitch API credentials.
-    $GLOBALS['twitchpress']->set_twitch_application();
-    $GLOBALS['twitchpress']->set_main_channel_oauth_credentails();
-    $GLOBALS['twitchpress']->set_current_users_oauth_credentials(); 
-                        
+    $GLOBALS['twitchpress']->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();                 
 }

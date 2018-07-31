@@ -98,15 +98,7 @@ class TWITCHPRESS_Twitch_API {
     public function __construct(){
         // Load logging, reporting and debugging service. 
         $this->bugnet = new BugNet();
-                                               global $GLOBALS;
-        $GLOBALS['twitchpress']->app_id;
-        
-        echo '<pre>';
-        var_dump( $GLOBALS['twitchpress']->app_id );
-        var_dump( $GLOBALS['twitchpress']->app_redirect );
-        var_dump( $GLOBALS['twitchpress']->app_token );
-        echo '</pre>';
-                    
+                                                                 
         // Set all app credentials for this library to use. 
         $this->set_application_credentials();
         
@@ -1906,9 +1898,4 @@ class TWITCHPRESS_Twitch_API {
 
 endif;
 
-echo '<pre>';
-var_dump( __LINE__ );
-echo '</pre>';
-TWITCHPRESS_Twitch_API::init();echo '<pre>';
-var_dump( __LINE__ );
-echo '</pre>';
+TWITCHPRESS_Twitch_API::init();

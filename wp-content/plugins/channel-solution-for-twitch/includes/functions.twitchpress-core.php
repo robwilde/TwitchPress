@@ -330,6 +330,8 @@ function twitchpress_schedule_sync_channel_to_wp() {
 * Assumes settings have been checked.                          
 * 
 * @version 1.0
+* 
+* @deprecated due to feed service being shutdown by Twitch.tv
 */
 function twitchpress_sync_feed_to_wp( $channel_id = false ) {
     $new_posts_ids = array();
@@ -381,6 +383,8 @@ function twitchpress_sync_feed_to_wp( $channel_id = false ) {
 * @returns boolean true if the item ID is found in post meta else returns false.
 * 
 * @version 1.0
+* 
+* @deprecated due to feed service being shutdown by Twitch.tv 
 */
 function twitchpress_does_feed_item_id_exist( $feed_item_id ){ 
     $args = array(
@@ -414,6 +418,8 @@ function twitchpress_does_feed_item_id_exist( $feed_item_id ){
 * @returns integer post ID or a string explaining why the post was not created.
 * 
 * @version 1.0
+* 
+* @deprecated due to feed service being shutdown by Twitch.tv
 */
 function twitchpress_insert_feed_post( $channel_id, $feed_entry, $post_author, $process = 'channeltowp' ) {
    
@@ -455,6 +461,8 @@ function twitchpress_insert_feed_post( $channel_id, $feed_entry, $post_author, $
 * @return mixed
 * 
 * @version 1.0
+* 
+* @deprecated due to feed service being shutdown by Twitch.tv
 */
 function twitchpress_feed_owner_wpuser_id( $channel_id ) {
     

@@ -16,13 +16,11 @@ if( !class_exists( 'TwitchPress_Feeds' ) ) :
  * @category Admin
  * @package  TwitchPress/Core
  * @version  1.0.0
+ * 
+ * @deprecated Twitch.tv no longer offers the feed feature.
  */
 class TwitchPress_Feeds {
 
-    public function __construct() {      
-    
-    }  
-  
     public static function init() {         
         //add_action( 'save_post', array( __CLASS__, 'publish_to_feed' ), 2, 3 );
     }
@@ -38,8 +36,12 @@ class TwitchPress_Feeds {
     * 
     * @param mixed $ID post ID
     * @param mixed $post the post object
+    * 
+    * @deprecated Twitch.tv no longer offers the feed feature.
     */
     public static function publish_to_feed( $ID, $post, $update = false ) {
+        return;//@deprecated Twitch.tv no longer offers the feed feature.
+        
         global $bugnet; 
         
         // Avoid sharing during an AUTO_SAVE
@@ -91,7 +93,7 @@ class TwitchPress_Feeds {
         $bugnet->log( __FUNCTION__, sprintf( __( 'Share to feed requested for post ID: %s and is Post-Type: %s', 'twitchpress' ), $ID, $post->post_type ), array( 'level' => 200 ), true, false );
         
         // Wake the Kraken up! 
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        //$kraken = new TWITCHPRESS _Twitch_API_Calls();
         
         // Enhance post content using prepend and append values.
         $original_content = array( 'content' => $post->post_content );

@@ -591,10 +591,10 @@ class TwitchPress_Admin_Setup_Wizard {
         // Sanitize $_POST values.
         $main_channel  = sanitize_text_field( $_POST['twitchpress_main_channel_name'] );
         $redirect_uri  = sanitize_text_field( $_POST['twitchpress_main_redirect_uri'] );
-        $client_id     = sanitize_text_field( $_POST['twitchpress_main_client_id'] );
-        $client_secret = sanitize_text_field( $_POST['twitchpress_main_client_secret'] );
+        $app_id        = sanitize_text_field( $_POST['twitchpress_main_app_id'] );
+        $app_secret = sanitize_text_field( $_POST['twitchpress_main_app_secret'] );
 
-        if( empty( $main_channel ) || empty( $redirect_uri ) || empty( $client_id ) || empty( $client_secret ) ) {
+        if( empty( $main_channel ) || empty( $redirect_uri ) || empty( $app_id ) || empty( $app_secret ) ) {
             TwitchPress_Admin_Notices::add_custom_notice( 'wizardcredentialsincomplete', sprintf( __( 'You have not completed the Application Credentials part of this step. All four inputs need a value.'), esc_html( $main_channel ) ) );            
             return;
         }
@@ -604,13 +604,10 @@ class TwitchPress_Admin_Setup_Wizard {
             TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', sprintf( __( 'Please select one or more scopes. Each will enable services and features using the permissions each scope gives. It is best practice to avoid requesting permissions your site does not need.'), esc_html( $main_channel ) ) );
             return;
         }
-                echo '<pre>';
-        var_dump( __LINE__ );
-        echo '</pre>';
+
         // Delete options for scopes that are not in $_POST (not checked) and add those that are.
-        $pre_credentials_kraken = new TWITCHPRESS_Twitch_API();                 echo '<pre>';
-        var_dump( __LINE__ );
-        echo '</pre>';
+        $pre_credentials_kraken = new TWITCHPRESS_Twitch_API();          
+        
         $all_scopes = $pre_credentials_kraken->scopes();
         foreach( $all_scopes as $scope => $scope_info ) {  
             if( in_array( $scope, $_POST['twitchpress_scopes'] ) ) {     
@@ -633,12 +630,12 @@ class TwitchPress_Admin_Setup_Wizard {
        
         // Store the application credentials and information related to the where the app is created. 
         update_option( 'twitchpress_main_redirect_uri',  $redirect_uri,  true );// depreciated use twitchpress_app_redirect
-        update_option( 'twitchpress_main_client_id',     $client_id,     true );// depreciated
+        update_option( 'twitchpress_main_client_id',     $app_id,     true );// depreciated
         update_option( 'twitchpress_main_client_secret', $client_secret, true );// depreciated
  
         // New values going forward in 2018, the above will populate the main channel credentials.  
-        update_option( 'twitchpress_app_id',       $client_id,     true );
-        update_option( 'twitchpress_app_secret',   $client_id,     true );
+        update_option( 'twitchpress_app_id',       $app_id,     true );
+        update_option( 'twitchpress_app_secret',   $app_secret,     true );
         update_option( 'twitchpress_app_redirect', $redirect_uri,  true );
                                   
         // Request new app Access Token (replaces any existing token)
@@ -1055,14 +1052,10 @@ class TwitchPress_Admin_Setup_Wizard {
         
         //wp_redirect( esc_url_raw( $this->get_next_step_link() ) );
         //exit;
-                    echo '<pre>';
-        var_dump( __LINE__ );
-        echo '</pre>';
+
         // Send user to authorise their main Twitch channel.
         $post_credentials_kraken = new TWITCHPRESS_Twitch_API();
-                   echo '<pre>';
-        var_dump( __LINE__ );
-        echo '</pre>';                                  
+                                
         $state = array( 'redirectto' => admin_url( 'index.php?page=twitchpress-setup&step=next_steps' ),
                         'userrole'   => 'administrator',
                         'outputtype' => 'admin',

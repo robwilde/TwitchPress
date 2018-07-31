@@ -97,6 +97,7 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 * Enhancements
     - Twitch API application credentials are now set in the core plugins main file for easier access.
     - Twitch user oauth credentials are now set in the core plugins main file. 
+    - New object registry approach added for making class objects globally available without using global. 
 * Configuration
     - No changes
 * Database

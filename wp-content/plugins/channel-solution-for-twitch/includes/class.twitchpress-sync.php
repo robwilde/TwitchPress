@@ -20,10 +20,6 @@ class TwitchPress_Systematic_Syncing {
     */
     public $sync_user_flood_delay = 60;// seconds
 
-    public function __construct() {      
-                         
-    }
-    
     public function init() {
                         
         // Custom action hooks. 
@@ -131,9 +127,11 @@ class TwitchPress_Systematic_Syncing {
                 'subs_limit'  => 5, 
             ); 
         }
-        
+                                           
+                                           
         // Load Kraken and set credentials for the app + channel.  
         $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        
         $id = $kraken->get_main_channel_id();// Right now everything defaults to the main channel.
 
         $earliest_time = $option['last_time'] + $option['delay'];
