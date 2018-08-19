@@ -269,6 +269,17 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             return $merged;
         }
 
+        /**
+        * Runs when an API's credentials are being changed. 
+        * 
+        * GitHub issue created because the $redirect_uri is not being applied yet. 
+        * https://github.com/RyanBayne/TwitchPress/issues/263
+        * 
+        * @param mixed $service
+        * @param mixed $redirect_uri
+        * @param mixed $key
+        * @param mixed $secret
+        */
         public function do_application_being_updated( $service, $redirect_uri, $key, $secret ) { 
             // Update Streamlabs object with newly submitted redirect URI.   
             $this->streamlabs_api->allapi_app_uri = $redirect_uri; 

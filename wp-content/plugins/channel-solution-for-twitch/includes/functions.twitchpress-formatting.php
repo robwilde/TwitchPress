@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 * @returns mixed 
 * @version 1.0
 */
-function twitchpress_string_half( $string, $ret = null ) {        
+function twitchpress_string_half( string $string, $ret = null ) {        
     $a = array();
     $splitstring1 = substr( $string, 0, floor( strlen( $string ) / 2 ) );
     $splitstring2 = substr( $string, floor (strlen( $string ) / 2 ) );
@@ -57,7 +57,7 @@ function twitchpress_string_half( $string, $ret = null ) {
  * @param string $postcode
  * @return string Sanitized postcode.
  */
-function twitchpress_normalize_postcode( $postcode ) {          
+function twitchpress_normalize_postcode( string $postcode ) {          
     return preg_replace( '/[\s\-]/', '', trim( strtoupper( $postcode ) ) );
 }
 
@@ -78,7 +78,7 @@ function twitchpress_format_phone_number( $tel ) {
  * @param  string $string
  * @return string
  */
-function twitchpress_strtolower( $string ) {                    
+function twitchpress_strtolower( string $string ) {                    
     return function_exists( 'mb_strtolower' ) ? mb_strtolower( $string ) : strtolower( $string );
 }
 
@@ -102,6 +102,7 @@ function twitchpress_trim_string( $string, $chars = 200, $suffix = '...' ) {
 
 /**
  * Clean variables using sanitize_text_field. Arrays are cleaned recursively.
+ * 
  * Non-scalar values are ignored.
  * @param string|array $var
  * @return string|array
@@ -136,6 +137,8 @@ function twitchpress_parse_template($replacements, $template)
 * 
 * @returns string always 
 * @version 1.0
+* 
+* @deprecated as the feed service no longer exists
 */
 function twitchpress_prepare_post_to_feed_content( $content ) {
     

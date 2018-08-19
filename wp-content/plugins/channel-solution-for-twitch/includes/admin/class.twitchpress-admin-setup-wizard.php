@@ -591,8 +591,8 @@ class TwitchPress_Admin_Setup_Wizard {
         // Sanitize $_POST values.
         $main_channel  = sanitize_text_field( $_POST['twitchpress_main_channel_name'] );
         $redirect_uri  = sanitize_text_field( $_POST['twitchpress_main_redirect_uri'] );
-        $app_id        = sanitize_text_field( $_POST['twitchpress_main_app_id'] );
-        $app_secret = sanitize_text_field( $_POST['twitchpress_main_app_secret'] );
+        $app_id        = sanitize_text_field( $_POST['twitchpress_main_client_id'] );
+        $app_secret    = sanitize_text_field( $_POST['twitchpress_main_client_secret'] );
 
         if( empty( $main_channel ) || empty( $redirect_uri ) || empty( $app_id ) || empty( $app_secret ) ) {
             TwitchPress_Admin_Notices::add_custom_notice( 'wizardcredentialsincomplete', sprintf( __( 'You have not completed the Application Credentials part of this step. All four inputs need a value.'), esc_html( $main_channel ) ) );            
@@ -606,9 +606,7 @@ class TwitchPress_Admin_Setup_Wizard {
         }
 
         // Delete options for scopes that are not in $_POST (not checked) and add those that are.
-        $pre_credentials_kraken = new TWITCHPRESS_Twitch_API();          
-        
-        $all_scopes = $pre_credentials_kraken->scopes();
+        $all_scopes = twitchpress_scopes();
         foreach( $all_scopes as $scope => $scope_info ) {  
             if( in_array( $scope, $_POST['twitchpress_scopes'] ) ) {     
                 update_option( 'twitchpress_scope_' . $scope, 'yes' );
@@ -631,7 +629,7 @@ class TwitchPress_Admin_Setup_Wizard {
         // Store the application credentials and information related to the where the app is created. 
         update_option( 'twitchpress_main_redirect_uri',  $redirect_uri,  true );// depreciated use twitchpress_app_redirect
         update_option( 'twitchpress_main_client_id',     $app_id,     true );// depreciated
-        update_option( 'twitchpress_main_client_secret', $client_secret, true );// depreciated
+        update_option( 'twitchpress_main_client_secret', $app_secret, true );// depreciated
  
         // New values going forward in 2018, the above will populate the main channel credentials.  
         update_option( 'twitchpress_app_id',       $app_id,     true );
@@ -639,6 +637,7 @@ class TwitchPress_Admin_Setup_Wizard {
         update_option( 'twitchpress_app_redirect', $redirect_uri,  true );
                                   
         // Request new app Access Token (replaces any existing token)
+        $pre_credentials_kraken = new TWITCHPRESS_Twitch_API();
         $token_result = $pre_credentials_kraken->request_app_access_token( __FUNCTION__ );                         
 
         update_option( 'twitchpress_app_token', $token_result['token'], false );
@@ -700,21 +699,8 @@ class TwitchPress_Admin_Setup_Wizard {
         // Confirm storage of application and that oAuth2 is next.        
         TwitchPress_Admin_Notices::add_custom_notice( 'applicationcredentialssaved', __( 'Your application credentials have been stored and your WordPress site is ready to communicate with Twitch.' ) );
                       
-        // Create a Twitch API oAuth2 URL
-        // REMOVVE $post_credentials_kraken = new TWITCHPRESS_Twitch_API();
-        
-        //REMOVVE $state = array( 'redirectto' => admin_url( '/?page=twitchpress-setup&step=folders' ),
-        //REMOVVE                 'userrole'   => 'administrator',
-        //REMOVVE                 'outputtype' => 'admin',
-        //REMOVVE );
-        
-        // REMOVE $oAuth2_URL = $post_credentials_kraken->generate_authorization_url( $_POST['twitchpress_scopes'], $state );
-        
         // Cleanup
         unset( $existing_channelpost_id, $pre_credentials_kraken, $post_credentials_kraken, $state, $kraken_calls_obj, $user_objects );
-        
-        // Send administrator to Twitch.tv to authorize an account.
-        // REMOVE wp_redirect( $oAuth2_URL );
         
         check_admin_referer( 'twitchpress-setup' );
         wp_redirect( esc_url_raw( $this->get_next_step_link() ) );

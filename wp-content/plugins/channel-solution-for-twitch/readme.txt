@@ -6,7 +6,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, Twitch.tv, Twitch Feed, Twitch Channel, Twitch Team, Twitch Embed, Twitch Stream, Twitch Suite, Twitch Bot, Twitch Chat 
 Requires at least: 4.7
 Tested up to: 4.9
-Stable tag: 2.0.2
+Stable tag: 2.0.4
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
@@ -91,18 +91,35 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
-= 2.0.4: NOT RELEASED = 
+= 2.1.0: NOT RELEASED = 
 * Bugfixes
-    -
+    - confirm_scope() using in_array() instead of array_key_exists() - caused login issues!
 * Enhancements
-    - Twitch API application credentials are now set in the core plugins main file for easier access.
-    - Twitch user oauth credentials are now set in the core plugins main file. 
-    - New object registry approach added for making class objects globally available without using global. 
+    - PHP type-hinting is now being applied. 
+    - [security] Sanitizing added to three lines in update_application()
+    - Function administrator_main_account_listener() now uses sanitize_key( $_GET['code'] )
+    - administrator_main_account_listener() is now depreciated - replaced by a new class.
+    - Deleted file class.twitchpress-settings-feeds.php (Feed settings removed)
+    - 
 * Configuration
     - No changes
 * Database
     - No changes
 
+= 2.0.4: 9th August 2018 = 
+* Bugfixes
+    -
+* Enhancements
+    - Twitch API application credentials are now set in the core plugins main file for easier access.
+    - Twitch user oauth credentials are now set in the core plugins main file. 
+    - New object registry approach added for making class objects globally available without using global.
+    - Feed box removed from Edit Post view. 
+    - Feed post type disabled (Twitch.tv no longer offers the Feed feature) 
+* Configuration
+    - No changes
+* Database
+    - No changes
+ 
 = 2.0.3: July 15, 2018 =
 
 * Bugfixes:

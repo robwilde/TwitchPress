@@ -102,8 +102,10 @@ function twitchpress_print_js() {
  * @param  string $tip        Help tip text
  * @param  bool   $allow_html Allow sanitized HTML if true or escape
  * @return string
+ * 
+ * @version 2.0
  */
-function twitchpress_help_tip( $tip, $allow_html = false ) {
+function twitchpress_help_tip( string $tip, bool $allow_html = false ) {
     if ( $allow_html ) {
         $tip = twitchpress_sanitize_tooltip( $tip );
     } else {
@@ -118,7 +120,7 @@ function twitchpress_help_tip( $tip, $allow_html = false ) {
  *
  * @param string $code
  */
-function twitchpress_enqueue_js( $code ) {
+function twitchpress_enqueue_js( string $code ) {
     global $twitchpress_queued_js;
 
     if ( empty( $twitchpress_queued_js ) ) {
@@ -232,7 +234,7 @@ if( !function_exists( 'twitchpress_is_request' ) ) {
      * @param  string $type admin, ajax, cron or frontend.
      * @return bool
      */
-    function twitchpress_is_request( $type ) {
+    function twitchpress_is_request( string $type ) {
         switch ( $type ) {
             case 'admin' :
                 return is_admin();
@@ -253,7 +255,7 @@ if( !function_exists( 'twitchpress_is_request' ) ) {
 * 
 * @version 1.0
 */
-function twitchpress_validate_code( $code ) {
+function twitchpress_validate_code( string $code ) {
     if( strlen ( $code ) !== 30  ) {
         return false;
     }           
@@ -272,7 +274,7 @@ function twitchpress_validate_code( $code ) {
 * 
 * @version 1.0
 */
-function twitchpress_validate_token( $token ) {
+function twitchpress_validate_token( string $token ) {
     if( strlen ( $token ) !== 30  ) {
         return false;
     }           
@@ -730,16 +732,15 @@ function twitchpress_are_errors_allowed() {
         return true;    
     } 
     
+    // A value of ADMIN allows anyone with "activate_plugins" permission to see errors.
     if( !current_user_can( 'activate_plugins' ) ) {
         return false;
     }  
-
-    // We can display errors for all administrators. 
-    if( 'ADMIN' == get_option( 'bugnet_error_dump_user_id') ) {
+    elseif( 'ADMIN' == get_option( 'bugnet_error_dump_user_id') ) {
         return true;    
     }
     
-    // Now assume numeric value was entered and ensure the current user is that ID.
+    // Match current users ID to the entered ID which restricts error display to a single user.
     if( get_current_user_id() != get_option( 'bugnet_error_dump_user_id') ) {
         return false;    
     } 
@@ -753,9 +754,9 @@ function twitchpress_are_errors_allowed() {
 * @param mixed $scopes_array
 * @param mixed $for_url
 * 
-* @version 1.2
+* @version 1.5
 */
-function twitchpress_prepare_scopes( $scopes_array, $for_url = true ) {
+function twitchpress_prepare_scopes( array $scopes_array ) {
         $scopes_string = '';
         foreach ( $scopes_array as $s ){
             $scopes_string .= $s . '+';

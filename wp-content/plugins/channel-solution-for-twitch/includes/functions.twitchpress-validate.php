@@ -52,10 +52,13 @@ function twitchpress_is_url( $url ){
 /**
 * Determines if numeric value is decimal.
 * 1. checks if value is actually numeric first
+* 
 * @returns boolean
+* 
+* @version 2.0
 */
-function twitchpress_is_decimalnumber( $img_url){       
-    return is_numeric( $img_url ) && floor( $img_url ) != $img_url;    
+function twitchpress_is_decimalnumber( $val ){       
+    return is_numeric( $val ) && floor( $val ) != $val;    
 }
         
 /**

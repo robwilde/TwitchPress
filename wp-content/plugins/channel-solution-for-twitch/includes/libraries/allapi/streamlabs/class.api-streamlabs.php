@@ -355,7 +355,7 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         );                           
 
         $curl = new WP_Http_Curl();
-
+                     
         $response = $curl->request( $url, 
             array( 'method' => 'GET', 'body' => $request_body ) 
         );

@@ -230,8 +230,6 @@ class TwitchPress_Admin_Help {
             $output .= __( '<h2>No Application Token</h2>', 'twitchpress' );
             $output .= __( '<p>All the cool features will not work until we have a token. Please ensure your application was setup properly in the Setup Wizard.</p>', 'twitchpress' );  
         }
-         
-        
         else {
             $output .= __( '<h2>TwitchPress Is Ready</h2>', 'twitchpress' );
             $output .= __( '<p>Only a small number of tests were carried out but it seems the plugin is setup and ready to add new superpowers your WordPress.</p>', 'twitchpress' );  
@@ -426,7 +424,7 @@ class TwitchPress_Admin_Help {
         elseif( is_numeric( $channel['status'] ) )
         {
             $output .= '<h3>' . __( 'Result: Error ', 'twitchpress' ) . $channel['status'] . '</h3>'; 
-            $output .= kraken_httpstatuses( $channel['status'], 'wiki' ); 
+            $output .= twitchpress_kraken_httpstatuses( $channel['status'], 'wiki' ); 
             $overall_result = false;   
         } 
         else 

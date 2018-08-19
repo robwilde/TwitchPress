@@ -127,8 +127,7 @@ class TwitchPress_Systematic_Syncing {
                 'subs_limit'  => 5, 
             ); 
         }
-                                           
-                                           
+                                                                          
         // Load Kraken and set credentials for the app + channel.  
         $kraken = new TWITCHPRESS_Twitch_API_Calls();
         
@@ -1049,7 +1048,7 @@ class TwitchPress_Systematic_Syncing {
     * 
     * @version 1.0
     */
-    public function display_users_subscription_plan_name( $user_id ) {
+    public function display_users_subscription_plan_name( int $user_id ) {
         $output = '';
         $channel_id = twitchpress_get_main_channels_twitchid();
    
@@ -1074,7 +1073,7 @@ class TwitchPress_Systematic_Syncing {
     * 
     * @version 1.0
     */
-    public function display_users_last_twitch_to_wp_sync_date( $user_id, $ago = false ) {
+    public function display_users_last_twitch_to_wp_sync_date( int $user_id, $ago = false ) {
         $output = __( 'Waiting - Please Click Update', 'twitchpress-sync' );
         
         $time = get_user_meta( $user_id, 'twitchpress_sync_time', true );
@@ -1105,7 +1104,7 @@ class TwitchPress_Systematic_Syncing {
     * 
     * @version 1.2
     */
-    public function display_users_twitch_authorisation_status( $user_id ) {
+    public function display_users_twitch_authorisation_status( int $user_id ) {
 
         $code = get_user_meta( $user_id, 'twitchpress_code', true );
         $token = get_user_meta( $user_id, 'twitchpress_token', true );
@@ -1141,7 +1140,3 @@ class TwitchPress_Systematic_Syncing {
 }  
 
 endif;
-
-// Init hooks when this file is included. 
-//$TwitchPress_Systematic_Syncing = new TwitchPress_Systematic_Syncing();
-//$TwitchPress_Systematic_Syncing->init();

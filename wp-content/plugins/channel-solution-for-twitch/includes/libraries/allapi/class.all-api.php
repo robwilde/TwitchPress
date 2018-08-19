@@ -93,14 +93,8 @@ class TWITCHPRESS_All_API {
         return true;
     }
     
-    /**
-     * Listen for administrators main account, for a giving service, being
-     * put through oAuth2 request at the point of redirection from service to WordPress. 
-     * 
-     * @version 1.23
-     */
     public static function init() {   
-        //add_action( 'plugins_loaded', array( __CLASS__, 'administrator_main_account_listener' ), 50 );
+     
     }
     
     public function new_state( $attributes ) {

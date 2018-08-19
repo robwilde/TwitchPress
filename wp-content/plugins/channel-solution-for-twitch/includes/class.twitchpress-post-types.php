@@ -25,7 +25,7 @@ class TwitchPress_Post_types {
         add_action( 'init', array( __CLASS__, 'register_post_status' ), 9 );
         add_filter( 'rest_api_allowed_post_types', array( __CLASS__, 'rest_api_allowed_post_types' ) );
         add_action( 'twitchpress_flush_rewrite_rules', array( __CLASS__, 'flush_rewrite_rules' ) );
-        add_action( 'add_meta_boxes', array( __CLASS__, 'add_custom_boxes' ) );
+        //add_action( 'add_meta_boxes', array( __CLASS__, 'add_custom_boxes' ) );
         add_action( 'save_post', array( __CLASS__, 'save_twitchpress_post_sharing_options' ) );  
         add_action( 'post_submitbox_misc_actions', array( __CLASS__, 'post_submitbox' ) );
     }
@@ -148,7 +148,7 @@ class TwitchPress_Post_types {
         register_post_type( 'twitchfeed',
             apply_filters( 'twitchpress_register_post_type_twitchfeed',
                 array(
-                    'labels'              => array(
+                    'labels' => array(
                             'name'                  => __( 'Twitch Feed Entries', 'twitchpress' ),
                             'singular_name'         => __( 'Twitch Feed Entry', 'twitchpress' ),
                             'menu_name'             => _x( 'TwitchPress', 'Admin menu name', 'twitchpress' ),

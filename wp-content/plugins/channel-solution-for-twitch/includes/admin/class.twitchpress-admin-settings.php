@@ -59,7 +59,6 @@ class TwitchPress_Admin_Settings {
             include_once( 'settings/class.twitchpress-settings-page.php' );
                                                                             
             $settings[] = include( 'settings/class.twitchpress-settings-general.php' );
-            $settings[] = include( 'settings/class.twitchpress-settings-feeds.php' );
             $settings[] = include( 'settings/class.twitchpress-settings-kraken.php' ); 
             $settings[] = include( 'settings/class.twitchpress-settings-users.php' );    
             $settings[] = include( 'settings/class.twitchpress-settings-otherapi.php' );    

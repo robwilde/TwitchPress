@@ -26,9 +26,10 @@ defined( 'ABSPATH' ) || die( 'Direct script access is not allowed!' );
 * 
 * @param mixed $wp_user_id
 * 
-* @version 2.0
+* @version 2.5
 */
-function twitchpress_is_user_authorized( $wp_user_id ) { 
+function twitchpress_is_user_authorized( int $wp_user_id )  
+{ 
     if( !get_user_meta( $wp_user_id, 'twitchpress_code', false ) ) {
         return false;
     }    
@@ -45,10 +46,10 @@ function twitchpress_is_user_authorized( $wp_user_id ) {
 * @returns mixed array if user has credentials else false.
 * @param mixed $user_id
 * 
-* @version 1.0
+* @version 2.0
 */
-function twitchpress_get_user_twitch_credentials( $user_id ) {
-    
+function twitchpress_get_user_twitch_credentials( int $user_id ) 
+{
     if( !$user_id ) {
         return false;
     } 
@@ -79,7 +80,7 @@ function twitchpress_get_user_twitch_credentials( $user_id ) {
 * 
 * @version 1.0
 */
-function twitchpress_update_user_oauth( $wp_user_id, $code, $token, $twitch_user_id ) {
+function twitchpress_update_user_oauth( int $wp_user_id, string $code, string $token, int $twitch_user_id ) {
     twitchpress_update_user_code( $wp_user_id, $code );
     twitchpress_update_user_token( $wp_user_id, $token ); 
     twitchpress_update_user_twitchid( $wp_user_id, $twitch_user_id );     
@@ -243,19 +244,19 @@ function twitchpress_get_main_channels_refresh() {
 }
 
 function twitchpress_update_main_channels_code( $code ) {
-    return update_option( 'twitchpress_main_channels_code', $code, false );
+    return update_option( 'twitchpress_main_channels_code', sanitize_key( $code ), false );
 }
 
 function twitchpress_update_main_channels_wpowner_id( $wp_user_id ) {
-    return update_option( 'twitchpress_main_channels_wpowner_id', $wp_user_id, false );
+    return update_option( 'twitchpress_main_channels_wpowner_id', sanitize_key( $wp_user_id ), false );
 }
 
 function twitchpress_update_main_channels_token( $token ) { 
-    return update_option( 'twitchpress_main_channels_token', $token, false );
+    return update_option( 'twitchpress_main_channels_token', sanitize_key( $token ), false );
 }
 
 function twitchpress_update_main_channels_refresh_token( $refresh_token ) {
-    return update_option( 'twitchpress_main_channels_refresh', $refresh_token, false );
+    return update_option( 'twitchpress_main_channels_refresh', sanitize_key( $refresh_token ), false );
 }
 
 function twitchpress_update_main_channels_scope( $scope ) {

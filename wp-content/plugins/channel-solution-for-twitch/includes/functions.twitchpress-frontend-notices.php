@@ -34,7 +34,7 @@ function twitchpress_frontend_notice_types() {
 * 
 * @version 1.0
 */
-function twitchpress_display_frontend_notices_the_content( $post_content ) {  
+function twitchpress_display_frontend_notices_the_content( string $post_content ) {  
     global $GLOBALS;
                                                    
     if( !isset( $_GET['twitchpress_notice'] ) || !is_string( $_GET['twitchpress_notice'] ) ) { return $post_content; }
@@ -80,7 +80,7 @@ function twitchpress_display_frontend_notices_undertitle() {
 * 
 * @deprecated
 */
-function twitchpress_display_frontend_notices_the_title( $content ) {
+function twitchpress_display_frontend_notices_the_title( string $content ) {
     return $content;
     if( !isset( $_GET['twitchpress_notice'] ) || !is_string( $_GET['twitchpress_notice'] ) ) { return; }
     elseif( !isset( $_GET['twitchpress_title'] ) || !is_string( $_GET['twitchpress_title'] ) ) { return; }

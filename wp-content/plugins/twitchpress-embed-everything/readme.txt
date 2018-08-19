@@ -70,6 +70,10 @@ Translator needed to localize our Channel Solution for Twitch: TwitchPress, and 
 No special upgrade instructions this time.
 
 == Changelog ==
+= 1.3.0 NOT RELEASED = 
+* Function shortcode_embed_everything() now uses json_encode
+* Function shortcode_embed_everything() now removes curly quotes from channel title (copied from webpage)
+
 = 1.2.0 = 
 *  FIX - Shortcode [twitchpress-embed-everything] now returns content rather than echoing it which positions the content better. 
 *  DEV - New method added for updating core system required scopes to tell admin which scopes are required. 

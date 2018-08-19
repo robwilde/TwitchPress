@@ -8,11 +8,11 @@
  * @author   Ryan Bayne
  * @category Admin
  * @package  TwitchPress/Core
- * @version  1.0.0
+ * @version  2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly
+    exit;
 }
 
 // Make sure we meet our dependency requirements
@@ -22,19 +22,7 @@ if (!extension_loaded('json')) trigger_error('PECL JSON or pear JSON is not inst
 if( !class_exists( 'TWITCHPRESS_Twitch_API_Calls' ) ) :
 
 class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
-    
-    /**
-     * WordPress integrating constructor. 
-     * 
-     * Put add_action() specific to this class in here. 
-     * Get WP option values required by class in here.
-     * 
-     * @package TwitchPress
-     */
-    public static function init() {              
-        //add_action( 'shutdown', array( __CLASS__, 'store_notices' ) );
-    }
-    
+        
     /**
     * Gets objects for multiple users.
     * 
@@ -75,7 +63,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 5.8
      */ 
-    public function getUserObject_Authd( $token, $code ){
+    public function getUserObject_Authd( string $token, string $code ){
         
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = $this->confirm_scope( 'user_read', 'channel', __FUNCTION__ );
@@ -153,7 +141,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     * 
     * @deprecated because the Twitch.tv feed feature was removed May 2018.
     */ 
-    public function getFeedPosts( $chan, $limit = -1, $offset = 0, $returnTotal = false ) {
+    public function getFeedPosts( string $chan, $limit = -1, $offset = 0, $returnTotal = false ) {
         $feedpostsObjects = array();     
         $feedposts = array();
        
@@ -194,7 +182,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     * 
     * @deprecated because the Twitch.tv feed feature was removed May 2018.
     */
-    public function getLatestFeed( $channel = 'ZypheREvolved', $value = null ){
+    public function getLatestFeed( string $channel = 'ZypheREvolved', $value = null ){
         $post = self::getFeedPosts( $channel, 1, -1 );
         if( !$value ) { return $post; }                                  
         
@@ -248,7 +236,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 1.2
      */ 
-    public function addBlockedUser($chan, $username, $token, $code){
+    public function addBlockedUser( string $chan, string $username, string $token, string $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = $this->confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
@@ -286,7 +274,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 1.5
      */ 
-    public function removeBlockedUser($chan, $username, $token, $code){
+    public function removeBlockedUser( string $chan, string $username, string $token, string $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = $this->confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
@@ -324,7 +312,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 5.3
      */
-    public function getChannelObject( $channel_id ){
+    public function getChannelObject( int $channel_id ){
         $url = 'https://api.twitch.tv/kraken/channels/' . $channel_id;
         $get = array( 'client_id'   => $this->twitch_client_id );
 
@@ -1742,5 +1730,3 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
 }
 
 endif;
-
-//TWITCHPRESS_Twitch_API_Calls::init();
