@@ -82,10 +82,7 @@ function twitchpress_remove_database_tables() {}
 * 
 * @version 1.0
 */
-function twitchpress_remove_extensions() {
-    // Include the array of known extensions.
-    include_once( 'extensions.php' );
-      
+function twitchpress_remove_extensions() {      
     foreach( twitchpress_extensions_array() as $extensions_group_key => $extensions_group_array ) {
         foreach( $extensions_group_array as $extension_name => $extension_array ) {
             deactivate_plugins( $extension_name, true );
@@ -119,12 +116,43 @@ function twitchpress_remove_media() {
     
 }
 
+/**
+ * Remove all roles and all custom capabilities added to 
+ * both custom roles and core roles.
+ * 
+ * @version 1.0
+ */
+function twitchpress_remove_roles() {
+    global $wp_roles;
+
+    if ( ! class_exists( 'WP_Roles' ) ) {
+        return;
+    }
+
+    if ( ! isset( $wp_roles ) ) {
+        $wp_roles = new WP_Roles();
+    }
+
+    $capabilities = twitchpress_get_core_capabilities();
+    $capabilities = array_merge( $capabilities, twitchpress_get_developer_capabilities() );
+    
+    foreach ( $capabilities as $cap_group ) {
+        foreach ( $cap_group as $cap ) {
+            $wp_roles->remove_cap( 'twitchpressdeveloper', $cap );
+            $wp_roles->remove_cap( 'administrator', $cap );
+        }
+    }
+
+    remove_role( 'twitchpressdeveloper' );
+}
+
 if( 'yes' == get_option( 'twitchpress_remove_options' ) ) { twitchpress_remove_options(); }
 if( 'yes' == get_option( 'twitchpress_remove_feed_posts' ) ) { twitchpress_remove_feed_posts(); }
 if( 'yes' == get_option( 'twitchpress_remove_database_tables' ) ) { twitchpress_remove_database_tables(); }
 if( 'yes' == get_option( 'twitchpress_remove_extensions' ) ) { twitchpress_remove_extensions(); }
 if( 'yes' == get_option( 'twitchpress_remove_user_data' ) ) { twitchpress_remove_user_data(); }
 if( 'yes' == get_option( 'twitchpress_remove_media' ) ) { twitchpress_remove_media(); }
+if( 'yes' == get_option( 'twitchpress_remove_roles' ) ) { twitchpress_remove_roles(); }
 
 // Final action is removal of this group of options.
 if( 'yes' == get_option( 'twitchpress_remove_uninstallation_options' ) ) { twitchpress_remove_uninstallation_options(); }

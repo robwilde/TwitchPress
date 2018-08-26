@@ -4,7 +4,7 @@
  * Plugin URI: https://twitchpress.wordpress.com/
  * Github URI: https://github.com/RyanBayne/TwitchPress
  * Description: Add Twitch stream and channel management services to WordPress. 
- * Version: 2.0.4
+ * Version: 2.2.0
  * Author: Ryan Bayne
  * Author URI: https://ryanbayne.wordpress.com/
  * Requires at least: 4.9
@@ -29,8 +29,12 @@ if ( ! class_exists( 'WordPressTwitchPress' ) ) :
 include_once( plugin_basename( 'includes/class.twitchpress-object-registry.php' ) );
 
 // Load core functions with importance on making them available to third-party.                                            
+include_once( 'install.php' );
+include_once( 'functions.php' );
+include_once( 'integration.php' );
+include_once( 'extensions.php' );
+
 include_once( 'includes/functions.twitchpress-core.php' );
-include_once( 'includes/functions.twitchpress-credentials.php' );
 include_once( 'includes/functions.twitchpress-validate.php' );
 
 /**
@@ -45,7 +49,7 @@ final class WordPressTwitchPress {
      *
      * @var string
      */
-    public $version = '2.0.4';
+    public $version = '2.2.0';
 
     /**
      * Minimum WP version.
@@ -241,7 +245,6 @@ final class WordPressTwitchPress {
         require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api-calls.php' );        
         require_once( 'includes/toolbars/class.twitchpress-toolbars.php' );        
         require_once( 'includes/class.twitchpress-listener.php' );
-        require_once( 'includes/class.twitchpress-feeds.php' );
         require_once( 'includes/class.twitchpress-sync.php' );
         require_once( 'includes/class.twitchpress-history.php' );
         include_once( plugin_basename( 'shortcodes.php' ) );
@@ -296,9 +299,13 @@ final class WordPressTwitchPress {
      * @version 1.0 
      */
     private function init_hooks() {
-        register_activation_hook( __FILE__, array( 'TwitchPress_Install', 'install' ) );
+        register_activation_hook( __FILE__, 'twitchpress_activation_installation' );
         register_deactivation_hook( __FILE__, array( 'TwitchPress_Deactivate', 'deactivate' ) );
 
+        // Do integration of custom post types etc
+        add_action( 'init', 'twitchpress_integration' );
+        add_action( 'admin_init', 'twitchpress_offer_wizard' );
+        
         add_action( 'init', array( $this, 'init_system' ), 0 );
         add_action( 'init', array( $this, 'output_errors' ), 1 );
         add_action( 'init', array( $this, 'output_actions' ), 1 );            
@@ -352,7 +359,14 @@ final class WordPressTwitchPress {
         include_once( TWITCHPRESS_PLUGIN_DIR_PATH . 'includes/libraries/bugnet/class.bugnet.php' );
         $bugnet = new BugNet();
         $bugnet->log_directory = TWITCHPRESS_LOG_DIR;
-        $bugnet->plugin_name = 'twitchpress';    
+        $bugnet->plugin_name = TWITCHPRESS_PLUGIN_BASENAME;    
+        
+        // New object registry method added August 2018 to replace "global". 
+        $bugnet_object = new BugNet(); 
+        $bugnet_object->log_directory = TWITCHPRESS_LOG_DIR;
+        $bugnet_object->plugin_name = TWITCHPRESS_PLUGIN_BASENAME;
+        // Add the bugnet class object to our object registry.                 
+        $bugnet_object = TwitchPress_Object_Registry::add( 'bugnet', $bugnet_object );
     }
     
     /**
@@ -443,7 +457,7 @@ final class WordPressTwitchPress {
      */
     public function ajax_url() {                
         return admin_url( 'admin-ajax.php', 'relative' );
-    }   
+    }       
 }
 
 endif;

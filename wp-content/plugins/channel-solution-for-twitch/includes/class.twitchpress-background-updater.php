@@ -118,7 +118,7 @@ class TwitchPress_Background_Updater extends TwitchPress_Background_Process {
     protected function complete() {          
         $logger = new TwitchPress_Logger();
         $logger->add( 'twitchpress_db_updates', 'Data update complete' );
-        TwitchPress_Install::update_db_version();
+        twitchpress_update_db_version();
         parent::complete();
     }
 }

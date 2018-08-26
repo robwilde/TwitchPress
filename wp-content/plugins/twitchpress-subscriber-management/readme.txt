@@ -58,6 +58,9 @@ Always backup your sites files and database before updating an advanced system o
 
 == Changelog ==
 
+= 1.3.0 NOT RELEASED = 
+ * File deleted: functions.twitchpress-subman-shortcode-umrole-update.php
+ 
 = 1.2.0 = 
 * FIX - Removed invalid line "shortcode_connect_button" which was meant to be renamed. Probably cause of connect to Twitch button fault reported in Discord. 
 

@@ -6,7 +6,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, Twitch.tv, Twitch Feed, Twitch Channel, Twitch Team, Twitch Embed, Twitch Stream, Twitch Suite, Twitch Bot, Twitch Chat 
 Requires at least: 4.7
 Tested up to: 4.9
-Stable tag: 2.0.4
+Stable tag: 2.2.0
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
@@ -91,7 +91,33 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
-= 2.1.0: NOT RELEASED = 
+= 2.3.0: NOT RELEASED = 
+* Bugfixes
+    - Visit API service button for Twitch now stores the $state value in shortcode_visitor_api_services_buttons()
+* Enhancements
+    - class TWITCHPRESS_Twitch_API() has been greatly reduced to focus on making requests and not the handling of local data or features.
+    - function tool_authorize_main_channel() no longer creates API object as methods replaced with functions.
+    - function twitchpress_setup_improvement_save() no longer creates Twitch API object.
+    - File deleted: functions.twitchpress-credentials.php (containing functions moved to functions.php)
+    - File deleted: class.twitchpress-feeds.php (Twitch.tv discontinued feed service)
+    - Removed database query for clearing expired transients from the installation procedure.
+    - Removed flush_rewrite_rules() call as it is done in the post-types file already. 
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.2.0: 20th August 2018 = 
+* Bugfixes
+    - No changes
+* Enhancements
+    - Plugin name value changed to a constant in load_debugger() replacing string "twitchpress"
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.1.0: 20th August 2018 = 
 * Bugfixes
     - confirm_scope() using in_array() instead of array_key_exists() - caused login issues!
 * Enhancements
@@ -100,7 +126,6 @@ New setup step added. Please open the Help tab and go to the Installation sectio
     - Function administrator_main_account_listener() now uses sanitize_key( $_GET['code'] )
     - administrator_main_account_listener() is now depreciated - replaced by a new class.
     - Deleted file class.twitchpress-settings-feeds.php (Feed settings removed)
-    - 
 * Configuration
     - No changes
 * Database

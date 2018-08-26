@@ -556,8 +556,8 @@ class TwitchPress_Admin_Settings {
      * @version 1.0
      */
     public static function get_field_description( $value ) {
-        $description  = '';
-        $tooltip_html = '';
+        $description  = ' ';
+        $tooltip_html = ' ';
 
         if ( true === $value['desc_tip'] ) {
             $tooltip_html = $value['desc'];

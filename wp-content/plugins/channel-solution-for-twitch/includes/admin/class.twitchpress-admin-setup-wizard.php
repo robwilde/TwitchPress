@@ -264,31 +264,31 @@ class TwitchPress_Admin_Setup_Wizard {
         <form method="post">
             <table class="form-table">
                 <tr>
-                    <th scope="row"><label for="twitchpress_main_channel_name"><?php _e( 'Main Channel Name', 'twitchpress' ); ?></label></th>
+                    <th scope="row"><label for="twitchpress_main_channels_name"><?php _e( 'Main Channels Name', 'twitchpress' ); ?></label></th>
                     <td>
-                        <input type="text" id="twitchpress_main_channel_name" name="twitchpress_main_channel_name" class="input-text" value="<?php echo get_option( 'twitchpress_main_channel_name' );?>" />
-                        <label for="twitchpress_main_channel_name"><?php _e( 'example: ZypheREvolved, StarCitizen, nookyyy', 'twitchpress' ); ?></label>
+                        <input type="text" id="twitchpress_main_channels_name" name="twitchpress_main_channels_name" class="input-text" value="<?php echo get_option( 'twitchpress_main_channels_name' );?>" />
+                        <label for="twitchpress_main_channels_name"><?php _e( 'example: ZypheREvolved, StarCitizen, nookyyy', 'twitchpress' ); ?></label>
                     </td>
                 </tr>               
                 <tr>
-                    <th scope="row"><label for="twitchpress_main_redirect_uri"><?php _e( 'Redirect URI', 'twitchpress' ); ?></label></th>
+                    <th scope="row"><label for="twitchpress_app_redirect"><?php _e( 'App Redirect URI', 'twitchpress' ); ?></label></th>
                     <td>
-                        <input type="text" id="twitchpress_main_redirect_uri" name="twitchpress_main_redirect_uri" class="input-text" value="<?php echo get_option( 'twitchpress_main_redirect_uri' );?>" />
-                        <label for="twitchpress_main_redirect_uri"><?php echo __( 'example: ', 'twitchpress' ) . get_site_url(); ?></label>
+                        <input type="text" id="twitchpress_app_redirect" name="twitchpress_app_redirect" class="input-text" value="<?php echo get_option( 'twitchpress_app_redirect' );?>" />
+                        <label for="twitchpress_app_redirect"><?php echo __( 'example: ', 'twitchpress' ) . get_site_url(); ?></label>
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="twitchpress_main_client_id"><?php _e( 'Client ID', 'twitchpress' ); ?></label></th>
+                    <th scope="row"><label for="twitchpress_app_id"><?php _e( 'Client/App ID', 'twitchpress' ); ?></label></th>
                     <td>
-                        <input type="text" id="twitchpress_main_client_id" name="twitchpress_main_client_id" class="input-text" value="<?php echo get_option( 'twitchpress_main_client_id' );?>" />
-                        <label for="twitchpress_main_client_id"><?php _e( 'example: uo6dggojyb8d6soh92zknwmi5ej1q2', 'twitchpress' ); ?></label>
+                        <input type="text" id="twitchpress_app_id" name="twitchpress_app_id" class="input-text" value="<?php echo get_option( 'twitchpress_app_id' );?>" />
+                        <label for="twitchpress_app_id"><?php _e( 'example: uo6dggojyb8d6soh92zknwmi5ej1q2', 'twitchpress' ); ?></label>
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="twitchpress_main_client_secret"><?php _e( 'Client Secret', 'twitchpress' ); ?></label></th>
+                    <th scope="row"><label for="twitchpress_app_secret"><?php _e( 'Client/App Secret', 'twitchpress' ); ?></label></th>
                     <td>
-                        <input type="password" id="twitchpress_main_client_secret" name="twitchpress_main_client_secret" class="input-text" value="<?php echo get_option( 'twitchpress_main_client_secret' );?>" />
-                        <label for="twitchpress_main_client_secret"><?php _e( 'example: nyo51xcdrerl8z9m56w9w6wg', 'twitchpress' ); ?></label>
+                        <input type="password" id="twitchpress_app_secret" name="twitchpress_app_secret" class="input-text" value="<?php echo get_option( 'twitchpress_app_secret' );?>" />
+                        <label for="twitchpress_app_secret"><?php _e( 'example: nyo51xcdrerl8z9m56w9w6wg', 'twitchpress' ); ?></label>
                     </td>
                 </tr>
             </table>
@@ -1049,11 +1049,8 @@ class TwitchPress_Admin_Setup_Wizard {
                         'function'   => __FUNCTION__
         );
 
-        // Generate the oAuth URL that we will forward the user to. 
-        $all_scopes = $post_credentials_kraken->twitch_scopes;
-        $oAuth2_URL = $post_credentials_kraken->generate_authorization_url( $all_scopes, $state );
-
-        wp_redirect( $oAuth2_URL );
+        // Generate the oAuth URL and forward the user to it. 
+        wp_redirect( twitchpress_generate_authorization_url( twitchpress_scopes(), $state ) );
         exit; 
     }
     

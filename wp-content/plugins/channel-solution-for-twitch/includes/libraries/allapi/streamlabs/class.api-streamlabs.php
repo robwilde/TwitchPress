@@ -1080,22 +1080,22 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         global $bugnet;
         
         // Confirm $scope is a real scope. 
-        if( !in_array( $scope, $this->twitch_scopes ) ) {
+        if( !in_array( $scope, twitchpress_twitch_scopes ) ) {
             return $bugnet->log_error( 'twitchpressinvalidscope', sprintf( __( 'A Kraken5 call is using an invalid scope. See %s()', 'twitchpress' ), $function ), true );
         }    
         
         // Check applicable $side array scope.
         switch ( $side ) {
            case 'user':
-                if( !in_array( $scope, $this->get_user_scopes() ) ) { return $bugnet->log_error( 'twitchpressscopenotpermittedbyuser', sprintf( __( 'TwitchPress requires visitor scope: %s for function %s()', 'twitchpress' ), $scope, $function ), true ); }
+                if( !in_array( $scope, twitchpress_get_visitor_scopes() ) ) { return $bugnet->log_error( 'twitchpressscopenotpermittedbyuser', sprintf( __( 'TwitchPress requires visitor scope: %s for function %s()', 'twitchpress' ), $scope, $function ), true ); }
              break;           
            case 'channel':
-                if( !in_array( $scope, $this->get_global_accepted_scopes() ) ) { return $bugnet->log_error( 'twitchpressscopenotpermittedbyadmin', sprintf( __( 'TwitchPress scope %s was not permitted by administration and is required by %s().', 'twitchpress' ), $scope, $function ), true ); }
+                if( !in_array( $scope, twitchpress_get_global_accepted_scopes() ) ) { return $bugnet->log_error( 'twitchpressscopenotpermittedbyadmin', sprintf( __( 'TwitchPress scope %s was not permitted by administration and is required by %s().', 'twitchpress' ), $scope, $function ), true ); }
              break;         
            case 'both':
                 // This measure is temporary, to avoid faults, until we confirm which $side some calls apply to. 
-                if( !in_array( $scope, $this->get_global_accepted_scopes() ) &&
-                        !in_array( $scope, $this->get_user_scopes() ) ) { 
+                if( !in_array( $scope, twitchpress_get_global_accepted_scopes() ) &&
+                        !in_array( $scope, twitchpress_get_visitor_scopes() ) ) { 
                             return $bugnet->log_error( 'twitchpressscopenotpermitted', sprintf( __( 'A Kraken5 call requires a scope that has not been permitted.', 'twitchpress' ), $function ), true ); 
                 }
              break;

@@ -20,7 +20,8 @@ class TwitchPress_Object_Registry {
     static $storage = array();
 
     static function add( $id, $class ) {
-        self::$storage[ $id ] = $class; 
+        self::$storage[ $id ] = $class;
+        return self::$storage[ $id ]; 
     }
 
     static function get( $id ) {

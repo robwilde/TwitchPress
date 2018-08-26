@@ -105,7 +105,7 @@ function twitchpress_print_js() {
  * 
  * @version 2.0
  */
-function twitchpress_help_tip( string $tip, bool $allow_html = false ) {
+function twitchpress_help_tip( $tip, $allow_html = false ) {
     if ( $allow_html ) {
         $tip = twitchpress_sanitize_tooltip( $tip );
     } else {
@@ -120,7 +120,7 @@ function twitchpress_help_tip( string $tip, bool $allow_html = false ) {
  *
  * @param string $code
  */
-function twitchpress_enqueue_js( string $code ) {
+function twitchpress_enqueue_js( $code ) {
     global $twitchpress_queued_js;
 
     if ( empty( $twitchpress_queued_js ) ) {
@@ -234,7 +234,7 @@ if( !function_exists( 'twitchpress_is_request' ) ) {
      * @param  string $type admin, ajax, cron or frontend.
      * @return bool
      */
-    function twitchpress_is_request( string $type ) {
+    function twitchpress_is_request( $type ) {
         switch ( $type ) {
             case 'admin' :
                 return is_admin();
@@ -255,7 +255,7 @@ if( !function_exists( 'twitchpress_is_request' ) ) {
 * 
 * @version 1.0
 */
-function twitchpress_validate_code( string $code ) {
+function twitchpress_validate_code( $code ) {
     if( strlen ( $code ) !== 30  ) {
         return false;
     }           
@@ -274,7 +274,7 @@ function twitchpress_validate_code( string $code ) {
 * 
 * @version 1.0
 */
-function twitchpress_validate_token( string $token ) {
+function twitchpress_validate_token( $token ) {
     if( strlen ( $token ) !== 30  ) {
         return false;
     }           

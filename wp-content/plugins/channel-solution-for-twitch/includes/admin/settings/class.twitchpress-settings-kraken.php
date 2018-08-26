@@ -127,7 +127,7 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
                 array(
                     'title'           => __( 'Main Channel', 'twitchpress' ),
                     'desc'            => __( 'Add the channel that the developer application has been created in.', 'twitchpress' ),
-                    'id'              => 'twitchpress_main_channel_name',
+                    'id'              => 'twitchpress_main_channels_name',
                     'default'         => '',
                     'type'            => 'text',
                 ),
@@ -135,7 +135,7 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
                 array(
                     'title'           => __( 'Main Channel ID', 'twitchpress' ),
                     'desc'            => __( 'Main channel ID is currently only set by TwitchPress to confirm oAuth2 credentials are correct.', 'twitchpress' ),
-                    'id'              => 'twitchpress_main_channel_id',
+                    'id'              => 'twitchpress_main_channels_id',
                     'default'         => '',
                     'type'            => 'text',
                     'custom_attributes' => array( 'disabled' => 'disabled' ),
@@ -144,25 +144,25 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
                 array(
                     'title'           => __( 'Redirect URL', 'twitchpress' ),
                     'desc'            => __( 'Redirect URL', 'twitchpress' ),
-                    'id'              => 'twitchpress_main_redirect_uri',
+                    'id'              => 'twitchpress_app_redirect',
                     'default'         => '',
                     'autoload'        => false,
                     'type'            => 'text',
                 ),
 
                 array(
-                    'title'           => __( 'Client ID', 'twitchpress' ),
+                    'title'           => __( 'Client/App ID', 'twitchpress' ),
                     'desc'            => __( 'Your applications public ID.', 'twitchpress' ),
-                    'id'              => 'twitchpress_main_client_id',
+                    'id'              => 'twitchpress_app_id',
                     'default'         => '',
                     'type'            => 'text',
                     'autoload'        => false,
                 ),
 
                 array(
-                    'title'           => __( 'Client Secret', 'twitchpress' ),
+                    'title'           => __( 'Client/App Secret', 'twitchpress' ),
                     'desc'            => __( 'Keep this value hidden at all times.', 'twitchpress' ),
-                    'id'              => 'twitchpress_main_client_secret',
+                    'id'              => 'twitchpress_app_secret',
                     'default'         => '',
                     'type'            => 'password',
                     'autoload'        => false,
@@ -170,8 +170,8 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
 
                 array(
                     'title'           => __( 'Code', 'twitchpress' ),
-                    'desc'            => __( 'Created by Kraken only.', 'twitchpress' ),
-                    'id'              => 'twitchpress_main_code',
+                    'desc'            => __( 'Created by Twitch.tv only.', 'twitchpress' ),
+                    'id'              => 'twitchpress_main_channels_code',
                     'default'         => '',
                     'type'            => 'password',
                     'autoload'        => false,
@@ -180,7 +180,7 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
 
                 array(
                     'title'           => __( 'Token', 'twitchpress' ),
-                    'desc'            => __( 'Created by Kraken only.', 'twitchpress' ),
+                    'desc'            => __( 'Created by Twitch.tv only.', 'twitchpress' ),
                     'id'              => 'twitchpress_main_token',
                     'default'         => '',
                     'type'            => 'password',

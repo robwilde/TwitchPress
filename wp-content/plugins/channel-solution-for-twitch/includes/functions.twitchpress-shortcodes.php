@@ -233,7 +233,7 @@ add_shortcode( 'twitchpress_channels_status_list', 'twitchpress_channels_status_
 /**
 * Displays a list of buttons for initiating oAuth for each API.
 * 
-* @version 1.0
+* @version 2.0
 */
 function shortcode_visitor_api_services_buttons( $atts ) {         
     global $post; 
@@ -290,7 +290,7 @@ function shortcode_visitor_api_services_buttons( $atts ) {
                         'function'   => __FUNCTION__
         );  
                                                                       
-        $url = $twitch_api->generate_authorization_url( $twitch_api->get_visitor_scopes(), $twitch_api->get_visitor_scopes() );
+        $url = twitchpress_generate_authorization_url( twitchpress_get_visitor_scopes(), $state );
         unset($twitch_api); 
 
         $html_output .= '                
