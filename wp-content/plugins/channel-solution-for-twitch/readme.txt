@@ -95,15 +95,19 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 * Bugfixes
     - Visit API service button for Twitch now stores the $state value in shortcode_visitor_api_services_buttons()
 * Enhancements
+    - Big shift in code as expensive objects are broken into smaller ones and methods moved to function files (making for an easier to understand project)
     - class TWITCHPRESS_Twitch_API() has been greatly reduced to focus on making requests and not the handling of local data or features.
     - function tool_authorize_main_channel() no longer creates API object as methods replaced with functions.
     - function twitchpress_setup_improvement_save() no longer creates Twitch API object.
     - File deleted: functions.twitchpress-credentials.php (containing functions moved to functions.php)
     - File deleted: class.twitchpress-feeds.php (Twitch.tv discontinued feed service)
     - Removed database query for clearing expired transients from the installation procedure.
-    - Removed flush_rewrite_rules() call as it is done in the post-types file already. 
+    - Removed flush_rewrite_rules() call as it is done in the post-types file already.
+    - New loader.php file now contains the main class moved from the main twitchpress.php file. 
+    - Class TwitchPress_Install() renamed to TwitchPress_Extension_Installer() (general install removed, now has one purpose)
+    - class.twitchpress-install.php renamed to class.twitchpress-extension-installer.php
 * Configuration
-    - No changes
+    - Multiple option keys/names have changed which should be automatically resolved else go through setup wizard. 
 * Database
     - No changes
     

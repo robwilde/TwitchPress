@@ -340,10 +340,10 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     * @param mixed $service
     * @param mixed $service_object
     * 
-    * @version 1.0
+    * @version 1.2
     */
     public function get_main_streamlabs_user() {
-
+                  
         // Endpoint
         $url = 'https://streamlabs.com/api/v1.0/user?access_token=' . $this->get_main_access_token();
      
@@ -355,9 +355,17 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         );                           
 
         $curl = new WP_Http_Curl();
-                     
+        $curl_info = curl_version();
+
         $response = $curl->request( $url, 
-            array( 'method' => 'GET', 'body' => $request_body ) 
+            array( 
+                'method'     => 'GET', 
+                'body'       => $request_body,
+                'user-agent' => 'curl/' . $curl_info['version'],
+                'stream'     => false,
+                'filename'   => false,
+                'decompress' => false 
+            ) 
         );
 
         if( isset( $response['response']['code'] ) && $response['response']['code'] == 200 ) {
@@ -481,7 +489,7 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     * Request user access token after oAuth2 success. 
     * 
     * @returns body as stdClass
-    * @version 1.0
+    * @version 1.2
     */
     public function api_request_token() {
         
@@ -498,11 +506,19 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         );                           
 
         $curl = new WP_Http_Curl();
-
+        $curl_info = curl_version();
+        
         $response = $curl->request( $url, 
-            array( 'method' => 'POST', 'body' => $body ) 
-        );        
-
+            array( 
+                'method'     => 'POST', 
+                'body'       => $body, 
+                'user-agent' => 'curl/' . $curl_info['version'], 
+                'stream'     => false,
+                'filename'   => false,
+                'decompress' => false  
+            ) 
+        );            
+        
         if( is_string( $response ) ) {
             $response = json_decode( $response );
         }
@@ -596,9 +612,17 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         );                           
 
         $curl = new WP_Http_Curl();
-
+        $curl_info = curl_version();
+        
         $response = $curl->request( $url, 
-            array( 'method' => 'GET', 'body' => $body ) 
+            array( 
+                'method'     => 'GET', 
+                'body'       => $body, 
+                'user-agent' => 'curl/' . $curl_info['version'], 
+                'stream'     => false,
+                'filename'   => false,
+                'decompress' => false 
+            ) 
         );        
 
         if( is_string( $response ) ) {

@@ -1,25 +1,23 @@
 <?php       
 /**
- * TwitchPress - Installation
- *
- * Installation of post types, taxonomies, database tables, options etc. 
- *
+ * TwitchPress Extension Installed
+ * 
  * @author   Ryan Bayne
  * @category Configuration
  * @package  TwitchPress/Core
- * @since    1.0.0
+ * @since    2.0
  */
  
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-if( !class_exists( 'TwitchPress_Install' ) ) : 
+if( !class_exists( 'TwitchPress_Extension_Installer' ) ) : 
 
 /**
  * TwitchPress_Install Class.
  */
-class TwitchPress_Install { 
+class TwitchPress_Extension_Installer { 
                    
     public static function init() {
         add_action( 'twitchpress_plugin_background_installer', array( __CLASS__, 'background_installer' ), 10, 2 );
@@ -163,4 +161,4 @@ class TwitchPress_Install {
 
 endif;
 
-TwitchPress_Install::init();
+TwitchPress_Extension_Installer::init();
