@@ -200,7 +200,7 @@ final class WordPressTwitchPress {
         require_once( 'includes/libraries/class.async-request.php' );
         require_once( 'includes/libraries/class.background-process.php' );            
         require_once( 'includes/class.twitchpress-post-types.php' );                
-        require_once( 'includes/class.twitchpress-install.php' );
+        require_once( 'includes/class.twitchpress-extension-installer.php' );
         require_once( 'includes/class.twitchpress-ajax.php' );
         require_once( 'includes/libraries/allapi/loader.php' );
         require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/functions.twitch-api-statuses.php' );

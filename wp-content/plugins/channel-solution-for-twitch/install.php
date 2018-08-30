@@ -57,6 +57,9 @@ function twitchpress_activation_installation() {
         twitchpress_update_db_version();
     }
 
+    // Run automatic updates. 
+    twitchpress_update();
+    
     twitchpress_update_package_version();
 
     // Trigger action
@@ -64,7 +67,9 @@ function twitchpress_activation_installation() {
 }
 
 /**
-* Manual plugin update action. 
+* Manual plugin update action. NOT CURRENTLY IN USE
+* 
+* @version 1.0
 */
 function twitchpress_install_action_do_update() {
     if ( ! empty( $_GET['do_update_twitchpress'] ) ) {
@@ -73,8 +78,50 @@ function twitchpress_install_action_do_update() {
     }        
 }
 
+/**
+* Automatic updater - runs when plugin is activated which happens during
+* a standard WordPress plugin update.
+* 
+* @version 1.0
+*/
 function twitchpress_update() {
     
+    // 2.3.0 renames options
+    if( $old = get_option( 'twitchpress_main_channel_name' ) ) {
+        add_option( 'twitchpress_main_channels_name', $old );
+        unset( $old );    
+    }
+
+    if( $old = get_option( 'twitchpress_main_channel_name' ) ) {
+        add_option( 'twitchpress_main_channels_name', $old );
+        unset( $old );    
+    }
+    
+    if( $old = get_option( 'twitchpress_main_channel_id' ) ) {
+        add_option( 'twitchpress_main_channels_id', $old );
+        unset( $old );    
+    }
+    
+    if( $old = get_option( 'twitchpress_main_redirect_uri' ) ) {
+        add_option( 'twitchpress_app_redirect', $old );
+        unset( $old );    
+    }
+    
+    if( $old = get_option( 'twitchpress_main_client_id' ) ) {
+        add_option( 'twitchpress_app_id', $old );
+        unset( $old );    
+    }
+    
+    if( $old = get_option( 'twitchpress_main_client_secret' ) ) {
+        add_option( 'twitchpress_app_secret', $old );
+        unset( $old );    
+    }
+    
+    if( $old = get_option( 'twitchpress_main_code' ) ) {
+        add_option( 'twitchpress_main_channels_code', $old );
+        unset( $old );    
+    }
+   
 }
     
 /**
