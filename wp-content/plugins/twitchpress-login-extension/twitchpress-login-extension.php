@@ -28,7 +28,7 @@ if ( !in_array( 'channel-solution-for-twitch/twitchpress.php', apply_filters( 'a
  */
 define( 'TWITCHPRESS_LOGIN_VERSION', '1.3.5' );
 define( 'TWITCHPRESS_LOGIN_MIN_PHP_VER', '5.6.0' );
-define( 'TWITCHPRESS_LOGIN_MIN_TP_VER', '1.6.1' );
+define( 'TWITCHPRESS_LOGIN_MIN_TP_VER', '2.3.0' );
 define( 'TWITCHPRESS_LOGIN_MAIN_FILE', __FILE__ );
 define( 'TWITCHPRESS_LOGIN_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'TWITCHPRESS_LOGIN_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -503,7 +503,7 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
         * 
         * Shortcode tag: twitchpress_login_button
         * 
-        * @version 2.0
+        * @version 2.5
         */
         public function shortcode_connect_button( $atts ) {
             global $wp, $wp_query;
@@ -545,7 +545,7 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
                     }
                 }
             }
-                                       
+                         
             // Load Kraken.
             $kraken = new TWITCHPRESS_Twitch_API();
 
@@ -556,14 +556,13 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
             }
             
             // Load the sites global scopes. 
-            $kraken_permitted_scopes = $kraken->get_user_scopes();
             $states_array = array( 'random14'    => $atts['random14'], 
                                    'loginpageid' => $atts['loginpageid'],
                                    'view'        => 'post',
                                    'successurl'  => $atts['successurl'] );     
             
             // Generate the oAuth2 URL to Twitch.tv login.
-            $authUrl = $kraken->generate_authorization_url( $kraken_permitted_scopes, $states_array );
+            $authUrl = twitchpress_generate_authorization_url( twitchpress_get_visitor_scopes(), $states_array );
             
             return self::connect_button_style_one( $authUrl, $atts['text'] );
         }  
@@ -1070,23 +1069,21 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
         /**
         * Display the Twitch Login button below the WP login form.
         * 
-        * @version 1.0
+        * @version 2.2
         */
         public function twitch_button_below() {
             // This is the top (above) position button.
             if( 'below' !== get_option( 'twitchpress_login_loginpage_position' ) ) { return; }
-            
+
             $kraken = new TWITCHPRESS_Twitch_API();
-            
+
             // Ensure Twitch app is setup to avoid pointless API calls.
             $is_app_set = $kraken->is_app_set();
             if( !$is_app_set ) { return; }
                         
-            $kraken_permitted_scopes = $kraken->get_user_scopes();
-
             $states_array = array( 'random14' => twitchpress_random14(), 'view' => 'default' );
 
-            $authUrl = $kraken->generate_authorization_url( $kraken_permitted_scopes, $states_array );
+            $authUrl = twitchpress_generate_authorization_url( twitchpress_get_visitor_scopes(), $states_array );
         
             echo "<h3 class='twitchpresslogin-or'>" . __( 'or' , 'twitchpress-login') . "</h3>";
             
@@ -1097,7 +1094,7 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
         * Add a Twitch login button to the WordPress default login form. 
         * If the user has not registered it will also register them.
         * 
-        * @version 1.5
+        * @version 2.0
         */
         public function twitch_button_above() {    
             
@@ -1121,22 +1118,19 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
 
             // Generate oAuth2 URL.
             $kraken = new TWITCHPRESS_Twitch_API();
-            
+
             // Ensure Twitch app is setup to avoid pointless API calls.
             $is_app_set = $kraken->is_app_set();
             if( !$is_app_set ) {
                 return;
             }
-                        
-            // The visitor will be asked to accept these scopes. 
-            $kraken_permitted_scopes = $kraken->get_user_scopes();
-   
+
             // States array is used to process visitor on returning from Twitch.tv.
             // We can use these values later in this function but they are more important to generate_authorization_url()
             $states_array = array( 'random14' => twitchpress_random14(), 'view' => 'default' );
             
             // Generate oAuth2 request URL.
-            $authUrl = $kraken->generate_authorization_url( $kraken_permitted_scopes, $states_array );
+            $authUrl = twitchpress_generate_authorization_url( twitchpress_get_visitor_scopes(), $states_array );
         
             // Auto-in via Twitch - all traffic going to wp-login.php is wp_redirect() to an oAuth2 URL 
             if ( $temp_option_autologin ) {

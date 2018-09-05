@@ -7,7 +7,7 @@ Tags: Twitch, TwitchPress, Twitch.tv, Twitch Login, Twitch Register, Twitch Regi
 Requires at least: 4.4
 Tested up to: 4.9
 Stable tag: 1.3.5
-Minimum TwitchPress version: 1.7.3
+Minimum TwitchPress version: 2.3.0
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.

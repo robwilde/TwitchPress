@@ -59,7 +59,6 @@ class TwitchPress_Admin_Settings {
             include_once( 'settings/class.twitchpress-settings-page.php' );
                                                                             
             $settings[] = include( 'settings/class.twitchpress-settings-general.php' );
-            $settings[] = include( 'settings/class.twitchpress-settings-feeds.php' );
             $settings[] = include( 'settings/class.twitchpress-settings-kraken.php' ); 
             $settings[] = include( 'settings/class.twitchpress-settings-users.php' );    
             $settings[] = include( 'settings/class.twitchpress-settings-otherapi.php' );    
@@ -167,7 +166,7 @@ class TwitchPress_Admin_Settings {
 
         do_action( 'twitchpress_settings_start' );
 
-        wp_enqueue_script( 'twitchpress_settings', TwitchPress()->plugin_url() . '/assets/js/admin/settings' . $suffix . '.js', array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-sortable', 'iris', 'select2' ), TwitchPress()->version, true );
+        wp_enqueue_script( 'twitchpress_settings', TwitchPress()->plugin_url() . '/assets/js/admin/settings' . $suffix . '.js', array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-sortable', 'iris', 'select2' ), TWITCHPRESS_VERSION, true );
 
         wp_localize_script( 'twitchpress_settings', 'twitchpress_settings_params', array(
             'i18n_nav_warning' => __( 'The changes you made will be lost if you navigate away from this page.', 'twitchpress' )
@@ -557,8 +556,8 @@ class TwitchPress_Admin_Settings {
      * @version 1.0
      */
     public static function get_field_description( $value ) {
-        $description  = '';
-        $tooltip_html = '';
+        $description  = ' ';
+        $tooltip_html = ' ';
 
         if ( true === $value['desc_tip'] ) {
             $tooltip_html = $value['desc'];

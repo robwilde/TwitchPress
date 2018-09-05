@@ -6,7 +6,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, Twitch.tv, Twitch Feed, Twitch Channel, Twitch Team, Twitch Embed, Twitch Stream, Twitch Suite, Twitch Bot, Twitch Chat 
 Requires at least: 4.7
 Tested up to: 4.9
-Stable tag: 2.0.2
+Stable tag: 2.2.0
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
@@ -91,6 +91,65 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
+= 2.3.0: 5th September 2018 = 
+* Bugfixes
+    - Visit API service button for Twitch now stores the $state value in shortcode_visitor_api_services_buttons()
+* Enhancements
+    - Big shift in code as expensive objects are broken into smaller ones and methods moved to function files (making for an easier to understand project)
+    - class TWITCHPRESS_Twitch_API() has been greatly reduced to focus on making requests and not the handling of local data or features.
+    - function tool_authorize_main_channel() no longer creates API object as methods replaced with functions.
+    - function twitchpress_setup_improvement_save() no longer creates Twitch API object.
+    - File deleted: functions.twitchpress-credentials.php (containing functions moved to functions.php)
+    - File deleted: class.twitchpress-feeds.php (Twitch.tv discontinued feed service)
+    - Removed database query for clearing expired transients from the installation procedure.
+    - Removed flush_rewrite_rules() call as it is done in the post-types file already.
+    - New loader.php file now contains the main class moved from the main twitchpress.php file. 
+    - Class TwitchPress_Install() renamed to TwitchPress_Extension_Installer() (general install removed, now has one purpose)
+    - class.twitchpress-install.php renamed to class.twitchpress-extension-installer.php
+    - New depreciated.php functions file. 
+* Configuration
+    - Multiple option keys/names have changed which should be automatically resolved else go through setup wizard. 
+* Database
+    - No changes
+    
+= 2.2.0: 20th August 2018 = 
+* Bugfixes
+    - No changes
+* Enhancements
+    - Plugin name value changed to a constant in load_debugger() replacing string "twitchpress"
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.1.0: 20th August 2018 = 
+* Bugfixes
+    - confirm_scope() using in_array() instead of array_key_exists() - caused login issues!
+* Enhancements
+    - PHP type-hinting is now being applied. 
+    - [security] Sanitizing added to three lines in update_application()
+    - Function administrator_main_account_listener() now uses sanitize_key( $_GET['code'] )
+    - administrator_main_account_listener() is now depreciated - replaced by a new class.
+    - Deleted file class.twitchpress-settings-feeds.php (Feed settings removed)
+* Configuration
+    - No changes
+* Database
+    - No changes
+
+= 2.0.4: 9th August 2018 = 
+* Bugfixes
+    -
+* Enhancements
+    - Twitch API application credentials are now set in the core plugins main file for easier access.
+    - Twitch user oauth credentials are now set in the core plugins main file. 
+    - New object registry approach added for making class objects globally available without using global.
+    - Feed box removed from Edit Post view. 
+    - Feed post type disabled (Twitch.tv no longer offers the Feed feature) 
+* Configuration
+    - No changes
+* Database
+    - No changes
+ 
 = 2.0.3: July 15, 2018 =
 
 * Bugfixes:

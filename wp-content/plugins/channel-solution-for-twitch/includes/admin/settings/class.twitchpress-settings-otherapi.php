@@ -107,16 +107,10 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
             TwitchPress_Admin_Settings::add_error( __( 'You have not entered the secret value for your application.', 'twitchpress' ) );
             return;
         }    
-        
-        // Validate URL string is an actual URL. 
-        
-        // Validate ID (no special characters allowed) 
-        
-        // Validate (no special characters allowed)
 
-        $uri    = $_POST[ 'twitchpress_allapi_' . $service . '_default_uri' ];
-        $key    = $_POST[ 'twitchpress_allapi_' . $service . '_default_id' ];
-        $secret = $_POST[ 'twitchpress_allapi_' . $service . '_default_secret' ];
+        $uri    = sanitize_url( $_POST[ 'twitchpress_allapi_' . $service . '_default_uri' ] );
+        $key    = sanitize_key( $_POST[ 'twitchpress_allapi_' . $service . '_default_id' ] );
+        $secret = sanitize_key( $_POST[ 'twitchpress_allapi_' . $service . '_default_secret' ] );
                 
         // The All API library will start an oAuth2 if required.  
         $this->application_being_updated( $service, $uri, $key, $secret );

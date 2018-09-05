@@ -6,8 +6,8 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, TwitchPress, Twitch.tv, TwitchPress Extension, TwitchPress Streamlabs, Streamlabs
 Requires at least: 4.4
 Tested up to: 4.9
-Stable tag: 1.0.0
-Minimum core version: 2.0.3
+Stable tag: 1.2.0
+Minimum core version: 2.3.0
 Requires PHP: 5.6
                         
 Streamlabs extension for the TwitchPress system.
@@ -56,6 +56,9 @@ No special upgrade instructions this time. Just remember to
 backup your site files and database.
 
 == Changelog ==
+
+= 1.2.0 = 
+* Variable changes to match core changes. 
 
 = 1.0.0 =
 * DEV - Released 15th July 2018

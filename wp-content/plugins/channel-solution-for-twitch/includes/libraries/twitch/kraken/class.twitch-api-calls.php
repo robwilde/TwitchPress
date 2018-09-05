@@ -8,11 +8,11 @@
  * @author   Ryan Bayne
  * @category Admin
  * @package  TwitchPress/Core
- * @version  1.0.0
+ * @version  2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly
+    exit;
 }
 
 // Make sure we meet our dependency requirements
@@ -22,19 +22,7 @@ if (!extension_loaded('json')) trigger_error('PECL JSON or pear JSON is not inst
 if( !class_exists( 'TWITCHPRESS_Twitch_API_Calls' ) ) :
 
 class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
-    
-    /**
-     * WordPress integrating constructor. 
-     * 
-     * Put add_action() specific to this class in here. 
-     * Get WP option values required by class in here.
-     * 
-     * @package TwitchPress
-     */
-    public static function init() {              
-        //add_action( 'shutdown', array( __CLASS__, 'store_notices' ) );
-    }
-    
+        
     /**
     * Gets objects for multiple users.
     * 
@@ -45,7 +33,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function get_users( $users ) {
         
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'user_read', 'both', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'user_read', 'both', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         // We need a string.
@@ -75,10 +63,10 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 5.8
      */ 
-    public function getUserObject_Authd( $token, $code ){
+    public function getUserObject_Authd( string $token, string $code ){
         
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'user_read', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'user_read', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) || $confirm_scope == false ) { return $confirm_scope; }
          
         $url = 'https://api.twitch.tv/kraken/user';
@@ -117,7 +105,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function get_tokens_channel( $token = null ){        
                                  
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_read', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'channel_read', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         if( !$token ) {
@@ -135,107 +123,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
         
         return $object;
     }  
-        
-    /**
-    * Returns posts from the feed of the giving channel.
-    * 
-    * @link https://dev.twitch.tv/docs/v5/reference/channel-feed#get-multiple-feed-posts
-    * 
-    * @param $chan - [string] Channel name to grab video objects from
-    * @param $limit - [int] Limit of channel objects to return
-    * @param $offset - [int] Maximum number of objects to return
-    * @param $returnTotal - [bool] Returns a _total row in the array
-    * 
-    * @return $feedpostsObjects - [array] array of all returned video objects, Key is ID
-    * 
-    * @author Ryan R. Bayne
-    * @version 5.3
-    * 
-    * @deprecated because the Twitch.tv feed feature was removed May 2018.
-    */ 
-    public function getFeedPosts( $chan, $limit = -1, $offset = 0, $returnTotal = false ) {
-        $feedpostsObjects = array();     
-        $feedposts = array();
-       
-        $url = 'https://api.twitch.tv/kraken/feed/' . $chan . '/posts';
 
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-            
-        // Build our cURL query and store the array
-        $feedposts = $this->get_iterated( $url, array(), $limit, $offset, 'videos', null, null, null, null, null, null, null, null, null, $returningTotal);
-
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $feedpostsObjects['_total'] = count($feedposts);
-        }
-
-        // Key the data
-        foreach ( $feedposts as $k => $post ){
-            if ( $k == '_total' ){
-                $feedpostsObjects[$k] = $post;
-                continue;
-            }
-            
-            $key = $post['id'];
-            $feedpostsObjects[$key] = $post;
-        }
-
-        return $feedpostsObjects;                  
-    }
-
-    /**
-    * Get the very latest feed post from the giving channel.
-    * 
-    * @param mixed $channel
-    * @param mixed $value
-    * 
-    * @version 1.0
-    * 
-    * @deprecated because the Twitch.tv feed feature was removed May 2018.
-    */
-    public function getLatestFeed( $channel = 'ZypheREvolved', $value = null ){
-        $post = self::getFeedPosts( $channel, 1, -1 );
-        if( !$value ) { return $post; }                                  
-        
-        // Specific value has been requested.
-        $post = array_shift( $post );
-           
-        if( isset( $post[ $value ] ) ) { return $post[ $value ]; }
-        
-        return false;
-    }
-    
-    /**
-    * Submit new post to the feed for the giving channel.
-    * 
-    * @param mixed $url
-    * @param mixed $post
-    * @param mixed $options
-    * @param mixed $returnStatus
-    * 
-    * @author Ryan R. Bayne
-    * @version 6.0
-    * 
-    * @deprecated because the Twitch.tv feed feature was removed May 2018.
-    */
-    public function postFeedPost( $postparam = array(), $token ){
-
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_feed_edit', 'both', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
-
-        $url = 'https://api.twitch.tv/kraken/feed/' . $this->twitch_channel_id . '/posts';
-        $post = array( 'oauth_token' => $token, 'client_id' => $this->twitch_client_id );
-        $post = array_merge( $post, $postparam );
-                    
-        $returned_status = $this->cURL_post( $url, $post, array(), true, __FUNCTION__ );
-        
-        unset($url,$post,$options,$postparam);
-
-        return $returned_status;  
-    }  
-    
     /**
      * Adds a user to a channel's blocked list
      * 
@@ -248,10 +136,10 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 1.2
      */ 
-    public function addBlockedUser($chan, $username, $token, $code){
+    public function addBlockedUser( string $chan, string $username, string $token, string $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         if( !$token ) {
@@ -286,10 +174,10 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 1.5
      */ 
-    public function removeBlockedUser($chan, $username, $token, $code){
+    public function removeBlockedUser( string $chan, string $username, string $token, string $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         if( !$token ) {
@@ -324,7 +212,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 5.3
      */
-    public function getChannelObject( $channel_id ){
+    public function getChannelObject( int $channel_id ){
         $url = 'https://api.twitch.tv/kraken/channels/' . $channel_id;
         $get = array( 'client_id'   => $this->twitch_client_id );
 
@@ -354,7 +242,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function getEditors($chan, $limit = -1, $offset = 0, $token, $code, $returnTotal = false){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_read', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'channel_read', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         if( !$token ) {
@@ -405,7 +293,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function updateChannelObject($chan, $token, $code, $title = null, $game = null, $delay = null){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_editor', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'channel_editor', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         if( !$token ) {
@@ -459,7 +347,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function reset_channel_stream_key( $chan, $token, $code ){   
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_stream', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'channel_stream', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         if( !$token ) {
@@ -495,7 +383,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function startCommercial($chan, $token, $code, $length = 30){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_commercial', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'channel_commercial', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         if( !$token ) {
@@ -638,7 +526,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function chat_generateToken($token, $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'chat_login', 'both', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'chat_login', 'both', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }        
         
         $prefix = 'oauth:';
@@ -789,7 +677,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function followChan($user, $chan, $token, $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'user_follows_edit', 'user', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'user_follows_edit', 'user', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; } 
         
         if( !$token ) {
@@ -827,7 +715,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function unfollowChan($user, $chan, $token, $code){
         
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'user_follows_edit', 'user', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'user_follows_edit', 'user', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; } 
 
         if( !$token ) {
@@ -1116,7 +1004,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function getFollowedStreams($limit = -1, $offset = 0, $token, $code, $hls = false, $returnTotal = false){
  
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'user_read', 'user', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'user_read', 'user', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; } 
         
         if( !$token ) {
@@ -1264,7 +1152,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function getVideo_followed($limit = -1, $offset = 0, $token, $code, $returnTotal = false){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'user_read', 'user', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'user_read', 'user', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; } 
         
         if( !$token ) {
@@ -1369,7 +1257,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
         $url = 'https://api.twitch.tv/kraken/channels/' . $chan . '/subscriptions';                          
                                                                                         
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.              
-        $confirm_scope = $this->confirm_scope( 'channel_subscriptions', 'channel', __FUNCTION__ );               
+        $confirm_scope = twitchpress_confirm_scope( 'channel_subscriptions', 'channel', __FUNCTION__ );               
         if( is_wp_error( $confirm_scope) ) 
         {
             $this->bugnet->log_error( __FUNCTION__, __( 'Kraken5 was not giving sccope channel_subscriptions in the get_channel_subscribers() function.', 'twitchpress' ), array(), true ); 
@@ -1435,7 +1323,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
         if( !$twitch_user_id ){ $this->bugnet->log_error( __FUNCTION__, __( 'Twitch user ID not giving.', 'twitchpress' ), array(), true ); }            
                                                                    
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_check_subscription', 'channel', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'channel_check_subscription', 'channel', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         $url = 'https://api.twitch.tv/kraken/channels/' . $chan_id . '/subscriptions/' . $twitch_user_id;
@@ -1520,7 +1408,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
     public function get_users_subscription_apicall( $twitch_user_id, $chan_id, $user_token = false ){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_check_subscription', 'user', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'channel_check_subscription', 'user', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) 
         {
             $this->bugnet->log_error( __FUNCTION__, sprintf( __( 'TwitchPress Error: The function %s() requires the channel_check_subscription scope to be permitted.', 'twitchpress' ), __FUNCTION__ ), array(), true ); 
@@ -1594,7 +1482,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
         if( $this->twitch_sandbox_mode ) { return $this->get_channel_subscriptions_sandbox(); }
              
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = $this->confirm_scope( 'channel_check_subscription', 'user', __FUNCTION__ );
+        $confirm_scope = twitchpress_confirm_scope( 'channel_check_subscription', 'user', __FUNCTION__ );
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         $url = 'https://api.twitch.tv/kraken/users/' . $twitch_user_id . '/subscriptions/' . $chan_id;
@@ -1742,5 +1630,3 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
 }
 
 endif;
-
-//TWITCHPRESS_Twitch_API_Calls::init();

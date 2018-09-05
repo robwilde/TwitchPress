@@ -1,7 +1,7 @@
 <?php 
 /*
 Plugin Name: TwitchPress UM Extension
-Version: 1.4.0
+Version: 1.4.1
 Plugin URI: http://twitchpress.wordpress.com
 Description: Integrate the Ultimate Member and TwitchPress plugins.
 Author: Ryan Bayne
@@ -32,7 +32,7 @@ if ( !in_array( 'ultimate-member/ultimate-member.php', apply_filters( 'active_pl
 /**
  * Required minimums and constants
  */
-define( 'TWITCHPRESS_UM_VERSION', '1.4.0' );
+define( 'TWITCHPRESS_UM_VERSION', '1.4.1' );
 define( 'TWITCHPRESS_UM_MIN_PHP_VER', '5.6.0' );
 define( 'TWITCHPRESS_UM_MIN_TP_VER', '2.0.2' );
 define( 'TWITCHPRESS_UM_MAIN_FILE', __FILE__ );

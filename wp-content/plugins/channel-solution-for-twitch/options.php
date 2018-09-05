@@ -1,7 +1,7 @@
 <?php
 /**
 * Arrays of all known options. Multiple uses are planned for this data
-* to aid in development and configuration.
+* to aid in the creation of development tools and advanced configuration.
 * 
 * @author Ryan R. Bayne
 * @package TwitchPress
@@ -65,28 +65,36 @@ function twitchpress_options_twitch_api() {
     $arr = array();
 
     $arr[ 'twitchpress_apiversion' ] = array();
-    $arr[ 'twitchpress_app_id' ] = array();
-    $arr[ 'twitchpress_app_secret' ] = array();
-    $arr[ 'twitchpress_app_redirect' ] = array();
-    $arr[ 'twitchpress_app_token' ] = array();
-    $arr[ 'twitchpress_app_token_scopes' ] = array();
-    $arr[ 'twitchpress_main_channels_code' ] = array();
-    $arr[ 'twitchpress_main_channels_wpowner_id' ] = array();
-    $arr[ 'twitchpress_main_channels_token' ] = array();
-    $arr[ 'twitchpress_main_channels_refresh' ] = array();
-    $arr[ 'twitchpress_main_channels_scopes' ] = array();
-    $arr[ 'twitchpress_main_channel_name' ] = array();
-    $arr[ 'twitchpress_main_channel_id' ] = array();
-    $arr[ 'twitchpress_main_client_secret' ] = array();
-    $arr[ 'twitchpress_main_client_id' ] = array();
-    $arr[ 'twitchpress_main_redirect_uri' ] = array();
-    $arr[ 'twitchpress_main_channel_postid' ] = array();
-    $arr[ 'twitchpress_main_code' ] = array();
-    $arr[ 'twitchpress_main_token' ] = array();
-    $arr[ 'twitchpress_main_token_scopes' ] = array();
+    
+    // Twitch Application Credentials Group
+    $arr[ 'twitchpress_app_id' ] = array();// Client ID
+    $arr[ 'twitchpress_app_secret' ] = array();// Client Secret
+    $arr[ 'twitchpress_app_redirect' ] = array();// Redirect URL
+    $arr[ 'twitchpress_app_token' ] = array();// Generated Token
+    $arr[ 'twitchpress_app_token_scopes' ] = array();// Tokens Scopes
+    
+    // API calls made on behalf 
+    $arr[ 'twitchpress_main_channels_code' ] = array();// Main users own channel oauth code. 
+    $arr[ 'twitchpress_main_channels_wpowner_id' ] = array();// WordPress ID of the main channel owner. 
+    $arr[ 'twitchpress_main_channels_token' ] = array();// Main channels oauth token. 
+    $arr[ 'twitchpress_main_channels_refresh' ] = array();// Main channels oauth refresh token. 
+    $arr[ 'twitchpress_main_channels_scopes' ] = array();// Main users accepted API scope. 
+    $arr[ 'twitchpress_main_channels_postid' ] = array();// Generated on behalf of the main user. 
+    $arr[ 'twitchpress_main_channels_name' ] = array();// Main channel name (this might be the title of channel and not lowercase, please confirm)
+    $arr[ 'twitchpress_main_channels_id' ] = array();// Main channels Twitch ID (same as user ID)
 
+    // Depreciated
+    $arr[ 'twitchpress_main_client_secret' ] = array();// Depreciated - use twitchpress_app_secret
+    $arr[ 'twitchpress_main_client_id' ] = array();// Depreciated use twitchpress_main_client_id
+    $arr[ 'twitchpress_main_redirect_uri' ] = array();// Depreciated use twitchpress_app_redirect
+    $arr[ 'twitchpress_main_channel_postid' ] = array();// Depreciated - Generated on behalf of the main user. 
+    $arr[ 'twitchpress_main_channel_name' ] = array();// Depreciated - Main channel name (this might be the title of channel and not lowercase, please confirm)
+    $arr[ 'twitchpress_main_channel_id' ] = array();// Depreciated - Main channels Twitch ID (same as user ID)
+    $arr[ 'twitchpress_main_code' ] = array();// Depreciated - Generated on behalf of the main user. 
+    $arr[ 'twitchpress_main_token' ] = array();// Depreciated - Generated on behalf of the main user. 
+    $arr[ 'twitchpress_main_token_scopes' ] = array();// Depreciated - Generated on behalf of the main user. 
+        
     return $arr;
-
 }
 
 function twitchpress_options_extension_integration() {

@@ -47,7 +47,7 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     } 
     
     public function url() {
-        return $this->url . $this->version . '/';
+        return $this->url . TWITCHPRESS_VERSION . '/';
     }
 
     public function set_application( $profile = 'default' ) {
@@ -313,8 +313,6 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     * @version 1.0
     */
     public function update_main_users_meta() {
-        global $GLOBALS;
-        
         $wp_user_id = $this->get_main_users_wp_id();
         if ( !$wp_user_id ) { return false; }
         $main_user = $this->get_main_streamlabs_user();
@@ -322,8 +320,10 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
             update_user_meta( $wp_user_id, 'streamlabs_id', $main_user->streamlabs->id );
             update_user_meta( $wp_user_id, 'streamlabs_display_name', $main_user->streamlabs->display_name );
                                   
+            $main_channel = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+            
             // Update points for main channel, this is simply to satisfy the UI as the main owner will not have points for their own channel.  
-            $this->update_users_points_meta( $wp_user_id, $GLOBALS['twitchpress']->main_channel_id, 0 );
+            $this->update_users_points_meta( $wp_user_id, $main_channel->main_channel_id, 0 );
             return true;
         }
         return false;   
@@ -340,10 +340,10 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     * @param mixed $service
     * @param mixed $service_object
     * 
-    * @version 1.0
+    * @version 1.2
     */
     public function get_main_streamlabs_user() {
-
+                  
         // Endpoint
         $url = 'https://streamlabs.com/api/v1.0/user?access_token=' . $this->get_main_access_token();
      
@@ -355,9 +355,17 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         );                           
 
         $curl = new WP_Http_Curl();
+        $curl_info = curl_version();
 
         $response = $curl->request( $url, 
-            array( 'method' => 'GET', 'body' => $request_body ) 
+            array( 
+                'method'     => 'GET', 
+                'body'       => $request_body,
+                'user-agent' => 'curl/' . $curl_info['version'],
+                'stream'     => false,
+                'filename'   => false,
+                'decompress' => false 
+            ) 
         );
 
         if( isset( $response['response']['code'] ) && $response['response']['code'] == 200 ) {
@@ -481,7 +489,7 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     * Request user access token after oAuth2 success. 
     * 
     * @returns body as stdClass
-    * @version 1.0
+    * @version 1.2
     */
     public function api_request_token() {
         
@@ -498,11 +506,19 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         );                           
 
         $curl = new WP_Http_Curl();
-
+        $curl_info = curl_version();
+        
         $response = $curl->request( $url, 
-            array( 'method' => 'POST', 'body' => $body ) 
-        );        
-
+            array( 
+                'method'     => 'POST', 
+                'body'       => $body, 
+                'user-agent' => 'curl/' . $curl_info['version'], 
+                'stream'     => false,
+                'filename'   => false,
+                'decompress' => false  
+            ) 
+        );            
+        
         if( is_string( $response ) ) {
             $response = json_decode( $response );
         }
@@ -596,9 +612,17 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         );                           
 
         $curl = new WP_Http_Curl();
-
+        $curl_info = curl_version();
+        
         $response = $curl->request( $url, 
-            array( 'method' => 'GET', 'body' => $body ) 
+            array( 
+                'method'     => 'GET', 
+                'body'       => $body, 
+                'user-agent' => 'curl/' . $curl_info['version'], 
+                'stream'     => false,
+                'filename'   => false,
+                'decompress' => false 
+            ) 
         );        
 
         if( is_string( $response ) ) {
@@ -1080,22 +1104,22 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
         global $bugnet;
         
         // Confirm $scope is a real scope. 
-        if( !in_array( $scope, $this->twitch_scopes ) ) {
+        if( !in_array( $scope, twitchpress_twitch_scopes ) ) {
             return $bugnet->log_error( 'twitchpressinvalidscope', sprintf( __( 'A Kraken5 call is using an invalid scope. See %s()', 'twitchpress' ), $function ), true );
         }    
         
         // Check applicable $side array scope.
         switch ( $side ) {
            case 'user':
-                if( !in_array( $scope, $this->get_user_scopes() ) ) { return $bugnet->log_error( 'twitchpressscopenotpermittedbyuser', sprintf( __( 'TwitchPress requires visitor scope: %s for function %s()', 'twitchpress' ), $scope, $function ), true ); }
+                if( !in_array( $scope, twitchpress_get_visitor_scopes() ) ) { return $bugnet->log_error( 'twitchpressscopenotpermittedbyuser', sprintf( __( 'TwitchPress requires visitor scope: %s for function %s()', 'twitchpress' ), $scope, $function ), true ); }
              break;           
            case 'channel':
-                if( !in_array( $scope, $this->get_global_accepted_scopes() ) ) { return $bugnet->log_error( 'twitchpressscopenotpermittedbyadmin', sprintf( __( 'TwitchPress scope %s was not permitted by administration and is required by %s().', 'twitchpress' ), $scope, $function ), true ); }
+                if( !in_array( $scope, twitchpress_get_global_accepted_scopes() ) ) { return $bugnet->log_error( 'twitchpressscopenotpermittedbyadmin', sprintf( __( 'TwitchPress scope %s was not permitted by administration and is required by %s().', 'twitchpress' ), $scope, $function ), true ); }
              break;         
            case 'both':
                 // This measure is temporary, to avoid faults, until we confirm which $side some calls apply to. 
-                if( !in_array( $scope, $this->get_global_accepted_scopes() ) &&
-                        !in_array( $scope, $this->get_user_scopes() ) ) { 
+                if( !in_array( $scope, twitchpress_get_global_accepted_scopes() ) &&
+                        !in_array( $scope, twitchpress_get_visitor_scopes() ) ) { 
                             return $bugnet->log_error( 'twitchpressscopenotpermitted', sprintf( __( 'A Kraken5 call requires a scope that has not been permitted.', 'twitchpress' ), $function ), true ); 
                 }
              break;

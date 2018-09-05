@@ -1,14 +1,14 @@
 <?php 
 /*
 Plugin Name: TwitchPress Embed Everything
-Version: 1.2.0
+Version: 1.3.0
 Plugin URI: http://twitchpress.wordpress.com
 Description: Embed live Twitch stream and chat within the TwitchPress system.
 Author: Ryan Bayne
 Author URI: http://ryanbayne.wordpress.com
 Text Domain: twitchpress-embed
 Domain Path: /languages
-Copyright: © 2017 Ryan Bayne
+Copyright: © 2018 Ryan Bayne
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
  
@@ -43,9 +43,9 @@ if ( !in_array( 'channel-solution-for-twitch/twitchpress.php', apply_filters( 'a
 /**
  * Required minimums and constants
  */
-define( 'TWITCHPRESS_EMBED_VERSION', '1.2.0' );
+define( 'TWITCHPRESS_EMBED_VERSION', '1.3.0' );
 define( 'TWITCHPRESS_EMBED_MIN_PHP_VER', '5.6.0' );
-define( 'TWITCHPRESS_EMBED_MIN_TP_VER', '1.6.1' );
+define( 'TWITCHPRESS_EMBED_MIN_TP_VER', '2.3.0' );
 define( 'TWITCHPRESS_EMBED_MAIN_FILE', __FILE__ );
 define( 'TWITCHPRESS_EMBED_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'TWITCHPRESS_EMBED_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -236,14 +236,14 @@ if ( ! class_exists( 'TwitchPress_Embed_Everything' ) ) :
         * 
         * @link https://dev.twitch.tv/docs/embed#embedding-everything-public-beta
         * 
-        * @version 2.0 
+        * @version 2.5 
         */
         public function shortcode_embed_everything( $atts ) {
             // Shortcode attributes.
             $atts = shortcode_atts( array(
                     //'allowfullscreen' => 0, 
                     //'autoplay'        => 0,  
-                    'channel'         => 'ZypheREvolved',
+                    'channel'         => 'zypherevolved',
                     //'chat'            => 'default', //[default][mobile]
                     //'font-size'       => 'small', //[small, medium, large]
                     'height'          => 1000, // in pixels minimum 400, default 480
@@ -271,21 +271,10 @@ if ( ! class_exists( 'TwitchPress_Embed_Everything' ) ) :
                 width string (pixel number or percentage, minimum 340, default 940)
             */
             
-            // Build parameters string. 
-            $params = '';
-            foreach( $atts as $key => $value ) {
-                
-                if( is_string( $value ) ) {
-                    $value = '"' . $value . '"';
-                } elseif( is_bool( $value ) ) {
-                    $value = $value;
-                } elseif( is_numeric( $value ) ) {
-                    $value = $value;
-                }
-                
-                $params .= $key . ': ' . $value . ',';    
-            }
+            $atts['channel'] = str_replace( '”', '', $atts['channel'] );
             
+            $parameters = json_encode( $atts );
+
             return '
             <!-- Add a placeholder for the Twitch embed -->
             <div id="twitchpress-embed-everything"></div>
@@ -294,7 +283,7 @@ if ( ! class_exists( 'TwitchPress_Embed_Everything' ) ) :
             <script src="https://embed.twitch.tv/embed/v1.js"></script>
 
             <script type="text/javascript">
-              new Twitch.Embed("twitchpress-embed-everything", { ' . $params . '});
+              new Twitch.Embed("twitchpress-embed-everything", ' . $parameters . ');
             </script>';
         }
         

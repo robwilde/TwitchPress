@@ -6,8 +6,8 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, TwitchPress, Twitch.tv, TwitchPress Extension, Twitch Embed, Embed Everything, Embed Twitch Stream, Embed Twitch Chat
 Requires at least: 4.4
 Tested up to: 4.9
-Stable tag: 1.2.0
-Minimum core version: 1.6.1
+Stable tag: 1.3.0
+Minimum core version: 2.3.0
 Requires PHP: 5.6
                         
 Embed a Twitch channel using this extension for the TwitchPress plugin.
@@ -70,6 +70,10 @@ Translator needed to localize our Channel Solution for Twitch: TwitchPress, and 
 No special upgrade instructions this time.
 
 == Changelog ==
+= 1.3.0: September 5, 2018 = 
+* Function shortcode_embed_everything() now uses json_encode
+* Function shortcode_embed_everything() now removes curly quotes from channel title (copied from webpage)
+
 = 1.2.0 = 
 *  FIX - Shortcode [twitchpress-embed-everything] now returns content rather than echoing it which positions the content better. 
 *  DEV - New method added for updating core system required scopes to tell admin which scopes are required. 

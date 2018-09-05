@@ -11,5 +11,3 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
-   
-require_once( plugin_basename( 'shortcodes/functions.twitchpress-subman-shortcode-umrole-update.php' ) );

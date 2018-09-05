@@ -6,8 +6,8 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, TwitchPress, Twitch.tv, TwitchPress Extension, TwitchPress Subscribers, Subscribers, Subscribers Management
 Requires at least: 4.4
 Tested up to: 4.9
-Stable tag: 1.2.1
-Minimum core version: 1.6.1
+Stable tag: 1.3.0
+Minimum core version: 2.3.0
 Requires PHP: 5.6
                         
 Extend the TwitchPress system with Twitch subscriber management features.
@@ -58,6 +58,9 @@ Always backup your sites files and database before updating an advanced system o
 
 == Changelog ==
 
+= 1.3.0 September 5, 2018 = 
+ * File deleted: functions.twitchpress-subman-shortcode-umrole-update.php
+ 
 = 1.2.0 = 
 * FIX - Removed invalid line "shortcode_connect_button" which was meant to be renamed. Probably cause of connect to Twitch button fault reported in Discord. 
 

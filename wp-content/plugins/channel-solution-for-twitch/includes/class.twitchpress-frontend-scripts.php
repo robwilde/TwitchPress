@@ -53,7 +53,7 @@ class TwitchPress_Frontend_Scripts {
      * @access private
      * @return array
      */
-    public static function get_styles() {                 
+    public static function get_styles() {                
         return apply_filters( 'twitchpress_enqueue_styles', array(
             'twitchpress-general' => array(
                 'src'     => str_replace( array( 'http:', 'https:' ), '', TwitchPress()->plugin_url() ) . '/assets/css/twitchpress.css',

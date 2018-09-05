@@ -6,8 +6,8 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, TwitchPress, Twitch.tv, TwitchPress Extension, UM, Ultimate Member, Extension
 Requires at least: 4.6
 Tested up to: 4.9
-Stable tag: 1.4.0
-Minimum TwitchPress version: 2.0.0
+Stable tag: 1.4.1
+Minimum TwitchPress version: 2.3.0
 Requires PHP: 5.6
                         
 Integrate the Ultimate Member plugin with a TwitchPress system.
@@ -64,7 +64,7 @@ Translator needed to localize our Channel Solution for Twitch: TwitchPress, and 
 No special upgrade instructions this time. 
 
 == Changelog ==
-= 1.4.1: NOT RELEASED = 
+= 1.4.1: September 5, 2018 = 
 * Proceduring for applying Twitch subscription paired WP roles has been updated to work strictly with WP roles and not the old UM approach. 
 * The user meta named 'role' (Ultimate Members old approach) is no longer in use. 
 * Function set_twitch_subscribers_um_role() was duplicated (one in class), the standard function has been removed to prevent confusion. 

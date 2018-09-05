@@ -78,6 +78,8 @@ class TwitchPress_Settings_Users extends TwitchPress_Settings_Page {
      * Get settings array.
      *
      * @return array
+     * 
+     * @version 2.0
      */
     public function get_settings( $current_section = '' ) {
         $settings = array();
@@ -92,35 +94,6 @@ class TwitchPress_Settings_Users extends TwitchPress_Settings_Page {
                     'type'     => 'title',
                     'desc'     => __( 'Main controls for public services. Take great care if your service is live and busy as each switch can cause disruption to your subscribers. These settings do not affect administrator access or automated services setup by administrators.', 'twitchpress' ),
                     'id'     => 'publicserviceswitches_settings'
-                ),
-
-                array(
-                    'title'         => __( 'Channel Feed Services', 'twitchpress' ),
-                    'desc'          => __( 'Post to Feed', 'twitchpress' ),
-                    'id'            => 'twitchpress_serviceswitch_feeds_posttofeed',
-                    'type'          => 'checkbox',
-                    'default'       => 'no',
-                    'checkboxgroup' => 'start',
-                    'autoload'      => false,
-                ),
-
-                array(
-                    'desc'            => __( 'Allow Scheduled Posts', 'twitchpress' ),
-                    'id'              => 'twitchpress_serviceswitch_feeds_scheduledposts',
-                    'default'         => 'yes',
-                    'type'            => 'checkbox',
-                    'checkboxgroup'   => '',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                ),
-                                
-                array(
-                    'desc'          => __( 'Customize Prepend/Append Values', 'twitchpress' ),
-                    'id'            => 'twitchpress_serviceswitch_feeds_prependappend',
-                    'type'          => 'checkbox',
-                    'default'       => 'yes',
-                    'checkboxgroup' => 'end',
-                    'autoload'      => false,
                 ),
                
                 array(

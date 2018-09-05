@@ -190,6 +190,11 @@ class TwitchPress_Admin_Help {
               
     }
     
+    /**
+    * Installation tab in help section.
+    * 
+    * @version 2.0
+    */
     public function installation() {
         
         $output = '';
@@ -200,7 +205,7 @@ class TwitchPress_Admin_Help {
         $channel = $kraken->get_top_games( __FUNCTION__ );
         
         // Get main channel as a Twitch user.         
-        $twitch_user = $kraken->get_users( $kraken->get_main_channel_name() );
+        $twitch_user = $kraken->get_users( twitchpress_get_main_channels_name() );
                 
         // Test Get Application Token
         $token_result = $kraken->establish_application_token( __FUNCTION__ );
@@ -209,7 +214,7 @@ class TwitchPress_Admin_Help {
             $output .= __( '<h2>No Application Code</h2>', 'twitchpress' );
             $output .= __( '<p>Could not get the current Top Game from Twitch.tv which indicates application details are missing. Please complete the Setup Wizard.</p>', 'twitchpress' );  
         }        
-        elseif( !$kraken->get_main_channel_name() ) {
+        elseif( !twitchpress_get_main_channels_name() ) {
             $output .= __( '<h2>Main Channel Not Setup</h2>', 'twitchpress' );
             $output .= __( '<p>The main Twitch channel is usually owned by the website owner. The owner must go through the Authorize Main Channel procedure and provide a higher level of access to their account than a user would.</p>', 'twitchpress' );  
         }
@@ -230,8 +235,6 @@ class TwitchPress_Admin_Help {
             $output .= __( '<h2>No Application Token</h2>', 'twitchpress' );
             $output .= __( '<p>All the cool features will not work until we have a token. Please ensure your application was setup properly in the Setup Wizard.</p>', 'twitchpress' );  
         }
-         
-        
         else {
             $output .= __( '<h2>TwitchPress Is Ready</h2>', 'twitchpress' );
             $output .= __( '<p>Only a small number of tests were carried out but it seems the plugin is setup and ready to add new superpowers your WordPress.</p>', 'twitchpress' );  
@@ -426,7 +429,7 @@ class TwitchPress_Admin_Help {
         elseif( is_numeric( $channel['status'] ) )
         {
             $output .= '<h3>' . __( 'Result: Error ', 'twitchpress' ) . $channel['status'] . '</h3>'; 
-            $output .= kraken_httpstatuses( $channel['status'], 'wiki' ); 
+            $output .= twitchpress_kraken_httpstatuses( $channel['status'], 'wiki' ); 
             $overall_result = false;   
         } 
         else 
@@ -615,17 +618,16 @@ class TwitchPress_Admin_Help {
         $output .= '<p>Main Channel Name: ' . twitchpress_get_main_channels_name() . '</p>';
         $output .= '<p>Main Channel Twitch ID: ' . twitchpress_get_main_channels_twitchid() . '</p>';
         $output .= '<p>Main Channel WP Post ID: ' . twitchpress_get_main_channels_postid() . '</p>';
-        //$output .= '<p>Main Channel Token: ' . twitchpress_get_main_channels_token();
         $output .= '<p>Main Channel Code: ' . twitchpress_get_main_channels_code() . '</p>';
         $output .= '<p>Main Channel WP Owner ID: ' . twitchpress_get_main_channels_wpowner_id() . '</p>';
         $output .= '<p>Main Channel Refresh Token: ' . twitchpress_get_main_channels_refresh() . '</p>';
                 
         // Confirm Main Channel
         $output .= '<h2>' . __( 'Main Channel Submitted (Home of Application)', 'twitchpress' ) . '</h2>';
-        $output .= '<p>' . $kraken->get_main_channel_name() . '</p>';
+        $output .= '<p>' . twitchpress_get_main_channels_name() . '</p>';
         
         // Get main channel as a Twitch user.         
-        $twitch_user = $kraken->get_users( $kraken->get_main_channel_name() );
+        $twitch_user = $kraken->get_users( twitchpress_get_main_channels_name() );
 
         // Main Channel ID
         $output .= '<h2>' . __( 'Main Channel ID', 'twitchpress' ) . '</h2>';

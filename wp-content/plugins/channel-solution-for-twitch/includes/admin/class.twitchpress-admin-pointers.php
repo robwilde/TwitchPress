@@ -62,8 +62,8 @@ class TwitchPress_Admin_Pointers {
                         'event'  => 'input'
                     ),
                     'options'      => array(
-                        'content'  =>     '<h3>' . esc_html__( 'Help and Information Tab', 'twitchpress' ) . '</h3>' .
-                                        '<p>' . esc_html__( 'Over here is your first step to getting help. You will also find information about supporting the project as a developer or donator.', 'twitchpress' ) . '</p>',
+                        'content'  => '<h3>' . esc_html__( 'Help and Information Tab', 'twitchpress' ) . '</h3>' .
+                        '<p>' . esc_html__( 'Over here is your first step to getting help. You will also find information about supporting the project as a developer or donator.', 'twitchpress' ) . '</p>',
                         'position' => array(
                             'edge'  => 'top',
                             'align' => 'right'

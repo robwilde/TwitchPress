@@ -1,7 +1,7 @@
 <?php 
 /*
 Plugin Name: TwitchPress Streamlabs Extension
-Version: 1.0.0
+Version: 1.2.0
 Plugin URI: http://twitchpress.wordpress.com
 Description: Streamlabs extension for the TwitchPress system.
 Author: Ryan Bayne
@@ -42,9 +42,9 @@ if ( !in_array( 'channel-solution-for-twitch/twitchpress.php', apply_filters( 'a
 /**
  * Required minimums and constants
  */
-define( 'TWITCHPRESS_STREAMLABS_VERSION', '1.0.0' );
+define( 'TWITCHPRESS_STREAMLABS_VERSION', '1.2.0' );
 define( 'TWITCHPRESS_STREAMLABS_MIN_PHP_VER', '5.6.0' );
-define( 'TWITCHPRESS_STREAMLABS_MIN_TP_VER', '2.0.3' );
+define( 'TWITCHPRESS_STREAMLABS_MIN_TP_VER', '2.3.0' );
 define( 'TWITCHPRESS_STREAMLABS_MAIN_FILE', __FILE__ );
 define( 'TWITCHPRESS_STREAMLABS_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'TWITCHPRESS_STREAMLABS_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -269,6 +269,17 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
             return $merged;
         }
 
+        /**
+        * Runs when an API's credentials are being changed. 
+        * 
+        * GitHub issue created because the $redirect_uri is not being applied yet. 
+        * https://github.com/RyanBayne/TwitchPress/issues/263
+        * 
+        * @param mixed $service
+        * @param mixed $redirect_uri
+        * @param mixed $key
+        * @param mixed $secret
+        */
         public function do_application_being_updated( $service, $redirect_uri, $key, $secret ) { 
             // Update Streamlabs object with newly submitted redirect URI.   
             $this->streamlabs_api->allapi_app_uri = $redirect_uri; 
@@ -436,8 +447,8 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
                     }
                     
                     global $GLOBALS;
-
-                    $points = $this->streamlabs_api->get_users_points_meta( $wp_user_id, $GLOBALS['twitchpress']->main_channel_name );
+                    $main_channel = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+                    $points = $this->streamlabs_api->get_users_points_meta( $wp_user_id, $main_channel->main_channels_name );
                     if( !$points ) { return 0; }
 
                     break;
@@ -467,7 +478,8 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
      
         public function get_current_users_points() {
             global $GLOBALS;
-            return $this->streamlabs_api->get_users_points_meta( get_current_user_id(), $GLOBALS['twitchpress']->main_channel_name );
+            $main_channel = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+            return $this->streamlabs_api->get_users_points_meta( get_current_user_id(), $main_channel->main_channel_name );
         }                            
     }
     

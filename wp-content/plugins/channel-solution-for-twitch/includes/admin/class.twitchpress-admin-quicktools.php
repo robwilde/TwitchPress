@@ -204,14 +204,8 @@ class TwitchPress_Tools {
         if( $this->return_tool_info ){ return $tool_info; }     
         
         if( !current_user_can( $tool_info['capability'] ) ) { return; }
-        
-        /*
-            Your tools unique code goes here. Make it do something!
-        */
-        
-        // Create a Twitch API oAuth2 URL
-        $post_credentials_kraken = new TWITCHPRESS_Twitch_API();
-                                             
+
+        // Create a Twitch API oAuth2 URL           
         $state = array( 'redirectto' => admin_url( 'admin.php?page=twitchpress' ),
                         'userrole'   => 'administrator',
                         'outputtype' => 'admin',
@@ -219,11 +213,8 @@ class TwitchPress_Tools {
                         'function'   => __FUNCTION__
         );
         
-        // Generate the oAuth URL that we will forward the user to. 
-        $all_scopes = $post_credentials_kraken->twitch_scopes;
-        $oAuth2_URL = $post_credentials_kraken->generate_authorization_url( $all_scopes, $state );
-
-        wp_redirect( $oAuth2_URL );
+        // Generate the oAuth URL and forward the user to it. 
+        wp_redirect( twitchpress_generate_authorization_url( twitchpress_scopes(), $state ) );
         exit;
     }
         
@@ -436,11 +427,11 @@ class TwitchPress_Tools {
         $output .= sprintf( __( '<p><strong>User ID: %s</strong></p>', 'twitchpress' ), $user_id );
         
         // Get the main channel Twitch ID.
-        $channel_id = $kraken->get_main_channel_id();
+        $channel_id = twitchpress_get_main_channel_id();
         $output .= sprintf( __( '<p><strong>Main Channel ID: %s</strong></p>', 'twitchpress' ), $channel_id );
         
         // Get main account token.     
-        $channel_token = $kraken->get_main_client_token();
+        $channel_token = twitchpress_get_main_client_token();
         $output .= sprintf( __( '<p><strong>Main Token: %s</strong></p>', 'twitchpress' ), $channel_token );
 
         // Get main account code. 
@@ -455,7 +446,7 @@ class TwitchPress_Tools {
         $output .= sprintf( __( '<p><strong>Users Twitch ID: %s</strong></p>', 'twitchpress' ), $users_twitch_id );
         
         // Get possible existing sub plan from a earlier sub sync.
-        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . $kraken->get_main_channel_id(), true  );
+        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . twitchpress_get_main_channel_id(), true  );
         $output .= sprintf( __( '<p><strong>Existing Sub Plan Value: %s</strong></p>', 'twitchpress' ), $local_sub_plan );
 
         // Check channel subscription from channel side (does not require scope permission).
@@ -597,11 +588,11 @@ class TwitchPress_Tools {
         $output .= sprintf( __( '<p><strong>User ID: %s</strong></p>', 'twitchpress' ), $user_id );
         
         // Get the main channel Twitch ID.
-        $channel_id = $kraken->get_main_channel_id();
+        $channel_id = twitchpress_get_main_channel_id();
         $output .= sprintf( __( '<p><strong>Main Channel ID: %s</strong></p>', 'twitchpress' ), $channel_id );
         
         // Get main account token.     
-        $channel_token = $kraken->get_main_client_token();
+        $channel_token = twitchpress_get_main_client_token();
         $output .= sprintf( __( '<p><strong>Main Token: %s</strong></p>', 'twitchpress' ), $channel_token );
 
         // Get main account code. 
@@ -616,7 +607,7 @@ class TwitchPress_Tools {
         $output .= sprintf( __( '<p><strong>Users Twitch ID: %s</strong></p>', 'twitchpress' ), $users_twitch_id );
         
         // Get possible existing sub plan from a earlier sub sync.
-        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . $kraken->get_main_channel_id(), true  );
+        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . twitchpress_get_main_channel_id(), true  );
         $output .= sprintf( __( '<p><strong>Existing Sub Plan Value: %s</strong></p>', 'twitchpress' ), $local_sub_plan );
 
         // Check channel subscription from channel side (does not require scope permission).

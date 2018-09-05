@@ -20,10 +20,6 @@ class TwitchPress_Systematic_Syncing {
     */
     public $sync_user_flood_delay = 60;// seconds
 
-    public function __construct() {      
-                         
-    }
-    
     public function init() {
                         
         // Custom action hooks. 
@@ -131,10 +127,11 @@ class TwitchPress_Systematic_Syncing {
                 'subs_limit'  => 5, 
             ); 
         }
-        
+                                                                          
         // Load Kraken and set credentials for the app + channel.  
         $kraken = new TWITCHPRESS_Twitch_API_Calls();
-        $id = $kraken->get_main_channel_id();// Right now everything defaults to the main channel.
+        
+        $id = twitchpress_get_main_channel_id();// Right now everything defaults to the main channel.
 
         $earliest_time = $option['last_time'] + $option['delay'];
         
@@ -699,7 +696,7 @@ class TwitchPress_Systematic_Syncing {
         $twitch_sub_response = $kraken->getChannelSubscription( $users_twitch_id, $channel_id, $channel_token );
 
         // Get possible existing sub plan from a earlier sub sync.
-        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . $kraken->get_main_channel_id(), true  );
+        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . twitchpress_get_main_channel_id(), true  );
         
         // If Twitch user is a subscriber to channel do_action() early here, maybe a simple thank you notice. 
         if( isset( $twitch_sub_response['error'] ) || $twitch_sub_response === null ) 
@@ -1051,7 +1048,7 @@ class TwitchPress_Systematic_Syncing {
     * 
     * @version 1.0
     */
-    public function display_users_subscription_plan_name( $user_id ) {
+    public function display_users_subscription_plan_name( int $user_id ) {
         $output = '';
         $channel_id = twitchpress_get_main_channels_twitchid();
    
@@ -1076,7 +1073,7 @@ class TwitchPress_Systematic_Syncing {
     * 
     * @version 1.0
     */
-    public function display_users_last_twitch_to_wp_sync_date( $user_id, $ago = false ) {
+    public function display_users_last_twitch_to_wp_sync_date( int $user_id, $ago = false ) {
         $output = __( 'Waiting - Please Click Update', 'twitchpress-sync' );
         
         $time = get_user_meta( $user_id, 'twitchpress_sync_time', true );
@@ -1107,7 +1104,7 @@ class TwitchPress_Systematic_Syncing {
     * 
     * @version 1.2
     */
-    public function display_users_twitch_authorisation_status( $user_id ) {
+    public function display_users_twitch_authorisation_status( int $user_id ) {
 
         $code = get_user_meta( $user_id, 'twitchpress_code', true );
         $token = get_user_meta( $user_id, 'twitchpress_token', true );
@@ -1143,7 +1140,3 @@ class TwitchPress_Systematic_Syncing {
 }  
 
 endif;
-
-// Init hooks when this file is included. 
-//$TwitchPress_Systematic_Syncing = new TwitchPress_Systematic_Syncing();
-//$TwitchPress_Systematic_Syncing->init();

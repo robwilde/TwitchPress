@@ -1,7 +1,7 @@
 <?php 
 /*
 Plugin Name: TwitchPress Subscriber Management
-Version: 1.2.1
+Version: 1.3.0
 Plugin URI: http://twitchpress.wordpress.com
 Description: Manager your Twitch.tv subscribers using this TwitchPress extension.
 Author: Ryan Bayne
@@ -42,7 +42,7 @@ if ( !in_array( 'channel-solution-for-twitch/twitchpress.php', apply_filters( 'a
 /**
  * Required minimums and constants
  */
-define( 'TWITCHPRESS_SUBSCRIBERS_VERSION', '1.2.1' );
+define( 'TWITCHPRESS_SUBSCRIBERS_VERSION', '1.3.0' );
 define( 'TWITCHPRESS_SUBSCRIBERS_MIN_PHP_VER', '5.6.0' );
 define( 'TWITCHPRESS_SUBSCRIBERS_MIN_TP_VER', '1.6.1' );
 define( 'TWITCHPRESS_SUBSCRIBERS_MAIN_FILE', __FILE__ );

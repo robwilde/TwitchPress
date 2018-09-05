@@ -21,10 +21,6 @@ if( !class_exists( 'TwitchPress_History' ) ) :
 class TwitchPress_History {
     public $twitchpress_history = null;
     
-    public function __construct() {
-
-    }  
-  
     public static function init() {         
 
     }

@@ -15,7 +15,7 @@
 * 
 * @version 1.0
 */
-function kraken_httpstatus_groups( $status = null ) {
+function twitchpress_kraken_httpstatus_groups( $status = null ) {
     $group_meanings = array(
         '1' => __( 'Informational responses.', 'twitchpress' ), 
         '2' => __( 'Success.', 'twitchpress' ), 
@@ -52,7 +52,7 @@ function kraken_httpstatus_groups( $status = null ) {
 * 
 * @version 2.2
 */
-function kraken_httpstatuses( $requested_status = null, $requested_meaning = 'short' ) {
+function twitchpress_kraken_httpstatuses( $requested_status = null, $requested_meaning = 'short' ) {
     $httpstatus = array();
     
     $httpstatus[100]['short'] = __( 'Continue', 'twitchpress' );     
