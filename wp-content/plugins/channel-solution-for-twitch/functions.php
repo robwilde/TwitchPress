@@ -308,12 +308,6 @@ function twitchpress_get_sub_plan( $wp_user_id, $twitch_channel_id ) {
     return get_user_meta( $wp_user_id, 'twitchpress_sub_plan_' . $twitch_channel_id, true  );    
 }
 
-######################################################################
-#                                                                    #
-#                           MAIN CHANNEL                             #
-#                                                                    #
-######################################################################
-
 /**
 * Get the main channel name.
 * This is entered by the key holder during the setup wizard.
@@ -336,20 +330,21 @@ function twitchpress_get_main_channels_twitchid() {
 }
 
 /**
-* Get the main/default/official channels related post ID.
+* Get the channels token which is the same value as the channel owners token but this
+* can make it easier to obtain that value outside of a user based procedure.
 * 
-* @version 1.0
+* @version 2.0 
 */
-function twitchpress_get_main_channels_postid() {
-    $obj = TwitchPress_Object_Registry::get( 'mainchannelauth' );
-    return isset( $obj->main_channels_postid ) ? $obj->main_channels_postid : null;   
-}
-
 function twitchpress_get_main_channels_token() {
-    $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
-    return isset( $obj->app_token ) ? $obj->app_token : null;
+    $obj = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+    return isset( $obj->main_channels_token ) ? $obj->main_channels_token : null;
 }
 
+/**
+* Get the main channels code which is the same as the channel owners code. 
+* 
+* @version 2.0
+*/
 function twitchpress_get_main_channels_code() {
     $obj = TwitchPress_Object_Registry::get( 'mainchannelauth' );
     return isset( $obj->main_channels_code ) ? $obj->main_channels_code : null;
@@ -371,84 +366,147 @@ function twitchpress_get_main_channels_refresh() {
     return isset( $obj->main_channels_refresh ) ? $obj->main_channels_refresh : null;
 }
 
-function twitchpress_get_main_channel_code() {
-    return get_option( 'twitchpress_main_code' );
+/**
+* Get the scopes that the channel owner agreed to. The value is also stored in user-meta.
+* 
+* @version 1.0
+*/
+function twitchpress_get_main_channels_scopes() {
+    $obj = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+    return isset( $obj->main_channels_scopes ) ? $obj->main_channels_scopes : null;
 }
 
 /**
-* @deprecated use twitchpress_get_main_channel_code() 
+* Get the main/default/official channels related post ID.
+* 
+* @version 1.0
 */
-function twitchpress_get_main_client_code() {
-    return twitchpress_get_main_channel_code();
+function twitchpress_get_main_channels_postid() {
+    $obj = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+    return isset( $obj->main_channels_postid ) ? $obj->main_channels_postid : null;
 }
 
-function twitchpress_update_main_channels_code( $code ) {
-    return update_option( 'twitchpress_main_channels_code', sanitize_key( $code ), false );
+######################################################################
+#                                                                    #
+#                        MAIN CHANNEL [UPDATE]                       #
+#                                                                    #
+######################################################################
+
+function twitchpress_update_main_channels_code( $new_code ) {
+    $new_code = sanitize_key( $new_code );
+    update_option( 'twitchpress_main_channels_code', sanitize_key( $new_code ), false ); 
+    return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_code', $new_code );
 }
 
 function twitchpress_update_main_channels_wpowner_id( $wp_user_id ) {
-    return update_option( 'twitchpress_main_channels_wpowner_id', sanitize_key( $wp_user_id ), false );
+    $new_code = sanitize_key( $wp_user_id );
+    update_option( 'twitchpress_main_channels_wpowner_id', sanitize_key( $wp_user_id ), false ); 
+    return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_wpowner_id', $wp_user_id );
 }
 
-function twitchpress_update_main_channels_token( $token ) { 
-    return update_option( 'twitchpress_main_channels_token', sanitize_key( $token ), false );
+function twitchpress_update_main_channels_token( $new_token ) { 
+    $new_code = sanitize_key( $new_token );
+    update_option( 'twitchpress_main_channels_token', sanitize_key( $new_token ), false ); 
+    return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_token', $new_token );
 }
 
-function twitchpress_update_main_channels_refresh_token( $refresh_token ) {
-    return update_option( 'twitchpress_main_channels_refresh', sanitize_key( $refresh_token ), false );
+function twitchpress_update_main_channels_refresh_token( $new_refresh_token ) {
+    $new_code = sanitize_key( $new_refresh_token );
+    update_option( 'main_channels_refresh_token', sanitize_key( $new_refresh_token ), false ); 
+    return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_refresh_token', $new_refresh_token );
 }
 
-function twitchpress_update_main_channels_scope( $scope ) {
-    return update_option( 'twitchpress_main_channels_scopes', $scope, false );
+function twitchpress_update_main_channels_scopes( $new_main_channels_scopes ) {
+    $new_code = sanitize_key( $new_main_channels_scopes );
+    update_option( 'main_channels_scopes', sanitize_key( $new_main_channels_scopes ), false ); 
+    return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_scopes', $new_main_channels_scopes );
+}
+
+function twitchpress_update_main_channels_name( $new_main_channels_name ) {
+    $new_code = sanitize_key( $new_main_channels_name );
+    update_option( 'main_channels_name', sanitize_key( $new_main_channels_name ), false ); 
+    return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_name', $new_main_channels_name );
+}
+
+function twitchpress_update_main_channels_id( $new_main_channels_id ) {
+    $new_code = sanitize_key( $new_main_channels_id );
+    update_option( 'main_channels_id', sanitize_key( $new_main_channels_id ), false ); 
+    return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_id', $new_main_channels_id );
+}
+
+function twitchpress_update_main_channels_postid( $new_main_channels_postid ) {
+    $new_code = sanitize_key( $new_main_channels_postid );
+    update_option( 'main_channels_postid', sanitize_key( $new_main_channels_postid ), false ); 
+    return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_postid', $new_main_channels_postid );
 }
     
 ######################################################################
 #                                                                    #
-#                           APPLICATION                              #
+#                        APPLICATION [GET]                           #
 #                                                                    #
 ######################################################################
-
-/**
-* @deprecated use twitchpress_get_app_id()
-*/
-function twitchpress_get_main_client_id() {
-    return get_option( 'twitchpress_main_client_id' );
-}  
-          
+         
 function twitchpress_get_app_id() {
-    return get_option( 'twitchpress_app_id' );
+    $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
+    return isset( $obj->app_id ) ? $obj->app_id : null;
 }          
 
-function twitchpress_get_app_code() {
-    return get_option( 'twitchress_app_code'); 
-}
-
 function twitchpress_get_app_secret() {
-    return get_option( 'twitchpress_app_secret' );
-}
+    $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
+    return isset( $obj->app_secret ) ? $obj->app_secret : null;    
+}   
 
-function twitchpress_get_main_client_token() {
-    return get_option( 'twitchpress_main_token' );
+function twitchpress_get_main_client_token() {   
+    $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
+    return isset( $obj->app_token ) ? $obj->app_token : null;
 }  
 
 function twitchpress_get_app_redirect() {
-    return get_option( 'twitchpress_app_redirect' ); 
+    $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
+    return isset( $obj->app_redirect ) ? $obj->app_redirect : null; 
 }
 
-/**
-* Stores the main application token and main application scopes
-* as an option value.
-* 
-* @param mixed $token
-* @param mixed $scopes
-* 
-* @version 2.0
-*/
-function twitchpress_update_main_client_token( $token, $scopes ) {
-    update_option( 'twitchpress_main_token', $token );
-    update_option( 'twitchpress_main_token_scopes', $scopes );
+function twitchpress_get_app_token() {
+    $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
+    return isset( $obj->app_token ) ? $obj->app_token : null;    
 }
 
+function twitchpress_get_app_token_scopes() {
+    $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
+    return isset( $obj->token_scopes ) ? $obj->token_scopes : null;    
+}
+
+######################################################################
+#                                                                    #
+#                      APPLICATION [UPDATE]                          #
+#                                                                    #
+######################################################################
+
+function twitchpress_update_app_id( $new_app_id ) {
+    update_option( 'twitchpress_app_id', $new_app_id, true );
+    return TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_id', $new_app_id );    
+}
+
+function twitchpress_update_app_secret( $new_app_secret ) {
+    update_option( 'twitchpress_app_secret', $new_app_secret, true );
+    return TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_secret', $new_app_secret );    
+}
+
+function twitchpress_update_app_redirect( $new_app_redirect ) {
+    update_option( 'twitchpress_app_redirect', $new_app_redirect, true );
+    return TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_redirect', $new_app_redirect );    
+}
+
+function twitchpress_update_app_token( $new_app_token ) {
+    update_option( 'twitchpress_app_token', $new_app_token, true );
+    return TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_token', $new_app_token );    
+}
+
+function twitchpress_update_app_token_scopes( $new_app_scopes ) {
+    update_option( 'twitchpress_app_scopes', $new_app_scopes, true );
+    return TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_scopes', $new_app_scopes );    
+}
+                        
 /**
 * Gets the required visitor scope setup by administrator.
 * 

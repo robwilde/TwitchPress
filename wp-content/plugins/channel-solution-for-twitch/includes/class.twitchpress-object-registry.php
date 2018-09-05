@@ -28,6 +28,14 @@ class TwitchPress_Object_Registry {
         return array_key_exists( $id, self::$storage ) ? self::$storage[$id] : NULL;    
     }
     
+    /**
+    * Update the variable in the registry object.
+    * 
+    * @param mixed $id
+    * @param mixed $var
+    * @param mixed $new
+    * @param mixed $old
+    */
     static function update_var( $id, $var, $new, $old = null ) {
         self::$storage[$id]->$var = $new;     
     }

@@ -447,8 +447,8 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
                     }
                     
                     global $GLOBALS;
-
-                    $points = $this->streamlabs_api->get_users_points_meta( $wp_user_id, $GLOBALS['twitchpress']->main_channel_name );
+                    $main_channel = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+                    $points = $this->streamlabs_api->get_users_points_meta( $wp_user_id, $main_channel->main_channels_name );
                     if( !$points ) { return 0; }
 
                     break;
@@ -478,7 +478,8 @@ if ( ! class_exists( 'TwitchPress_Streamlabs' ) ) :
      
         public function get_current_users_points() {
             global $GLOBALS;
-            return $this->streamlabs_api->get_users_points_meta( get_current_user_id(), $GLOBALS['twitchpress']->main_channel_name );
+            $main_channel = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+            return $this->streamlabs_api->get_users_points_meta( get_current_user_id(), $main_channel->main_channel_name );
         }                            
     }
     

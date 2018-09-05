@@ -1129,11 +1129,13 @@ class TWITCHPRESS_Twitch_API {
             
             $this->bugnet->log( __FUNCTION__, sprintf( __( 'Access token returned. %s', 'twitchpress' ), $appending ), array(), true, false );
             
-            // Update options table. 
-            twitchpress_update_main_client_token( $token['token'], $token['scopes'] );
-            
+            // Update options table with new app credentials.             
+            twitchpress_update_app_token( $token['token'] );
+            twitchpress_update_app_token_scopes( $token['scopes'] );
+       
             // Update the original credentials object in the registry added 2.0.4
             TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_token', $token['token'] );
+            TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_scopes', $token['scopes'] );
 
             // Update $this object. 
             $this->twitch_client_token = $token['token'];

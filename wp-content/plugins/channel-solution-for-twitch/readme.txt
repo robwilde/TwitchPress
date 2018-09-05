@@ -106,6 +106,7 @@ New setup step added. Please open the Help tab and go to the Installation sectio
     - New loader.php file now contains the main class moved from the main twitchpress.php file. 
     - Class TwitchPress_Install() renamed to TwitchPress_Extension_Installer() (general install removed, now has one purpose)
     - class.twitchpress-install.php renamed to class.twitchpress-extension-installer.php
+    - New depreciated.php functions file. 
 * Configuration
     - Multiple option keys/names have changed which should be automatically resolved else go through setup wizard. 
 * Database

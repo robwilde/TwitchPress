@@ -166,7 +166,7 @@ function twitchpress_offer_wizard() {
         $offer_wizard = 'twitchpress_app_secret';
         
     } elseif( !twitchpress_get_main_channels_code() ) {
-        
+              
         $offer_wizard = 'twitchpress_main_code';
         
     } elseif( !twitchpress_get_main_channels_token() ) {
@@ -195,7 +195,7 @@ function twitchpress_offer_wizard() {
 */
 function twitchpress_update_package_version() {
     delete_option( 'twitchpress_version' );
-    add_option( 'twitchpress_version', TwitchPress()->version );
+    add_option( 'twitchpress_version', TWITCHPRESS_VERSION );
 } 
         
 /**
@@ -203,7 +203,7 @@ function twitchpress_update_package_version() {
  */
 function twitchpress_update_db_version( $version = null ) {
     delete_option( 'twitchpress_db_version' );
-    add_option( 'twitchpress_db_version', is_null( $version ) ? TwitchPress()->version : $version );
+    add_option( 'twitchpress_db_version', is_null( $version ) ? TWITCHPRESS_VERSION : $version );
 } 
     
 /**

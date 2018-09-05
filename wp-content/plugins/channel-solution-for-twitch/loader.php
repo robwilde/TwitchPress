@@ -1,4 +1,16 @@
 <?php
+/**
+ * TwitchPress main class - includes, debugging, error output, object registry, constants.
+ * 
+ * @author   Ryan Bayne
+ * @category Scripts
+ * @package  TwitchPress/Core
+ * @since    2.3.0
+ */
+ 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 /**
  * Main TwitchPress Class.
@@ -12,7 +24,7 @@ final class WordPressTwitchPress {
      *
      * @var string
      */
-    public $version = '2.2.0';
+    public $version = '2.3.0';
 
     /**
      * Minimum WP version.
@@ -94,7 +106,7 @@ final class WordPressTwitchPress {
         $this->define_constants();
         $this->load_debugger();        
         $this->includes();
-        $this->init_hooks();
+        $this->init_hooks();                     
         
         $this->available_languages = array(
             //'en_US' => 'English (US)',
@@ -128,10 +140,8 @@ final class WordPressTwitchPress {
         if(!defined( "TWITCHPRESS_CURRENTUSERID" ) ){define( "TWITCHPRESS_CURRENTUSERID", get_current_user_id() );}
               
         // Main (package) constants.
-        if ( ! defined( 'TWITCHPRESS_ABSPATH' ) ) {           define( 'TWITCHPRESS_ABSPATH', __FILE__ ); }
         if ( ! defined( 'TWITCHPRESS_PLUGIN_BASENAME' ) ) {   define( 'TWITCHPRESS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) ); }
         if ( ! defined( 'TWITCHPRESS_PLUGIN_DIR_PATH' ) ) {   define( 'TWITCHPRESS_PLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ) ); }
-        if ( ! defined( 'TWITCHPRESS_VERSION' ) ) {           define( 'TWITCHPRESS_VERSION', $this->version ); }
         if ( ! defined( 'TWITCHPRESS_MIN_WP_VERSION' ) ) {    define( 'TWITCHPRESS_MIN_WP_VERSION', $this->min_wp_version ); }
         if ( ! defined( 'TWITCHPRESS_UPLOADS_DIR' ) ) {       define( 'TWITCHPRESS_UPLOADS_DIR', $upload_dir['basedir'] . 'twitchpress-uploads/' ); }
         if ( ! defined( 'TWITCHPRESS_LOG_DIR' ) ) {           define( 'TWITCHPRESS_LOG_DIR', TWITCHPRESS_PLUGIN_DIR_PATH . 'twitchpress-logs/' ); }
@@ -438,10 +448,5 @@ if( !function_exists( 'TwitchPress' ) ) {
 
     // Global for backwards compatibility.
     global $GLOBALS;
-    $GLOBALS['twitchpress'] = TwitchPress();
-
-    // Define some of these globals to make it easy for extensiosn to access them. 
-    $GLOBALS['twitchpress']->main_channel_name = twitchpress_get_main_channels_name(); 
-    $GLOBALS['twitchpress']->main_channel_id = twitchpress_get_main_channels_twitchid();
-    $GLOBALS['twitchpress']->main_channel_owner_wpid = twitchpress_get_main_channels_wpowner_id();                 
+    $GLOBALS['twitchpress'] = TwitchPress();                 
 }

@@ -47,7 +47,7 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     } 
     
     public function url() {
-        return $this->url . $this->version . '/';
+        return $this->url . TWITCHPRESS_VERSION . '/';
     }
 
     public function set_application( $profile = 'default' ) {
@@ -313,8 +313,6 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
     * @version 1.0
     */
     public function update_main_users_meta() {
-        global $GLOBALS;
-        
         $wp_user_id = $this->get_main_users_wp_id();
         if ( !$wp_user_id ) { return false; }
         $main_user = $this->get_main_streamlabs_user();
@@ -322,8 +320,10 @@ class TWITCHPRESS_Streamlabs_API extends TWITCHPRESS_All_API {
             update_user_meta( $wp_user_id, 'streamlabs_id', $main_user->streamlabs->id );
             update_user_meta( $wp_user_id, 'streamlabs_display_name', $main_user->streamlabs->display_name );
                                   
+            $main_channel = TwitchPress_Object_Registry::get( 'mainchannelauth' );
+            
             // Update points for main channel, this is simply to satisfy the UI as the main owner will not have points for their own channel.  
-            $this->update_users_points_meta( $wp_user_id, $GLOBALS['twitchpress']->main_channel_id, 0 );
+            $this->update_users_points_meta( $wp_user_id, $main_channel->main_channel_id, 0 );
             return true;
         }
         return false;   

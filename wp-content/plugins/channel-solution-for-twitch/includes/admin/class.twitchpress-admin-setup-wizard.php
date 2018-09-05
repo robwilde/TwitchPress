@@ -689,7 +689,7 @@ class TwitchPress_Admin_Setup_Wizard {
             }
             
             update_option( 'twitchpress_main_channel_postid', $post_id, true );            
-            
+            twitchpress_update_main_channels_postid( $post_id );
         } 
         else 
         {

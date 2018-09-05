@@ -54,6 +54,7 @@ trait TwitchPress_OptionsTrait {
     * @version 1.0
     * 
     * @deprecated use get_option_information() which holds default values also.
+    * @see get_option_information()
     */
     public static function get_option_names( $type = 'compact' ) {           
         switch ( $type ) {
@@ -98,11 +99,6 @@ trait TwitchPress_OptionsTrait {
     * @param mixed $type single|merged|secure|deprec
     * @param mixed $return all|keys|install|update|delete|value
     * @param string|array $name use to get specific option details
-    * 
-    * @todo complete $return by allowing specific information to be returned.
-    * @todo complete $name which makes procedure return data for one or more options.
-    * @todo add this method to get_options_names() and return keys only in it. 
-    * @todo move installation options to compact.
     */
     public function get_option_information( $type = 'merged', $return = 'value', $name = array() ) {
         $selected_array = array();    
