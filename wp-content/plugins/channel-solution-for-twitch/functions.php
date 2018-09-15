@@ -58,7 +58,7 @@ function twitchpress_get_core_capabilities() {
 * Returns an array of scopes with user-friendly form input labels and descriptions.
 * 
 * @author Ryan R. Bayne
-* @version 1.2
+* @version 2.0
 */
 function twitchpress_scopes( $scope_only = false ) {
 
@@ -85,7 +85,7 @@ function twitchpress_scopes( $scope_only = false ) {
     );
 
     // We can return scopes without additional information.
-    if( $scope_only ) { return $scope; }
+    if( $scope_only ) { return array_keys( $scope ); }
               
     // Add form input labels for use in form input labels. 
     $scope['user_read']['label']                  = __( 'General Account Details', 'twitchpress' );
@@ -417,8 +417,8 @@ function twitchpress_update_main_channels_refresh_token( $new_refresh_token ) {
 }
 
 function twitchpress_update_main_channels_scopes( $new_main_channels_scopes ) {
-    $new_code = sanitize_key( $new_main_channels_scopes );
-    update_option( 'main_channels_scopes', sanitize_key( $new_main_channels_scopes ), false ); 
+    $new_code = $new_main_channels_scopes;
+    update_option( 'main_channels_scopes', $new_main_channels_scopes, false ); 
     return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_scopes', $new_main_channels_scopes );
 }
 
@@ -599,7 +599,7 @@ function twitchpress_confirm_scope( $scope, $side, $function ) {
 * @param array $permitted_scopes
 * @param array $state_array
 */
-function twitchpress_generate_authorization_url( $permitted_scopes, $local_state ) {
+function twitchpress_generate_authorization_url( array $permitted_scopes, $local_state ) {
     global $bugnet;
         
     // Scope value will be a random code that can be matched to a transient on return.

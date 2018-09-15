@@ -173,7 +173,7 @@ class TwitchPress_Tools {
     * 
     * The WP users ID is also stored to indicate a relationship between WP user and owner. 
     * 
-    * @version 2.0
+    * @version 3.0
     */
     public function tool_authorize_main_channel() {
         /**
@@ -214,7 +214,7 @@ class TwitchPress_Tools {
         );
         
         // Generate the oAuth URL and forward the user to it. 
-        wp_redirect( twitchpress_generate_authorization_url( twitchpress_scopes(), $state ) );
+        wp_redirect( twitchpress_generate_authorization_url( twitchpress_scopes( true ), $state ) );
         exit;
     }
         

@@ -583,16 +583,16 @@ class TwitchPress_Admin_Setup_Wizard {
     /**
      * Save application settings and then forwards user to kraken oauth2.
      * 
-     * @version 2.1
+     * @version 3.0
      */
     public function twitchpress_setup_application_save() {          
         check_admin_referer( 'twitchpress-setup' );
         
         // Sanitize $_POST values.
-        $main_channel  = sanitize_text_field( $_POST['twitchpress_main_channel_name'] );
-        $redirect_uri  = sanitize_text_field( $_POST['twitchpress_main_redirect_uri'] );
-        $app_id        = sanitize_text_field( $_POST['twitchpress_main_client_id'] );
-        $app_secret    = sanitize_text_field( $_POST['twitchpress_main_client_secret'] );
+        $main_channel  = sanitize_text_field( $_POST['twitchpress_main_channels_name'] );
+        $redirect_uri  = sanitize_text_field( $_POST['twitchpress_app_redirect'] );
+        $app_id        = sanitize_text_field( $_POST['twitchpress_app_id'] );
+        $app_secret    = sanitize_text_field( $_POST['twitchpress_app_secret'] );
 
         if( empty( $main_channel ) || empty( $redirect_uri ) || empty( $app_id ) || empty( $app_secret ) ) {
             TwitchPress_Admin_Notices::add_custom_notice( 'wizardcredentialsincomplete', sprintf( __( 'You have not completed the Application Credentials part of this step. All four inputs need a value.'), esc_html( $main_channel ) ) );            
@@ -624,7 +624,10 @@ class TwitchPress_Admin_Setup_Wizard {
         }
  
         // Store the main channel name for using on UI. 
+        // OLD
         update_option( 'twitchpress_main_channel_name',  $main_channel,  true );
+        // NEW
+        update_option( 'twitchpress_main_channels_name',  $main_channel,  true );
        
         // Store the application credentials and information related to the where the app is created. 
         update_option( 'twitchpress_main_redirect_uri',  $redirect_uri,  true );// depreciated use twitchpress_app_redirect
@@ -668,7 +671,11 @@ class TwitchPress_Admin_Setup_Wizard {
                
         // The user ID is the same as the channel ID on Twitch.tv just because.
         // We store the admins selected channel as the account that manages the app.
+        // OLD
         update_option( 'twitchpress_main_channel_id', $twitch_user_id, true );
+        // NEW
+        update_option( 'twitchpress_main_channels_id', $twitch_user_id, true );
+        
         
         // This might be a re-authorization and we cannot assume the same channel is being entered as
         // was initially entered. Check if the twitchchannel post already exists for the giving credentials.
@@ -688,7 +695,9 @@ class TwitchPress_Admin_Setup_Wizard {
                 return;
             }
             
-            update_option( 'twitchpress_main_channel_postid', $post_id, true );            
+            // OLD
+            update_option( 'twitchpress_main_channel_postid', $post_id, true );
+            // NEW            
             twitchpress_update_main_channels_postid( $post_id );
         } 
         else 
@@ -1050,7 +1059,7 @@ class TwitchPress_Admin_Setup_Wizard {
         );
 
         // Generate the oAuth URL and forward the user to it. 
-        wp_redirect( twitchpress_generate_authorization_url( twitchpress_scopes(), $state ) );
+        wp_redirect( twitchpress_generate_authorization_url( twitchpress_scopes( true ), $state ) );
         exit; 
     }
     

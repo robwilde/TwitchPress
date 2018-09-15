@@ -91,11 +91,6 @@ function twitchpress_update() {
         add_option( 'twitchpress_main_channels_name', $old );
         unset( $old );    
     }
-
-    if( $old = get_option( 'twitchpress_main_channel_name' ) ) {
-        add_option( 'twitchpress_main_channels_name', $old );
-        unset( $old );    
-    }
     
     if( $old = get_option( 'twitchpress_main_channel_id' ) ) {
         add_option( 'twitchpress_main_channels_id', $old );

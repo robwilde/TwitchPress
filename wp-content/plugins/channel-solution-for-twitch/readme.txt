@@ -6,7 +6,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, Twitch.tv, Twitch Feed, Twitch Channel, Twitch Team, Twitch Embed, Twitch Stream, Twitch Suite, Twitch Bot, Twitch Chat 
 Requires at least: 4.7
 Tested up to: 4.9
-Stable tag: 2.2.0
+Stable tag: 2.4.0
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
@@ -91,6 +91,20 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
+= 2.4.0: 16th September 2018 = 
+* Bugfixes
+    - New field names applied to setup application step.
+    - New option for channel name was not being populated in wizard: twitchpress_main_channels_name.
+    - New option for channel ID was not being populated in wizard: twitchpress_main_channels_id.
+    - Function twitchpress_scopes( true ) was returning array of empty sub arrays, worked b ut not acceptable due to new bug.
+    - Scopes bug causing failure on oAuth due to incorrect handling of scopes array. 
+* Enhancements
+    - No Changes
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
 = 2.3.0: 5th September 2018 = 
 * Bugfixes
     - Visit API service button for Twitch now stores the $state value in shortcode_visitor_api_services_buttons()

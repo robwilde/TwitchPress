@@ -609,7 +609,23 @@ function twitchpress_are_errors_allowed() {
 */
 function twitchpress_prepare_scopes( array $scopes_array ) {
         $scopes_string = '';
+
+        $i = 0;
+                             echo '<pre>';
+                var_dump( $scopes_array );
+                echo '</pre>';
         foreach ( $scopes_array as $s ){
+            
+            if( is_array( $s ) ) 
+            {
+                echo '<pre>';
+                var_dump( $s );
+                echo '</pre>';
+                wp_die( $i );
+            }
+            
+            ++$i;
+            
             $scopes_string .= $s . '+';
         }
 

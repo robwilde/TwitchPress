@@ -213,7 +213,7 @@ class TWITCHPRESS_Listener_Main_Twitchtv_Account_oAuth {
         twitchpress_update_main_channels_wpowner_id( $this->wp_user_id );
         twitchpress_update_main_channels_token( $this->access_token ); 
         twitchpress_update_main_channels_refresh_token( $this->refresh_token );
-        twitchpress_update_main_channels_scope( $this->returned_scope );                                    
+        twitchpress_update_main_channels_scopes( $this->returned_scope );                                    
         
         TwitchPress_Admin_Notices::add_custom_notice( 'mainkrakenapplicationsetup', __( 'Twitch.tv provided a token to allow this site to access your channel based on the permissions (scopes) you selected.')  );    
     }
