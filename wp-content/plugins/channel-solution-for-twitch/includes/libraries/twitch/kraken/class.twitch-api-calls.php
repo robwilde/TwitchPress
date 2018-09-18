@@ -23,6 +23,42 @@ if( !class_exists( 'TWITCHPRESS_Twitch_API_Calls' ) ) :
 
 class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
         
+        public function get_main_streamlabs_user() {
+                  
+        // Endpoint
+        $url = 'https://streamlabs.com/api/v1.0/user?access_token=' . $this->get_main_access_token();
+     
+        // Call Parameters
+        $request_body = array(
+            'client_id'        => $this->streamlabs_app_id,
+            'client_secret'    => $this->streamlabs_app_secret,
+            'redirect_uri'     => $this->streamlabs_app_uri,
+        );                           
+
+        $curl = new WP_Http_Curl();
+        $curl_info = curl_version();
+
+        $response = $curl->request( $url, 
+            array( 
+                'method'     => 'GET', 
+                'body'       => $request_body,
+                'user-agent' => 'curl/' . $curl_info['version'],
+                'stream'     => false,
+                'filename'   => false,
+                'decompress' => false 
+            ) 
+        );
+
+        if( isset( $response['response']['code'] ) && $response['response']['code'] == 200 ) {
+            if( isset( $response['body'] ) ) {
+                $response_body = json_decode( $response['body'] );
+                return $response_body;
+            }
+        }
+         
+        return false;  
+    }
+    
     /**
     * Gets objects for multiple users.
     * 

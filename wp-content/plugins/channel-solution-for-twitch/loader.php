@@ -23,8 +23,10 @@ final class WordPressTwitchPress {
      * TwitchPress version.
      *
      * @var string
+     * 
+     * @deprecated use constant TWITCHPRESS_VERSION
      */
-    public $version = '2.3.0';
+    public $version = '2.6.0';
 
     /**
      * Minimum WP version.
@@ -140,8 +142,6 @@ final class WordPressTwitchPress {
         if(!defined( "TWITCHPRESS_CURRENTUSERID" ) ){define( "TWITCHPRESS_CURRENTUSERID", get_current_user_id() );}
               
         // Main (package) constants.
-        if ( ! defined( 'TWITCHPRESS_PLUGIN_BASENAME' ) ) {   define( 'TWITCHPRESS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) ); }
-        if ( ! defined( 'TWITCHPRESS_PLUGIN_DIR_PATH' ) ) {   define( 'TWITCHPRESS_PLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ) ); }
         if ( ! defined( 'TWITCHPRESS_MIN_WP_VERSION' ) ) {    define( 'TWITCHPRESS_MIN_WP_VERSION', $this->min_wp_version ); }
         if ( ! defined( 'TWITCHPRESS_UPLOADS_DIR' ) ) {       define( 'TWITCHPRESS_UPLOADS_DIR', $upload_dir['basedir'] . 'twitchpress-uploads/' ); }
         if ( ! defined( 'TWITCHPRESS_LOG_DIR' ) ) {           define( 'TWITCHPRESS_LOG_DIR', TWITCHPRESS_PLUGIN_DIR_PATH . 'twitchpress-logs/' ); }
@@ -191,7 +191,7 @@ final class WordPressTwitchPress {
     /**
      * Include required core files.
      * 
-     * @version 1.4
+     * @version 2.0
      */
     public function includes() {
         
@@ -217,6 +217,7 @@ final class WordPressTwitchPress {
         require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api.php' );
         require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api-calls.php' );        
         require_once( 'includes/toolbars/class.twitchpress-toolbars.php' );        
+        require_once( 'includes/class.twitchpress-curl.php' );
         require_once( 'includes/class.twitchpress-listener.php' );
         require_once( 'includes/class.twitchpress-sync.php' );
         require_once( 'includes/class.twitchpress-history.php' );

@@ -76,7 +76,7 @@ function twitchpress_options_twitch_api() {
     // API calls made on behalf 
     $arr[ 'twitchpress_main_channels_code' ] = array();// Main users own channel oauth code. 
     $arr[ 'twitchpress_main_channels_wpowner_id' ] = array();// WordPress ID of the main channel owner. 
-    $arr[ 'twitchpress_main_channels_token' ] = array();// Main channels oauth token. 
+    $arr[ 'twitchpress_main_channels_token' ] = array();// Actually a user token but this makes it easier to obtain in many cases. 
     $arr[ 'twitchpress_main_channels_refresh' ] = array();// Main channels oauth refresh token. 
     $arr[ 'twitchpress_main_channels_scopes' ] = array();// Main users accepted API scope. 
     $arr[ 'twitchpress_main_channels_postid' ] = array();// Generated on behalf of the main user. 

@@ -125,7 +125,7 @@ function twitchpress_update() {
 * Does not apply when the setup wizard has not been complete. This is
 * currently done by checking 
 * 
-* @version 2.0
+* @version 3.0
 */
 function twitchpress_offer_wizard() {
     $offer_wizard = false;
@@ -162,11 +162,11 @@ function twitchpress_offer_wizard() {
         
     } elseif( !twitchpress_get_main_channels_code() ) {
               
-        $offer_wizard = 'twitchpress_main_code';
+        $offer_wizard = 'twitchpress_main_channels_code';
         
     } elseif( !twitchpress_get_main_channels_token() ) {
         
-        $offer_wizard = 'twitchpress_main_token';
+        $offer_wizard = 'twitchpress_main_channels_token';
         
     }     
     

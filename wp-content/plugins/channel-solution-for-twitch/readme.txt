@@ -4,9 +4,9 @@ Donate link: https://www.patreon.com/zypherevolved
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, Twitch.tv, Twitch Feed, Twitch Channel, Twitch Team, Twitch Embed, Twitch Stream, Twitch Suite, Twitch Bot, Twitch Chat 
-Requires at least: 4.7
+Requires at least: 4.9
 Tested up to: 4.9
-Stable tag: 2.4.0
+Stable tag: 2.5.0
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
@@ -91,6 +91,34 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
+= 2.6.0: NOT RELEASED = 
+* Bugfixes
+    - Setup wizard being offered even when no credentials are missing. 
+* Feature Enhancements
+    - No changes
+* Technical Enhancements
+    - Function twitchpress_kraken_endpoints_feed() removed
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.5.0: 16th September 2018 = 
+* Bugfixes
+    - Possible fix for activation error "WordPress Already Installed" related to plugins install.php file.  
+* Feature Enhancements
+    - No changes
+* Technical Enhancements
+    - Removed bad use of var_dump
+    - functions.twitchpress-core.php contents moved to functions.php and file deleted
+    - twitchpressformatting.php is now included in the main file
+    - Defination of TWITCHPRESS_PLUGIN_BASENAME moved to main file. 
+    - Defination of TWITCHPRESS_PLUGIN_DIR_PATH moved to main file
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
 = 2.4.0: 16th September 2018 = 
 * Bugfixes
     - New field names applied to setup application step.
