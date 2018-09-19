@@ -638,103 +638,10 @@ class TwitchPress_Admin_Setup_Wizard {
         update_option( 'twitchpress_app_id',       $app_id,     true );
         update_option( 'twitchpress_app_secret',   $app_secret,     true );
         update_option( 'twitchpress_app_redirect', $redirect_uri,  true );
-                     
-                     
-                     
-                     
-                                  
+                       
         // Request new app Access Token (replaces any existing token)
         $pre_credentials_kraken = new TWITCHPRESS_Twitch_API();
-        $token_result = $pre_credentials_kraken->request_app_access_token( __FUNCTION__ );                         
-
-        
-        
-        
-        ###################  START OF TEST ######################
-        
-
-            
-    $url = 'https://api.twitch.tv/kraken/oauth2/token';
-    $post = array(
-        'client_id'     => $this->twitch_client_id,
-        'client_secret' => $this->twitch_client_secret,
-        'grant_type'    => 'client_credentials',
-        'scope'         => twitchpress_prepare_scopes( twitchpress_get_global_accepted_scopes() ),
-    );
-   
-    $options = array();
-      
-    $result = json_decode($this->cURL_post($url, $post, $options, false), true);
-
-    if ( is_array( $result ) && array_key_exists( 'access_token', $result ) )
-    {
-        $token['token'] = $result['access_token'];
-        $token['scopes'] = $result['scope'];
-        
-        $appending = '';
-        if( $requesting_function == null ) 
-        { 
-            $appending = $token['token']; 
-        }
-        else
-        { 
-            $appending = sprintf( __( 'Requesting function was %s() and the token is %s.', 'twitchpress' ), $requesting_function, $token['token'] ); 
-        }
-        
-        $this->bugnet->log( __FUNCTION__, sprintf( __( 'Access token returned. %s', 'twitchpress' ), $appending ), array(), true, false );
-        
-        // Update options table with new app credentials.             
-        twitchpress_update_app_token( $token['token'] );
-        twitchpress_update_app_token_scopes( $token['scopes'] );
-   
-        // Update the original credentials object in the registry added 2.0.4
-        TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_token', $token['token'] );
-        TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_scopes', $token['scopes'] );
-
-        // Update $this object. 
-        $this->twitch_client_token = $token['token'];
-        
-        return $token;
-    } 
-    else 
-    {
-        $request_string = '';
-        if( $requesting_function == null ) { $request_string = __( 'Requesting function is not known!', 'twitchpress' ); }
-        else{ $request_string = __( 'Requesting function is ', 'twitchpress' ) . $requesting_function; }
-        $this->bugnet->log( __FUNCTION__, sprintf( __( 'No access token returned: %s()', 'twitchpress' ), $request_string ), array(), true, false );
-    
-        return false;
-    }
-    
-    
-    
-    
-
-    $url = 'https://api.twitch.tv/kraken/oauth2/token';
-    $post = array(
-    'client_id'     => $this->twitch_client_id,
-    'client_secret' => $this->twitch_client_secret,
-    'grant_type'    => 'client_credentials',
-    'scope'         => twitchpress_prepare_scopes( twitchpress_get_global_accepted_scopes() ),
-    );
-
-    $options = array();
-
-
-    
-    
-    $call_twitch = new TwitchPress_Curl();
-    $call_twitch->call_params();
-    $call_twitch->get_decoded_body();
-    
-    
-        
-        
-                           ############ END OF TEST ###############
-        
-        
-        
-        
+        $token_result = $pre_credentials_kraken->request_app_access_token( __FUNCTION__ );                                 
         
         update_option( 'twitchpress_app_token', $token_result['token'], false );
         update_option( 'twitchpress_app_token_scopes', $token_result['scopes'], false );

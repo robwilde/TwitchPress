@@ -98,6 +98,7 @@ New setup step added. Please open the Help tab and go to the Installation sectio
     - No changes
 * Technical Enhancements
     - Function twitchpress_kraken_endpoints_feed() removed
+    - Function var_dump_twitchpress() now uses a different function to determine if user is allowed to see ouput
 * Configuration
     - No changes
 * Database

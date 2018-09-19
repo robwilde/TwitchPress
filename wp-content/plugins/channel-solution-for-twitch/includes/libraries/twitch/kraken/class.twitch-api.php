@@ -1099,19 +1099,40 @@ class TWITCHPRESS_Twitch_API {
      * @version 1.2
      */
     public function request_app_access_token( $requesting_function = null ){
+
+        // Create our Curl object which uses WP_Http_Curl()
+        $call_twitch = new TwitchPress_Curl();
         
-        $url = 'https://api.twitch.tv/kraken/oauth2/token';
-        $post = array(
-            'client_id'     => $this->twitch_client_id,
-            'client_secret' => $this->twitch_client_secret,
-            'grant_type'    => 'client_credentials',
-            'scope'         => twitchpress_prepare_scopes( twitchpress_get_global_accepted_scopes() ),
+        // Set none API related parameters i.e. cache and rate controls...
+        $call_twitch->call_params( 
+            'post', 
+            'https://api.twitch.tv/kraken/oauth2/token', 
+            false, 
+            0, 
+            false, 
+            null, 
+            false, 
+            false 
         );
-       
+        
+        // Get the API app credentials from object registry (in this case it is Twitch.tv by using twitchapp)...
+        $twitch_app = TwitchPress_Object_Registry::get( 'twitchapp' );
+        
+        // Prepare API specific credentials (defaults to Twitch pending further work)...
+        $this->curl_body = array(
+            'client_id'        => $twitch_app->app_id,
+            'client_secret'    => $twitch_app->app_secret,
+            'redirect_uri'     => $twitch_app->app_redirect,
+        );
+
+        // Start + make the request in one line... 
+        $call_twitch->call_start( 'twitch' );
+        
+        // This method returns $call_twitch->curl_response_body;
+        $result = $call_twitch->get_decoded_body();
+        
         $options = array();
-          
-        $result = json_decode($this->cURL_post($url, $post, $options, false), true);
-    
+        
         if ( is_array( $result ) && array_key_exists( 'access_token', $result ) )
         {
             $token['token'] = $result['access_token'];

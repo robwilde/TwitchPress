@@ -1159,9 +1159,13 @@ function twitchpress_random14(){
     return rand( 10000000, 99999999 ) . rand( 100000, 999999 );   
 }
 
-function var_dump_twitchpress( $var ) {     
-    if( !bugnet_current_user_allowed() ) { return false; }
+function var_dump_twitchpress( $var ) {       
+    if( !twitchpress_are_errors_allowed() ) { return false; }
     echo '<pre>'; var_dump( $var ); echo '</pre>';
+}
+
+function twitchpress_var_dump( $var ) {
+    return var_dump_twitchpress( $var );    
 }
 
 function wp_die_twitchpress( $html ) {
@@ -1468,18 +1472,9 @@ function twitchpress_get_user_sync_time( $user_id ) {
 }
 
 function twitchpress_encode_transient_name( array $values_array ) {
-    $serialized_values = array();
+    $encoded_values = array();
     foreach( $values_array as $value ) {
-        $serialized_values[] = base64_encode( $value );
+        $encoded_values[] = base64_encode( serialize( $value ) );
     }
-    return base64_encode( $serialized_values );    
-}
-
-function twitchpress_decode_transient_name( array $encoded_string ) {
-    $decoded_array = base64_decode( $encoded_string );
-    $values_array = array();
-    foreach( $decoded_array as $serialized_value ) {
-        $values_array = base64_decode( $serialized_value );
-    }
-    return $values_array;     
+    return base64_encode( serialize( $encoded_values ) );    
 }
