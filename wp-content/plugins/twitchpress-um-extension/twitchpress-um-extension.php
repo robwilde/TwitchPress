@@ -1,7 +1,7 @@
 <?php 
 /*
 Plugin Name: TwitchPress UM Extension
-Version: 1.4.1
+Version: 1.5.0
 Plugin URI: http://twitchpress.wordpress.com
 Description: Integrate the Ultimate Member and TwitchPress plugins.
 Author: Ryan Bayne
@@ -32,9 +32,9 @@ if ( !in_array( 'ultimate-member/ultimate-member.php', apply_filters( 'active_pl
 /**
  * Required minimums and constants
  */
-define( 'TWITCHPRESS_UM_VERSION', '1.4.1' );
+define( 'TWITCHPRESS_UM_VERSION', '1.5.0' );
 define( 'TWITCHPRESS_UM_MIN_PHP_VER', '5.6.0' );
-define( 'TWITCHPRESS_UM_MIN_TP_VER', '2.0.2' );
+define( 'TWITCHPRESS_UM_MIN_TP_VER', '2.2.0' );
 define( 'TWITCHPRESS_UM_MAIN_FILE', __FILE__ );
 define( 'TWITCHPRESS_UM_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'TWITCHPRESS_UM_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -257,9 +257,7 @@ class TwitchPress_UM {
     * @param mixed $channel_id
     * @param mixed $api_response
     * 
-    * @version 2.3
-    * 
-    * @deprecated use none class function in functions.twitchpress-um-core.php.
+    * @version 3.0
     */
     public function set_twitch_subscribers_um_role( $wp_user_id ) {
 
@@ -316,9 +314,9 @@ class TwitchPress_UM {
                 $next_role = get_option( 'twitchpress_um_subtorole_none', false );
             }            
         }
-
+       
         // Give the sub-plan paired WP role to the user. 
-        $user = new WP_User( 3 );
+        $user = new WP_User( $wp_user_id );
         
         // Cleanup users existing subscription paired roles.
         foreach( $users_sub_paired_roles as $key => $role_name )
@@ -329,11 +327,6 @@ class TwitchPress_UM {
         // Add role
         $user->add_role( $next_role );
 
-        // Log any change in history. 
-        if( $current_role !== $next_role ) {
-            $history_obj = new TwitchPress_History();
-            $history_obj->new_entry( $next_role, $current_role, 'auto', __( '', 'twitchpress-um' ), $wp_user_id );    
-        }           
     }
     
     /**

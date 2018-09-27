@@ -160,9 +160,6 @@ class TWITCHPRESS_Twitch_API {
         $this->twitch_client_secret   = $this->app_secret;                           
         $this->twitch_client_code     = $this->main_channels_code; 
         $this->twitch_client_token    = $this->app_token;
-         
-        // Ensure our token is still valid, this will generate and set a new one if not.  
-        $this->establish_application_token( __FUNCTION__ );
 
         // Set users token.
         $this->twitch_user_token = twitchpress_get_user_token( get_current_user_id() );               
@@ -1088,25 +1085,23 @@ class TWITCHPRESS_Twitch_API {
     /**
      * Generate an App Access Token as part of OAuth Client Credentials Flow. 
      * 
-     * @link https://dev.twitch.tv/docs/authentication#oauth-authorization-code-flow-user-access-tokens
-     * 
      * This token is meant for authorizing the application and making API calls that are not channel-auth specific. 
      * 
      * @param $code - [string] String of auth code used to grant authorization
      * 
-     * @return array $token - The generated token and the array of all scopes returned with the token, keyed.
+     * @return object entire TwitchPress_Curl() object for handling any way required.
      * 
-     * @version 1.2
+     * @version 2.0
      */
     public function request_app_access_token( $requesting_function = null ){
 
         // Create our Curl object which uses WP_Http_Curl()
-        $call_twitch = new TwitchPress_Curl();
+        $call_object = new TwitchPress_Curl();
         
         // Set none API related parameters i.e. cache and rate controls...
-        $call_twitch->call_params( 
+        $call_object->call_params( 
             'post', 
-            'https://api.twitch.tv/kraken/oauth2/token', 
+            'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id(), 
             false, 
             0, 
             false, 
@@ -1115,63 +1110,50 @@ class TWITCHPRESS_Twitch_API {
             false 
         );
         
-        // Get the API app credentials from object registry (in this case it is Twitch.tv by using twitchapp)...
+        // Use app data from registry...
         $twitch_app = TwitchPress_Object_Registry::get( 'twitchapp' );
-        
-        // Prepare API specific credentials (defaults to Twitch pending further work)...
-        $this->curl_body = array(
+        $call_object->set_curl_body( array(
             'client_id'        => $twitch_app->app_id,
             'client_secret'    => $twitch_app->app_secret,
             'redirect_uri'     => $twitch_app->app_redirect,
-        );
+            'grant_type'       => 'client_credentials'
+        ) );
 
         // Start + make the request in one line... 
-        $call_twitch->call_start( 'twitch' );
+        $call_object->call_setup( 'twitch' );
         
         // This method returns $call_twitch->curl_response_body;
-        $result = $call_twitch->get_decoded_body();
-        
+        return $call_object;
+    }
+    
+    /**
+    * Processes the object created by class TwitchPress_Curl(). 
+    * 
+    * Function request_app_access_token() is called first, it returns $call_object
+    * so we can perform required validation and then we call this method.
+    * 
+    * @param mixed $call_object
+    * 
+    * @version 2.0
+    */
+    public function app_access_token_process_call_reply( $call_object ) {
         $options = array();
-        
-        if ( is_array( $result ) && array_key_exists( 'access_token', $result ) )
-        {
-            $token['token'] = $result['access_token'];
-            $token['scopes'] = $result['scope'];
-            
-            $appending = '';
-            if( $requesting_function == null ) 
-            { 
-                $appending = $token['token']; 
-            }
-            else
-            { 
-                $appending = sprintf( __( 'Requesting function was %s() and the token is %s.', 'twitchpress' ), $requesting_function, $token['token'] ); 
-            }
-            
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'Access token returned. %s', 'twitchpress' ), $appending ), array(), true, false );
-            
-            // Update options table with new app credentials.             
-            twitchpress_update_app_token( $token['token'] );
-            twitchpress_update_app_token_scopes( $token['scopes'] );
-       
-            // Update the original credentials object in the registry added 2.0.4
-            TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_token', $token['token'] );
-            TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_scopes', $token['scopes'] );
 
-            // Update $this object. 
-            $this->twitch_client_token = $token['token'];
-            
-            return $token;
-        } 
-        else 
-        {
-            $request_string = '';
-            if( $requesting_function == null ) { $request_string = __( 'Requesting function is not known!', 'twitchpress' ); }
-            else{ $request_string = __( 'Requesting function is ', 'twitchpress' ) . $requesting_function; }
-            $this->bugnet->log( __FUNCTION__, sprintf( __( 'No access token returned: %s()', 'twitchpress' ), $request_string ), array(), true, false );
-        
+        if( !isset( $call_object->curl_reply_body->access_token ) ) {
+            $this->bugnet->log( __FUNCTION__, __( 'Request for an application access_token was rejected or failed!', 'twitchpress' ), array(), true, false );            
             return false;
         }
+        
+        if( !isset( $call_object->curl_reply_body->expires_in ) ) {
+            $this->bugnet->log( __FUNCTION__, __( 'Requested application token did not come with an expiry time!', 'twitchpress' ), array(), true, false );            
+            return false;
+        }
+        
+        // Update option record and object registry...            
+        twitchpress_update_app_token( $call_object->curl_reply_body->access_token );
+        twitchpress_update_app_token_expiry( $call_object->curl_reply_body->expires_in ); 
+ 
+        return $call_object->curl_reply_body->access_token; 
     }
     
     /**
@@ -1230,6 +1212,8 @@ class TWITCHPRESS_Twitch_API {
      * @return array $result if token is still valid, else false.  
      * 
      * @version 5.2
+     * 
+     * @deprecated this has not been a great approach, new approach coming October 2018
      */    
     public function check_application_token(){                    
 
@@ -1310,6 +1294,8 @@ class TWITCHPRESS_Twitch_API {
     * @returns array $result if token valid, else returns the return from request_app_access_token(). 
     * 
     * @version 5.0
+    * 
+    * @deprecated a new approach that relies on the access token expiry and call responses is WIP
     */
     public function establish_application_token( $function ) {     
         $result = $this->check_application_token();  
@@ -1318,7 +1304,7 @@ class TWITCHPRESS_Twitch_API {
         if ( !isset( $result['token']['valid'] ) || !$result['token']['valid'] ){
             return $this->request_app_access_token( $function . ' + ' . __FUNCTION__ );
         }
-
+                                  
         return $result;
     }
     

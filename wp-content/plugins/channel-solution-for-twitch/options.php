@@ -72,6 +72,7 @@ function twitchpress_options_twitch_api() {
     $arr[ 'twitchpress_app_redirect' ] = array();// Redirect URL
     $arr[ 'twitchpress_app_token' ] = array();// Generated Token
     $arr[ 'twitchpress_app_token_scopes' ] = array();// Tokens Scopes
+    $arr[ 'twitchpress_app_expiry' ] = array();// Tokens Scopes
     
     // API calls made on behalf 
     $arr[ 'twitchpress_main_channels_code' ] = array();// Main users own channel oauth code. 

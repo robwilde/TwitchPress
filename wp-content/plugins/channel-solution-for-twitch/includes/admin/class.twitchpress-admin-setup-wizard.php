@@ -635,17 +635,47 @@ class TwitchPress_Admin_Setup_Wizard {
         update_option( 'twitchpress_main_client_secret', $app_secret, true );// depreciated
  
         // New values going forward in 2018, the above will populate the main channel credentials.  
-        update_option( 'twitchpress_app_id',       $app_id,     true );
-        update_option( 'twitchpress_app_secret',   $app_secret,     true );
-        update_option( 'twitchpress_app_redirect', $redirect_uri,  true );
+        twitchpress_update_app_id( $app_id );
+        twitchpress_update_app_secret( $app_secret );
+        twitchpress_update_app_redirect( $redirect_uri );
+        
+        ########################################################################
+        #                                                                      #
+        #                            ACCESS TOKEN                              #
+        #                                                                      #
+        ########################################################################
                        
         // Request new app Access Token (replaces any existing token)
-        $pre_credentials_kraken = new TWITCHPRESS_Twitch_API();
-        $token_result = $pre_credentials_kraken->request_app_access_token( __FUNCTION__ );                                 
+        $twitch_api_obj = new TWITCHPRESS_Twitch_API();
+        $call_object = $twitch_api_obj->request_app_access_token( __FUNCTION__ );                                 
         
-        update_option( 'twitchpress_app_token', $token_result['token'], false );
-        update_option( 'twitchpress_app_token_scopes', $token_result['scopes'], false );
-                   
+        // Error on no curl response code being found...
+        if( !isset( $call_object->response_code ) ) {
+            TwitchPress_Admin_Notices::add_custom_notice( 'getapptokennoresponsecode', __( 'Requested application token but the reply does not include a response code.' ) );
+            return false;    
+        }        
+        
+        // Error on curl response code not being 200...
+        if( $call_object->response_code !== 200 ) {
+            TwitchPress_Admin_Notices::add_custom_notice( 'getapptokenresponsecodenot200', sprintf( __( 'App token requested but the response code is %s and should be 200!'), $call_object->response_code ) );
+            return false;    
+        }
+        
+        // Process the reply using our standard
+        $token_outcome = $twitch_api_obj->app_access_token_process_call_reply( $call_object );    
+
+        if( !$token_outcome ) {
+            // Handle a failed call...
+            TwitchPress_Admin_Notices::add_custom_notice( 'failedtogettokenduringwizard', sprintf( __( 'Something went wrong after requesting an access token from the Twitch API. Please post this message, screenshot of any errors and PHP logs in the plugins Discord.') ) );
+            return false;   
+        }
+        
+        ########################################################################
+        #                                                                      #
+        #                          VALIDATE CHANNEL                            #
+        #                                                                      #
+        ########################################################################
+                 
         // Confirm the giving main channel is valid. 
         $kraken_calls_obj = new TWITCHPRESS_Twitch_API_Calls();
       
@@ -653,13 +683,7 @@ class TwitchPress_Admin_Setup_Wizard {
         $user_objects = $kraken_calls_obj->get_users( $main_channel );
 
         if( !isset( $user_objects['users'][0]['_id'] ) ) {
-            // Attempt another method of confirming the channel exists. 
-            $headers = @get_headers( 'https://www.twitch.tv/' . $main_channel );
-            if( !$headers ) {
-                TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', sprintf( __( 'The channel you entered was not found. You entered %s. Please check the spelling and try again.'), esc_html( $main_channel ) ) );
-            }
-            
-            //TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', __( '<strong>Channel Not Found:</strong> TwitchPress could not find your channel. Please check the spelling of your channel and try again.', 'twitchpress' ) );      
+            TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', sprintf( __( 'The channel you entered was not found. You entered %s. Please check the spelling and try again.'), esc_html( $main_channel ) ) );
             return;                         
         } 
         
@@ -674,9 +698,8 @@ class TwitchPress_Admin_Setup_Wizard {
         // OLD
         update_option( 'twitchpress_main_channel_id', $twitch_user_id, true );
         // NEW
-        update_option( 'twitchpress_main_channels_id', $twitch_user_id, true );
-        
-        
+        twitchpress_update_main_channels_id( $twitch_user_id );
+
         // This might be a re-authorization and we cannot assume the same channel is being entered as
         // was initially entered. Check if the twitchchannel post already exists for the giving credentials.
         $existing_channelpost_id = twitchpress_get_channel_post( $twitch_user_id );
@@ -709,7 +732,7 @@ class TwitchPress_Admin_Setup_Wizard {
         TwitchPress_Admin_Notices::add_custom_notice( 'applicationcredentialssaved', __( 'Your application credentials have been stored and your WordPress site is ready to communicate with Twitch.' ) );
                       
         // Cleanup
-        unset( $existing_channelpost_id, $pre_credentials_kraken, $post_credentials_kraken, $state, $kraken_calls_obj, $user_objects );
+        unset( $existing_channelpost_id, $twitch_api_obj, $post_credentials_kraken, $state, $kraken_calls_obj, $user_objects );
         
         check_admin_referer( 'twitchpress-setup' );
         wp_redirect( esc_url_raw( $this->get_next_step_link() ) );

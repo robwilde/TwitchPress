@@ -6,7 +6,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, TwitchPress, Twitch.tv, Twitch Login, Twitch Register, Twitch Registration, Twitch User, Twitch Visitor
 Requires at least: 4.4
 Tested up to: 4.9
-Stable tag: 1.3.5
+Stable tag: 1.4.0
 Minimum TwitchPress version: 2.3.0
 Requires PHP: 5.6
                         
@@ -61,7 +61,9 @@ Translator needed.
 No special upgrade instructions this time. 
 
 == Changelog ==
-
+= 1.4.0: September 25 2018 =
+* Get get_user_scopes() error reported yet no code match - suspect version mismatch
+ 
 = 1.3.5 = 
 * FIX - Action now passes WP user ID: do_action( 'twitchpress_login_inserted_new_user', $user_id )
 

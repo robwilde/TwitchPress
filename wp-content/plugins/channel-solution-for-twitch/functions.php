@@ -1,4 +1,4 @@
-<?php
+<?php  
 /**
 * Redirect during shortcode processing, with parameters for displaying
 * a notice with a message that applies to the result. 
@@ -476,6 +476,11 @@ function twitchpress_get_app_token_scopes() {
     return isset( $obj->token_scopes ) ? $obj->token_scopes : null;    
 }
 
+function twitchpress_get_app_token_expiry() {
+    $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
+    return isset( $obj->token_expiry ) ? $obj->token_expiry : null;    
+}
+
 ######################################################################
 #                                                                    #
 #                      APPLICATION [UPDATE]                          #
@@ -502,6 +507,11 @@ function twitchpress_update_app_token( $new_app_token ) {
     return TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_token', $new_app_token );    
 }
 
+function twitchpress_update_app_token_expiry( $new_app_token_expiry ) {
+    update_option( 'twitchpress_app_expiry', $new_app_token_expiry, true );
+    return TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_expiry', $new_app_token_expiry );    
+}
+
 function twitchpress_update_app_token_scopes( $new_app_scopes ) {
     update_option( 'twitchpress_app_scopes', $new_app_scopes, true );
     return TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_scopes', $new_app_scopes );    
@@ -510,12 +520,12 @@ function twitchpress_update_app_token_scopes( $new_app_scopes ) {
 /**
 * Gets the required visitor scope setup by administrator.
 * 
-* @version 2.0
+* @version 3.0
 */
 function twitchpress_get_visitor_scopes() {
     $visitor_scopes = array();
     
-    foreach( twitchpress_scopes( true ) as $scope => $empty ) {
+    foreach( twitchpress_scopes( true ) as $key => $scope ) {
         if( get_option( 'twitchpress_visitor_scope_' . $scope ) == 'yes' ) {
             $visitor_scopes[] = $scope;
         }
@@ -531,12 +541,12 @@ function twitchpress_get_visitor_scopes() {
 * Usually when a scope name exists in options, it is an accepted scope. We will
 * not assume it though. 
 * 
-* @version 2.5
+* @version 3.0
 */
 function twitchpress_get_global_accepted_scopes() {
     $global_accepted_scopes = array();
 
-    foreach( twitchpress_scopes( true ) as $scope => $empty ) {
+    foreach( twitchpress_scopes( true ) as $key => $scope ) {
         if( get_option( 'twitchpress_scope_' . $scope ) == 'yes' ) {
             $global_accepted_scopes[] = $scope;
         }
@@ -557,9 +567,9 @@ function twitchpress_get_global_accepted_scopes() {
 * @param mixed $side
 * @param mixed $function
 * 
-* @version 2.0
+* @version 3.0
 */
-function twitchpress_confirm_scope( $scope, $side, $function ) {
+function twitchpress_confirm_scope( $scope, $side = 'channel', $function = null ) {
     global $bugnet;
     
     // Confirm $scope is a real Twitch API permission. 
@@ -599,7 +609,7 @@ function twitchpress_confirm_scope( $scope, $side, $function ) {
 * @param array $permitted_scopes
 * @param array $state_array
 */
-function twitchpress_generate_authorization_url( array $permitted_scopes, $local_state ) {
+function twitchpress_generate_authorization_url( $permitted_scopes, $local_state ) {
     global $bugnet;
         
     // Scope value will be a random code that can be matched to a transient on return.
@@ -1471,10 +1481,15 @@ function twitchpress_get_user_sync_time( $user_id ) {
     return get_user_meta( $user_id, 'twitchpress_sync_time', true );
 }
 
-function twitchpress_encode_transient_name( array $values_array ) {
-    $encoded_values = array();
-    foreach( $values_array as $value ) {
-        $encoded_values[] = base64_encode( serialize( $value ) );
-    }
-    return base64_encode( serialize( $encoded_values ) );    
+/**
+* Creates a unique transient named based on API request.
+* 
+* @param mixed $endpoint
+* @param mixed $originating_function
+* @param mixed $origination_line
+* 
+* @version 2.0
+*/
+function twitchpress_encode_transient_name( $endpoint, $originating_function, $origination_line ) {
+    return base64_encode( serialize( array( $endpoint, $originating_function, $origination_line ) ) );   
 }

@@ -208,7 +208,7 @@ class TwitchPress_Admin_Help {
         $twitch_user = $kraken->get_users( twitchpress_get_main_channels_name() );
                 
         // Test Get Application Token
-        $token_result = $kraken->establish_application_token( __FUNCTION__ );
+        $token_result = twitchpress_get_app_token();
 
         if( !isset( $channel['top'][0]['game']['name'] ) ) {
             $output .= __( '<h2>No Application Code</h2>', 'twitchpress' );
@@ -524,7 +524,7 @@ class TwitchPress_Admin_Help {
     * This focuses on the services main Twitch application credentials only.
     * 
     * @author Ryan Bayne
-    * @version 2.3
+    * @version 3.0
     */
     public function app_status() {
         // Check for existing cache.
@@ -549,7 +549,7 @@ class TwitchPress_Admin_Help {
         $current_user_id = get_current_user_id();
         $output = '';
         
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        $twitch_api = new TWITCHPRESS_Twitch_API_Calls();
 
         $output .= '<h2>' . __( 'Application Credentials', 'twitchpress' ) . '</h2>';
         $output .= '<p>Old App ID Method: ' . twitchpress_get_main_client_id() . '</p>';
@@ -558,15 +558,22 @@ class TwitchPress_Admin_Help {
 
         // Test Top Game 
         $output .= '<h2>' . __( 'Test: Get Top Game', 'twitchpress' ) . '</h2>';
-        $channel = $kraken->get_top_games( __FUNCTION__ );
+        $channel = $twitch_api->get_top_games( __FUNCTION__ );
         $output .= $channel['top'][0]['game']['name'];        
 
         // Test Get Application Token
         $output .= '<h2>' . __( 'Test: Get Application Token', 'twitchpress' ) . '</h2>';
-        $token_result = $kraken->establish_application_token( __FUNCTION__ );
-        if( $token_result ){$output .= __( 'Result: Token Exists!' ); }
-        else{ $output .= __( 'Result: No Application Token Found' ); $overall_result = false; }
-        
+
+        if( twitchpress_get_app_token() )
+        {
+            $output .= __( 'Result: Token Exists!' ); 
+        }
+        else
+        { 
+            $output .= __( 'Result: No Application Token Found' ); 
+            $overall_result = false; 
+        }
+
         if( !$overall_result ) {
             $output .= '<h3>' . __( 'Overall Result: Not Ready!', 'twitchpress' ) . '</h3>';
         } else {
@@ -615,11 +622,11 @@ class TwitchPress_Admin_Help {
         $kraken = new TWITCHPRESS_Twitch_API_Calls();
 
         $output .= '<h2>' . __( 'Main Channel Credentials', 'twitchpress' ) . '</h2>';
-        $output .= '<p>Main Channel Name: ' . twitchpress_get_main_channels_name() . '</p>';
-        $output .= '<p>Main Channel Twitch ID: ' . twitchpress_get_main_channels_twitchid() . '</p>';
-        $output .= '<p>Main Channel WP Post ID: ' . twitchpress_get_main_channels_postid() . '</p>';
-        $output .= '<p>Main Channel Code: ' . twitchpress_get_main_channels_code() . '</p>';
-        $output .= '<p>Main Channel WP Owner ID: ' . twitchpress_get_main_channels_wpowner_id() . '</p>';
+        $output .= '<p>Main Channel Name: ' .          twitchpress_get_main_channels_name() . '</p>';
+        $output .= '<p>Main Channel Twitch ID: ' .     twitchpress_get_main_channels_twitchid() . '</p>';
+        $output .= '<p>Main Channel WP Post ID: ' .    twitchpress_get_main_channels_postid() . '</p>';
+        $output .= '<p>Main Channel Code: ' .          twitchpress_get_main_channels_code() . '</p>';
+        $output .= '<p>Main Channel WP Owner ID: ' .   twitchpress_get_main_channels_wpowner_id() . '</p>';
         $output .= '<p>Main Channel Refresh Token: ' . twitchpress_get_main_channels_refresh() . '</p>';
                 
         // Confirm Main Channel
@@ -653,8 +660,7 @@ class TwitchPress_Admin_Help {
     }
     
     public function testing() {
-
-
+        
     }
 }
 

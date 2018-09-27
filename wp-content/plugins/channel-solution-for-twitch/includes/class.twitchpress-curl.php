@@ -1,10 +1,13 @@
 <?php
 /**
- * Uses @WP_Http_Curl to make API calls - designed to work with a specific format of data. 
+ * Uses @WP_Http_Curl to make API calls - designed to work with a specific format of data.
+ * 
+ * This class has been designed as a single procedure with the primary intention of using the entire object
+ * in any way required. So the focus is on adding all required data to $this and 
  *
  * @class    TwitchPress_Curl
  * @version  1.0
- * @package  TwitchPress/Classes
+ * @package  TwitchPress/ Classes
  * @category Class
  * @author   Ryan Bayne
  */
@@ -43,7 +46,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * 
     * @var boolean
     */
-    public $can_cache = true;
+    public $can_cache = false;
     
     /**
     * Cache storage time limit in seconds.
@@ -103,16 +106,61 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * @var mixed
     */
     public $curl_version = null;
-    
-    private $curl_body = array();
-    
+      
+    /**
+    * Call request within body included: method,body,user-agent,stream,filename,decompress
+    * 
+    * @var array      
+    */
     private $curl_request = array();
     
-    private $curl_response = array(); 
+    /**
+    * The request body array as added to the parent request array.
+    * 
+    * @var array
+    */
+    private $curl_request_body = array();
+
+    /**
+    * The raw curl reply.
+    * 
+    * @var array
+    */
+    private $curl_reply = array(); 
     
-    private $curl_response_body = array();
+    /**
+    * Curl reply body after json_decode()
+    * 
+    * @var mixed
+    */
+    public $curl_reply_body = array();
     
-    private $transient_name = null;
+    /**
+    * The response value of a curl reply.
+    * 
+    * @var array
+    */
+    public $curl_reply_response = array();
+    
+    public $transient_name = null;
+    
+    /**
+    * The code taking from the response array within the complete reply.
+    * 
+    * @var mixed
+    */
+    public $response_code = null;
+    
+    /**
+    * The message taking from the response array within the complete reply.
+    * 
+    * @var mixed
+    */
+    public $response_message = null;
+    
+    public $originating_function = null;
+    
+    public $originating_line = null;
     
     public function __construct() {
         $this->curl_version = curl_version();
@@ -138,9 +186,9 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * @param boolean $can_queue true allows rate limiting measures
     * 
     * @since 2.5.0
-    * @version 1.0
+    * @version 2.0
     */    
-    public function call_params( $type = null, $endpoint = null, $can_cache = null, $cache_time = null, $can_queue = null, $giving_user = null, $user_specific = null, $retry = null ) {
+    public function call_params( $type = null, $endpoint = null, $can_cache = null, $cache_time = null, $can_queue = null, $giving_user = null, $user_specific = null, $retry = null, $originating_function = null, $originating_line = null ) {
         if( $type )
         {
             $this->type = $type; 
@@ -185,16 +233,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
         {
             // Apply the admin setting to override the classes default...
         }
-                
-        if( $giving_user )
-        {
-            $this->giving_user = $giving_user;
-        }
-        else
-        {
-            // Apply the admin setting to override the classes default...
-        }
-                
+                               
         if( $user_specific )
         {
             $this->user_specific = $user_specific;
@@ -211,7 +250,12 @@ class TwitchPress_Curl extends WP_Http_Curl {
         else
         {
             // Apply the admin setting to override the classes default...
-        }           
+        }
+        
+        // Values that will not have settings...
+        $this->giving_user = $giving_user;
+        $this->originating_function = $originating_function;
+        $this->originating_line = $originating_line;           
     }
                     
     /**
@@ -225,7 +269,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * @since 2.5.0
     * @version 1.0
     */    
-    public function call_start( $api_name, $optional_args = array() ) {
+    public function call_setup( $api_name, $optional_args = array() ) {
         // Set $this values
         $this->api_name = $api_name;
         
@@ -244,14 +288,17 @@ class TwitchPress_Curl extends WP_Http_Curl {
             $this->get_transient();
         }
         
-        // Call execute if we do not have the original curl response...
-        if( !empty( $this->curl_response ) ) 
+        // Execute call if transient holds nothing for us...
+        if( !empty( $this->curl_reply ) ) 
         {
-            $this->execute();
+            $this->call_execute();
         }
         
+        // Check, set and react to the response code...
+        $this->check_response_code();
+        
         // Use json_decode() to set $this->curl_response_body...
-        $this->decode_json();         
+        $this->decode_body();         
     }
     
     /**
@@ -275,13 +322,15 @@ class TwitchPress_Curl extends WP_Http_Curl {
                 'current_user'     => $this->current_user,
                 'user_specific'    => $this->user_specific,
                 'retry'            => $this->retry,
+                'function'         => $this->originating_function,
+                'line'             => $this->originating_line,
             )
         );
 
         // Prepare arguments...
         $this->curl_request = array(  
             'method'     => strtoupper( $this->type ), 
-            'body'       => $this->curl_body,
+            'body'       => $this->curl_request_body,
             'user-agent' => 'curl/' . $this->curl_version['version'],
             'stream'     => false,
             'filename'   => false,
@@ -296,21 +345,27 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * @version 1.0
     */
     public function queue() {
-        if( !$this->can_queue ) { $this->execute(); }  
+        if( !$this->can_queue ) { $this->call_execute(); }  
         
         // We will check for a recent request and result that matches
         $this->get_transient(); 
     }
     
     /**                        
-    * Check if there is a transient cache of the exact same call! 
+    * Check if there is a transient cache of the exact same call!
     * 
-    * @version
+    * Use transients with care as they are not 100% matched. Requests should only
+    * be cached when confident that the originating call does not change it's 
+    * parameters/credentails frequently or is not a request for critical data
+    * i.e. a general information or statistics update might be cached to avoid
+    * too many requests. 
+    * 
+    * @version 2.0
     */
     public function get_transient() {
         // Create transient name using encoded values of the curl request.
         $prepend = $this->api_name;
-        $append = twitchpress_encode_transient_name( array( $this->curl_body, $this->curl_request ) );
+        $append = twitchpress_encode_transient_name( array( $this->endpoint, $this->originating_function, $this->originating_line ) );
         $this->transient_name = 'TwitchPress_' . $prepend . '_' . $append;
         
         // Is WordPress storing a transient? 
@@ -321,23 +376,21 @@ class TwitchPress_Curl extends WP_Http_Curl {
             $transient_value = get_transient( $this->transient_name );
             
             // We just need the original raw response and move forward as normal...
-            $this->curl_response = $transient_value['response'];
+            $this->curl_reply_response = $transient_value['response'];
         }    
     }
     
-    public function execute() {
+    public function call_execute() {
 
-        $this->curl_response = $this->WP_Http_Curl_Object->request( $this->endpoint, $this->curl_request );       
-        
-        var_dump_twitchpress( $this->curl_response );
-        
+        $this->curl_reply = $this->WP_Http_Curl_Object->request( $this->endpoint, $this->curl_request );       
+           
         // Should this curl request be cached?
         if( $this->can_cache )
         {
             $transient_value = array(
-                'curl_body'     => $this->curl_body,
+                'curl_body'     => $this->curl_request_body,
                 'curl_request'  => $this->curl_request,
-                'curl_response' => $this->curl_response
+                'curl_reply'    => $this->curl_reply
             );
             
             // Cache the call and response.
@@ -345,12 +398,22 @@ class TwitchPress_Curl extends WP_Http_Curl {
         }
 
     }  
-                  
-    public function decode_json() {
+    
+    public function check_response_code() {
+        if( isset( $this->curl_reply['response']['code'] ) ) {
+            $this->response_code = $this->curl_reply['response']['code'];
+        }   
         
-        if( isset( $this->curl_response['response']['code'] ) && $this->curl_response['response']['code'] == 200 ) {
-            if( isset( $this->curl_response['body'] ) ) {
-                $this->curl_response_body = json_decode( $this->curl_response['body'] );
+        if( isset( $this->curl_reply['response']['message'] ) ) {
+            $this->response_message = $this->curl_reply['response']['message'];    
+        }
+    }
+                  
+    public function decode_body() {
+
+        if( isset( $this->curl_reply['response']['code'] ) && $this->curl_reply['response']['code'] == 200 ) {
+            if( isset( $this->curl_reply['body'] ) ) {
+                $this->curl_reply_body = json_decode( $this->curl_reply['body'] );
             }
         }
     
@@ -365,7 +428,11 @@ class TwitchPress_Curl extends WP_Http_Curl {
     }
     
     public function get_decoded_body() {
-        if( !$this->curl_response_body ) { return false; }
-        return $this->curl_response_body;    
+        if( !$this->curl_reply_body ) { return false; }
+        return $this->curl_reply_body;    
+    }
+    
+    public function set_curl_body( array $body ) {
+        $this->curl_request_body = $body;
     }
 }

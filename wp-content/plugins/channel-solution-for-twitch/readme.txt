@@ -6,7 +6,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, Twitch.tv, Twitch Feed, Twitch Channel, Twitch Team, Twitch Embed, Twitch Stream, Twitch Suite, Twitch Bot, Twitch Chat 
 Requires at least: 4.9
 Tested up to: 4.9
-Stable tag: 2.5.0
+Stable tag: 2.8.0
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
@@ -35,16 +35,13 @@ with the Twitch API.
 
 = Features List = 
  
-* Post content to Twitch feed.
-* Get content from Twitch feed.
-* Extension system to build Twitch suites. 
-* Custom post type for Twitch posts. 
-* Share standard posts to Twitch feeds.
-* Fully supported. 
-* Free and Premium levels of service. 
-* Channel Status Indicator shortcode.
-* Channel Status Line shortcode.
-* Channel Status Box shortcode. 
+* Extension system 
+* Custom post for each channel/user 
+* Fully supported 
+* Free and Premium levels of service 
+* Multiple channel status shortcodes 
+* Twitch API Version 5 supported
+* Twitch API Version 6 in developement
 
 = Features In Extensions = 
 
@@ -54,14 +51,6 @@ with the Twitch API.
 * Embed Live Chat
 * Frequent data sync.
 * Ultimate Member integration.
-
-= Changelog Code = 
-* DONE - Basic changes that do not require testing.
-* DEVS - Script changes that developers need to be aware of. 
-* TEXT - A note to translators that text has changed. 
-* FIX - Fixed faults or faults still being investigated. 
-* INFO - Helpful information regarding recent changes. 
-* HELP - A request for help, usually explained on GitHub further. 
 
 == Installation ==
 
@@ -91,14 +80,44 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 
 == Changelog ==
 
-= 2.6.0: NOT RELEASED = 
+= 2.8.0: NOT RELEASED = 
+* Bugfixes
+    - No changes
+* Feature Enhancements
+    - No changes
+* Technical Enhancements
+    - Function twitchpress_encode_transient_name() now requires three specific values instead of the entire request body.
+    - New function missing_token() in class.twitchpress-set-app.php will replace an empty/null option value for app token (client access_token)
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.7.0: 23rd September 2018 = 
+* Bugfixes
+    - Type hinting error caused
+* Feature Enhancements
+    - No changes
+* Technical Enhancements
+    - New curl class further integrated into setup wizard procedure (change in approach to getting access token)
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.6.0: 21st September 2018 = 
 * Bugfixes
     - Setup wizard being offered even when no credentials are missing. 
+    - Recent changes to twitchpress_scopes() caused incorrect handling of the returned scope array.
+    - twitchpress_setup_application_save() now uses new functions for storing application credentials and not just option_update()
+    - Overall the new values for storing Twitch application credentials were not applied enough.
 * Feature Enhancements
     - No changes
 * Technical Enhancements
     - Function twitchpress_kraken_endpoints_feed() removed
     - Function var_dump_twitchpress() now uses a different function to determine if user is allowed to see ouput
+    - App Status test "Get Application Token" no longer performs a call it just checks if token is stored.
+    - Function establish_application_token() is no longer called in twitch-api.php set_all_credentials()
 * Configuration
     - No changes
 * Database
