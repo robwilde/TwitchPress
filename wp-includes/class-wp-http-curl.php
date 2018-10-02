@@ -76,7 +76,7 @@ class WP_Http_Curl {
 		);
 
 		$r = wp_parse_args( $args, $defaults );
-
+                     
 		if ( isset( $r['headers']['User-Agent'] ) ) {
 			$r['user-agent'] = $r['headers']['User-Agent'];
 			unset( $r['headers']['User-Agent'] );
@@ -197,9 +197,10 @@ class WP_Http_Curl {
 			foreach ( $r['headers'] as $name => $value ) {
 				$headers[] = "{$name}: $value";
 			}
+  
 			curl_setopt( $handle, CURLOPT_HTTPHEADER, $headers );
-		}
-
+		}         
+        
 		if ( $r['httpversion'] == '1.0' )
 			curl_setopt( $handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0 );
 		else
@@ -235,7 +236,7 @@ class WP_Http_Curl {
 			curl_close( $handle );
 			return array( 'headers' => array(), 'body' => '', 'response' => array('code' => false, 'message' => false), 'cookies' => array() );
 		}
-
+       
 		curl_exec( $handle );
 		$theHeaders = WP_Http::processHeaders( $this->headers, $url );
 		$theBody = $this->body;
@@ -284,7 +285,7 @@ class WP_Http_Curl {
 			'cookies' => $theHeaders['cookies'],
 			'filename' => $r['filename']
 		);
-
+                     
 		// Handle redirects.
 		if ( false !== ( $redirect_response = WP_HTTP::handle_redirects( $url, $r, $response ) ) )
 			return $redirect_response;

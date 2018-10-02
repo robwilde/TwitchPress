@@ -203,7 +203,7 @@ class BugNet {
         }
         
         if( $args['reports_eventsnapshot'] === true ) {
-            $this->reports_eventsnapshot->new();            
+            //$this->reports_eventsnapshot->new();            
         }
     }
         

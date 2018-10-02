@@ -1097,7 +1097,9 @@ class TWITCHPRESS_Twitch_API {
 
         // Create our Curl object which uses WP_Http_Curl()
         $call_object = new TwitchPress_Curl();
-        
+        $call_object->originating_function = __FUNCTION__;
+        $call_object->originating_line = __LINE__;
+                
         // Set none API related parameters i.e. cache and rate controls...
         $call_object->call_params( 
             'post', 
@@ -1245,7 +1247,7 @@ class TWITCHPRESS_Twitch_API {
      * 
      * @return $authToken - [array] Either the provided token and the array of scopes if it was valid or false as the token and an empty array of scopes
      * 
-     * @version 5.5
+     * @version 6.0
      */    
     public function check_user_token( $wp_user_id ){
         
@@ -1272,7 +1274,7 @@ class TWITCHPRESS_Twitch_API {
         } 
         else 
         {
-            $this->bugnet->log( __FUNCTION__, __( 'Token has expired', 'twitchpress' ), array(), true, true );
+            $this->bugnet->log( __FUNCTION__, __( 'Users token has expired', 'twitchpress' ), array(), true, true );
             $token['token'] = false;
             $token['scopes'] = array();
             $token['name'] = '';

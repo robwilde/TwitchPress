@@ -635,7 +635,6 @@ function twitchpress_generate_authorization_url( $permitted_scopes, $local_state
     return $url;       
 }
 
-
 /**
  * is_ajax - Returns true when the page is loaded via ajax.
  * 
@@ -842,29 +841,27 @@ function twitchpress_returning_url_nonced( $new_parameters_array, $action, $spec
     return $url;
 } 
 
-if( !function_exists( 'twitchpress_is_request' ) ) {
-    /**
-     * What type of request is this?
-     *
-     * Functions and constants are WordPress core. This function will allow
-     * you to avoid large operations or output at the wrong time.
-     * 
-     * @param  string $type admin, ajax, cron or frontend.
-     * @return bool
-     */
-    function twitchpress_is_request( $type ) {
-        switch ( $type ) {
-            case 'admin' :
-                return is_admin();
-            case 'ajax' :
-                return defined( 'DOING_AJAX' );
-            case 'cron' :
-                return defined( 'DOING_CRON' );
-            case 'frontend' :
-                return ( ! is_admin() || defined( 'DOING_AJAX' ) ) && ! defined( 'DOING_CRON' );
-        }
-    } 
-}
+/**
+ * What type of request is this?
+ *
+ * Functions and constants are WordPress core. This function will allow
+ * you to avoid large operations or output at the wrong time.
+ * 
+ * @param  string $type admin, ajax, cron or frontend.
+ * @return bool
+ */
+function twitchpress_is_request( $type ) {
+    switch ( $type ) {
+        case 'admin' :
+            return is_admin();
+        case 'ajax' :
+            return defined( 'DOING_AJAX' );
+        case 'cron' :
+            return defined( 'DOING_CRON' );
+        case 'frontend' :
+            return ( ! is_admin() || defined( 'DOING_AJAX' ) ) && ! defined( 'DOING_CRON' );
+    }
+} 
 
 /**
 * Validate the value passed as a $_GET['code'] prior to using it.
@@ -1169,7 +1166,15 @@ function twitchpress_random14(){
     return rand( 10000000, 99999999 ) . rand( 100000, 999999 );   
 }
 
+/**
+* Dump the giving value but only if the current user is allowed to see dumps. 
+* 
+* @param mixed $var
+* 
+* @version 2.0
+*/
 function var_dump_twitchpress( $var ) {       
+    if( !function_exists( 'wp_get_current_user' ) ) { return null; }
     if( !twitchpress_are_errors_allowed() ) { return false; }
     echo '<pre>'; var_dump( $var ); echo '</pre>';
 }

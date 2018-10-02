@@ -2,7 +2,8 @@
 /**
  * WP Background Process based on A5hleyRich' work.
  * 
- * @author Ryan Bayne
+ * @author Ryan Bayne (Implementation)
+ * @author A5hleyRich (Original)
  *
  * @package WP-Background-Processing
  * 

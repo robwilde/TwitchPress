@@ -211,7 +211,8 @@ class TwitchPress_Systematic_Syncing {
     * @version 1.0
     */
     public function save_subscriber( $sub ) {
-     
+        global $bugnet;
+        
         // Check for existing twitchchannels post.    
         $args = array(
             'post_type'  => 'twitchchannels',
@@ -546,8 +547,6 @@ class TwitchPress_Systematic_Syncing {
     * @version 1.0
     */
     public function user_sub_sync( $wp_user_id, $output_notice = false ){       
-        global $bugnet;
-         
         $kraken = new TWITCHPRESS_Twitch_API_Calls();
 
         $twitch_user_id = twitchpress_get_user_twitchid_by_wpid( $wp_user_id );    

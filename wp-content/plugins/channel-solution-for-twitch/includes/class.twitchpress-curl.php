@@ -20,6 +20,8 @@ class TwitchPress_Curl extends WP_Http_Curl {
     
     private $WP_Http_Curl_Object = null;
     
+    public $headers = array();
+    
     /**
     * All variables will be placed into one array.
     * 
@@ -159,7 +161,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
     public $response_message = null;
     
     public $originating_function = null;
-    
+
     public $originating_line = null;
     
     public function __construct() {
@@ -328,7 +330,8 @@ class TwitchPress_Curl extends WP_Http_Curl {
         );
 
         // Prepare arguments...
-        $this->curl_request = array(  
+        $this->curl_request = array( 
+            'headers'    => array(), 
             'method'     => strtoupper( $this->type ), 
             'body'       => $this->curl_request_body,
             'user-agent' => 'curl/' . $this->curl_version['version'],
@@ -336,6 +339,12 @@ class TwitchPress_Curl extends WP_Http_Curl {
             'filename'   => false,
             'decompress' => false 
         );      
+        
+        // Add custom headers...
+        if( $this->headers && is_array( $this->headers ) ) 
+        {
+            $this->curl_request['headers'] = array_merge( $this->curl_request['headers'], $this->headers );    
+        }
      
     }
     
@@ -365,7 +374,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
     public function get_transient() {
         // Create transient name using encoded values of the curl request.
         $prepend = $this->api_name;
-        $append = twitchpress_encode_transient_name( array( $this->endpoint, $this->originating_function, $this->originating_line ) );
+        $append = twitchpress_encode_transient_name( $this->endpoint, $this->originating_function, $this->originating_line );
         $this->transient_name = 'TwitchPress_' . $prepend . '_' . $append;
         
         // Is WordPress storing a transient? 
@@ -396,7 +405,6 @@ class TwitchPress_Curl extends WP_Http_Curl {
             // Cache the call and response.
             set_transient( $this->transient_name, $transient_value, $this->cache_time ); 
         }
-
     }  
     
     public function check_response_code() {
@@ -410,13 +418,11 @@ class TwitchPress_Curl extends WP_Http_Curl {
     }
                   
     public function decode_body() {
-
         if( isset( $this->curl_reply['response']['code'] ) && $this->curl_reply['response']['code'] == 200 ) {
             if( isset( $this->curl_reply['body'] ) ) {
                 $this->curl_reply_body = json_decode( $this->curl_reply['body'] );
             }
         }
-    
     }  
     
     public function user_output() {

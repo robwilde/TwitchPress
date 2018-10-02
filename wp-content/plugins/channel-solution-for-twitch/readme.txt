@@ -84,10 +84,11 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 * Bugfixes
     - No changes
 * Feature Enhancements
-    - No changes
+    - Function var_dump_twitchpress() now returns if function wp_get_current_user() does not exist due to an issue experienced during development.
 * Technical Enhancements
     - Function twitchpress_encode_transient_name() now requires three specific values instead of the entire request body.
     - New function missing_token() in class.twitchpress-set-app.php will replace an empty/null option value for app token (client access_token)
+    - Improved application access_token renewal (then some performance improvements to come on this work)
 * Configuration
     - No changes
 * Database

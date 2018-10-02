@@ -660,7 +660,11 @@ class TwitchPress_Admin_Help {
     }
     
     public function testing() {
+        $app_obj = new TwitchPress_Set_App();
         
+        $app_obj->new_token();
+        
+           
     }
 }
 
