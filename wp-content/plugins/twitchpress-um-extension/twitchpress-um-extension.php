@@ -1,7 +1,7 @@
 <?php 
 /*
 Plugin Name: TwitchPress UM Extension
-Version: 1.5.0
+Version: 2.0.0
 Plugin URI: http://twitchpress.wordpress.com
 Description: Integrate the Ultimate Member and TwitchPress plugins.
 Author: Ryan Bayne
@@ -32,9 +32,9 @@ if ( !in_array( 'ultimate-member/ultimate-member.php', apply_filters( 'active_pl
 /**
  * Required minimums and constants
  */
-define( 'TWITCHPRESS_UM_VERSION', '1.5.0' );
+define( 'TWITCHPRESS_UM_VERSION', '2.0.0' );
 define( 'TWITCHPRESS_UM_MIN_PHP_VER', '5.6.0' );
-define( 'TWITCHPRESS_UM_MIN_TP_VER', '2.2.0' );
+define( 'TWITCHPRESS_UM_MIN_TP_VER', '2.0.2' );
 define( 'TWITCHPRESS_UM_MAIN_FILE', __FILE__ );
 define( 'TWITCHPRESS_UM_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'TWITCHPRESS_UM_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -247,17 +247,14 @@ class TwitchPress_UM {
          
     /**
     * This method assumes that the "twitchpress_sub_plan_[channelid]"
-    * user meta value has been updated already. 
-    * 
-    * The update would usually be done by the Sync Extension. We
-    * call this method to apply UM roles based on what is stored by
-    * Sync Extension.
+    * user meta value has been updated already. See core sync class and
+    * subscribers extension.
     * 
     * @param mixed $user_id
     * @param mixed $channel_id
     * @param mixed $api_response
     * 
-    * @version 3.0
+    * @version 2.3
     */
     public function set_twitch_subscribers_um_role( $wp_user_id ) {
 
@@ -271,9 +268,6 @@ class TwitchPress_UM {
             $wp_user_id = $wp_user_id->data->ID;                
         }
         
-        // Work with the main channel by default.
-        $channel_id = twitchpress_get_main_channels_twitchid();
-        
         // Avoid processing the main account or administrators so they are never downgraded. 
         $user_info = get_userdata( $wp_user_id );
         if( $wp_user_id === 1 || user_can( $wp_user_id, 'administrator' ) ) { return; }
@@ -283,7 +277,7 @@ class TwitchPress_UM {
         // Establish which of the users roles are Twitch subscription related ones (paired with a sub plan through this extension). 
         $paired_roles_array = twitchpress_um_get_subscription_plan_roles();
         
-        $users_sub_paired_roles = array();// This should really only even hold one role, but we will plan for mistakes. 
+        $users_sub_paired_roles = array();// This should only hold one role, but we will plan for faults. 
           
         foreach( $paired_roles_array as $key => $sub_paired_role )
         {
@@ -293,6 +287,9 @@ class TwitchPress_UM {
             }    
         } 
 
+        // Work with the main channel by default (is also Twitch user ID)
+        $channel_id = twitchpress_get_main_channels_twitchid();
+        
         // Get subscription plan from user meta for the giving channel (based on channel ID). 
         $sub_plan = get_user_meta( $wp_user_id, 'twitchpress_sub_plan_' . $channel_id, true );
 
@@ -314,11 +311,11 @@ class TwitchPress_UM {
                 $next_role = get_option( 'twitchpress_um_subtorole_none', false );
             }            
         }
-       
+
         // Give the sub-plan paired WP role to the user. 
         $user = new WP_User( $wp_user_id );
         
-        // Cleanup users existing subscription paired roles.
+        // Cleanup users existing subscription paired roles (should only be one but just in case we plan for more)
         foreach( $users_sub_paired_roles as $key => $role_name )
         {
             $user->remove_role( $role_name );    
@@ -327,6 +324,11 @@ class TwitchPress_UM {
         // Add role
         $user->add_role( $next_role );
 
+        // Log any change in history. 
+        if( $current_role !== $next_role ) {
+            $history_obj = new TwitchPress_History();
+            $history_obj->new_entry( $next_role, $current_role, 'auto', __( '', 'twitchpress-um' ), $wp_user_id );    
+        }           
     }
     
     /**

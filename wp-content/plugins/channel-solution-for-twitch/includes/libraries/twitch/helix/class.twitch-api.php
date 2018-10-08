@@ -25,6 +25,11 @@ class TwitchPress_Twitch_API {
 
     public $twitch_sandbox_mode = false;
     
+    /**
+    * Twitch API Version 6 Scopes
+    * 
+    * @var mixed
+    */
     public $twitch_scopes = array( 
             'channel_check_subscription',
             'channel_commercial',
@@ -44,7 +49,16 @@ class TwitchPress_Twitch_API {
             'user_read',
             'user_subscriptions',
             'viewing_activity_read',
-            'openid'
+            'openid',
+            'analytics:read:extensions', // View analytics data for your extensions.
+            'analytics:read:games',      // View analytics data for your games.
+            'bits:read',                 // View Bits information for your channel.
+            'clips:edit',                // Manage a clip object.
+            'user:edit',                 // Manage a user object.
+            'user:edit:broadcast',       // Edit your channel’s broadcast configuration, including extension configuration. (This scope implies user:read:broadcast capability.)
+            'user:read:broadcast',       // View your broadcasting configuration, including extension configurations.
+            'user:read:email',           // Read authorized user’s email address.
+                        
     );
   
     /**
@@ -468,7 +482,7 @@ class TwitchPress_Twitch_API {
         exit;                       
     }      
     
-        public function get_main_streamlabs_user() {
+    public function get_main_streamlabs_user() {
                   
         // Endpoint
         $url = 'https://streamlabs.com/api/v1.0/user?access_token=' . $this->get_main_access_token();
@@ -505,35 +519,6 @@ class TwitchPress_Twitch_API {
     }
     
     /**
-    * Gets objects for multiple users.
-    * 
-    * @param mixed $users
-    * 
-    * @version 5.8
-    */
-    public function get_users( $users ) {
-        
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'user_read', 'both', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
-        
-        // We need a string.
-        if( is_array( $users ) ) {
-            $users_string = implode( ',', $users );
-        } else {
-            $users_string = $users;
-        }
-
-        $url = 'https://api.twitch.tv/kraken/users?login=' . $users_string;
-        $get = array( /* Client ID is not currently required, it causes failure when added (Dec 2017) */ );
-        
-        // Build our cURL query and store the array
-        $usersObject = json_decode( $this->cURL_get( $url, $get, array(), false, __FUNCTION__ ), true );
-
-        return $usersObject;        
-    }
-    
-    /**
      * Gets a users Twitch.tv object by their oAuth token stored in user meta.
      * 
      * @param $user - [string] Username to grab the object for
@@ -551,11 +536,8 @@ class TwitchPress_Twitch_API {
         if( is_wp_error( $confirm_scope) || $confirm_scope == false ) { return $confirm_scope; }
          
         $url = 'https://api.twitch.tv/kraken/user';
-        $get = array( 'oauth_token' => $token, 'client_id' => $this->twitch_client_id );
-                          
-        // Build our cURL query and store the array
-        $userObject = json_decode( $this->cURL_get( $url, $get, array(), false, __FUNCTION__ ), true );
-
+        GET
+        
         return $userObject;
     }
     
@@ -594,13 +576,7 @@ class TwitchPress_Twitch_API {
         }
 
         $url = 'https://api.twitch.tv/kraken/channel';
-        $get = array( 'oauth_token' => $token, 'client_id' => $this->twitch_client_id );
-
-        $object = json_decode($this->cURL_get($url, $get, array(), false, __FUNCTION__ ), true);
-        
-        if (!is_array($object)){
-            $object = array(); // Catch to make sure that an array is returned no matter what, technically our fail state
-        }
+        GET
         
         return $object;
     }  
@@ -628,9 +604,7 @@ class TwitchPress_Twitch_API {
         }
                 
         $url = 'https://api.twitch.tv/kraken/users/' . $chan . '/blocks/' . $username;
-        $post = array( 'oauth_token' => $token, 'client_id' => $this->twitch_client_id);
-            
-        $result = $this->cURL_put($url, $post, array(), true);
+        PUT
         
         // What did we get returned status wise?
         if ($result = 200){                                                                    
@@ -666,10 +640,7 @@ class TwitchPress_Twitch_API {
         }
         
         $url = 'https://api.twitch.tv/kraken/users/' . $chan . '/blocks/' . $username;
-
-        $post = array( 'oauth_token' => $token, 'client_id' => $this->twitch_client_id );
-            
-        $success = $this->cURL_delete($url, $post, array() );
+        DELETE
         
         if ($success == '204'){
             // Successfully removed ' . $username . ' from ' . $chan . '\'s list of blocked users',
@@ -707,294 +678,6 @@ class TwitchPress_Twitch_API {
     }
     
     /**
-     * Grabs a list of all editors supplied for the channel
-     * 
-     * @param $chan - [string] the string channel name to grab the editors for
-     * @param $limit - [int] Limit of users to grab, -1 is unlimited
-     * @param $offset - [int] The initial offset of the query
-     * @param $token - [string] Authentication key used for the session
-     * @param $code - [string] Code used to generate an Authentication key
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $editors - [array] unkeyed array of all editor names
-     * 
-     * @version 1.2
-     */ 
-    public function getEditors($chan, $limit = -1, $offset = 0, $token, $code, $returnTotal = false){
-
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'channel_read', 'channel', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
-        
-        if( !$token ) {
-            $token = $this->twitch_client_token;
-        }
-        
-        $url = 'https://api.twitch.tv/kraken/channels/' . $chan . '/editors';
-        $counter = 0;
-        $editors = array();
-        $editorsObject = array();
-            
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-    
-        $editorsObject = $this->get_iterated( $url, array(), $limit, $offset, 'users', $token, null, null, null, null, null, null, null, null, $returningTotal);
-        
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $editors['_total'] = count($editorsObject);
-        }
-            
-        foreach ($editorsObject as $key => $editor){
-            if ($key == '_total'){
-                $editors[$key] = $editor;
-                continue;
-            }
-            
-            $editors[$counter] = $editor[TWITCH_KEY_NAME];
-        }
-        
-        return $editors;
-    }
-    
-    /**
-     * Updates the channel object with new info
-     * 
-     * @param $chan - [string] Channel to update
-     * @param $token - [string] Authentication key used for the session
-     * @param $code - [string] Code used to generate an Authentication key
-     * @param $title - [string] New title for the stream
-     * @param $game - [string] Game title to update to the channel
-     * @param $delay - [int] Seconds of stream delay to put into effect
-     * 
-     * @return $result - [bool] Success of the query
-     * 
-     * @version 1.5
-     */ 
-    public function updateChannelObject($chan, $token, $code, $title = null, $game = null, $delay = null){
-
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'channel_editor', 'channel', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
-        
-        if( !$token ) {
-            $token = $this->twitch_client_token;
-        }
-        
-        $url = 'https://api.twitch.tv/kraken/channels/' . $chan;
-        $updatedObjects = array();
-        $options = array();
-        
-        $updatedObjects['oauth_token'] = $token;
-        
-        if ($title != null || ''){
-            // New title added to array
-            $updatedObjects['channel']['status'] = $title;
-        } 
-        
-        if ($game  != null || ''){
-            // New game added to array
-            $updatedObjects['channel']['game'] = $game;
-        } 
-        
-        if ($delay != null || ''){
-            // New Stream Delay added to array
-            $updatedObjects['channel']['delay'] = $delay;
-        } 
-        
-        $result = $this->cURL_put($url, $updatedObjects, $options, true);
-        
-        if (($result != 404) || ($result != 400)){
-            $result = true;
-        } else {
-            $result = false;
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * This resets the stream key for a user.  
-     * Should only be used when absolutely neccesary.
-     * 
-     * @param $chan - [string] Channel name to reset the stream key for
-     * @param $token - [string] Authentication key used for the session
-     * @param $code - [string] Code used to generate an Authentication key
-     * 
-     * @return $result - True on success, else false on failure.
-     * 
-     * @version 5.0
-     */ 
-    public function reset_channel_stream_key( $chan, $token, $code ){   
-
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'channel_stream', 'channel', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
-        
-        if( !$token ) {
-            $token = $this->twitch_client_token;
-        }
-        
-        $url = 'https://api.twitch.tv/kraken/channels/' . $chan . '/stream_key';
-        $post = array( 'oauth_token' => $token, 'client_id' => $this->twitch_client_id );
-        
-        $result = $this->cURL_delete($url, $post, array(), true);
-        
-        if ($result == 204){
-            $result = true;
-        } else {
-            $result = false;
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * This starts a commercial on the channel in question
-     * 
-     * @param $chan - [string] Channel name to start the commercial on
-     * @param $token - [string] Authentication key used for the session
-     * @param $code - [string] Code used to generate an Authentication key
-     * @param $length - [int] Length of time for the commercial break.  Valid options are 30,60,90.
-     * 
-     * @return $return - True on success, else false
-     * 
-     * @version 5.0
-     */ 
-    public function startCommercial($chan, $token, $code, $length = 30){
-
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'channel_commercial', 'channel', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
-        
-        if( !$token ) {
-            $token = $this->twitch_client_token;
-        }
-        
-        // Check the length to see if it is valid
-        if ($length % 30 == 0){
-            $length = 30;
-        }
-        
-        $url = 'https://api.twitch.tv/kraken/channels/' . $chan . '/commercial';
-        $post = array(
-            'oauth_token' => $token,
-            'length' => $length,
-            'client_id' => $this->twitch_client_id
-        );
-        
-        $result = $this->cURL_post($url, $post, array(), true);
-        
-        if ($result == 204){
-            // Commercial successfully started
-            $result = true;
-        } else {
-            // Commercial unable to be started
-            $result = false;
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * Grabs a list of all twitch emoticons
-     * 
-     * @param $limit - [int] The limit of objets to grab for the query
-     * @param $offset - [int] the offest to start the query from
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $object - [array] Keyed array of all returned data for the emoticins, including the supplied regex match used to parse it
-     */ 
-    public function chat_getEmoticonsGlobal($limit = -1, $offset = 0, $returnTotal = false){
-
-        $url = 'https://api.twitch.tv/kraken/chat/emoticons';
-        $object = array();
-        
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-        
-        $objects = $this->get_iterated( $url, array(), $limit, $offset, 'emoticons', null, null, null, null, null, null, null, null, null, $returningTotal);
-
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $object['_total'] = count($objects);
-        }
-
-        // Set keys
-        foreach ($objects as $key => $row){
-            if ($key == '_total'){
-                $object[$key] = $row;
-                continue;
-            }
-            
-            $k = $row['regex'];
-            $object[$k] = $row;
-        }
-
-        return $object;
-    }
-    
-    /**
-     * Grabs a list of call channel specific emoticons
-     * 
-     * @param $user - [string] username to grab emoticons for
-     * @param $limit - [int] The limit of objects to grab for the query
-     * @param $offest - [int] The offset to start the query from
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $object - [array] Keyed array of all returned data for the emoticons
-     */ 
-    public function chat_getEmoticons($user, $limit = -1, $offset = 0, $returnTotal = false){
-
-        $url = 'https://api.twitch.tv/kraken/chat/' . $user . '/emoticons';
-        $object = array();
-        
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-        
-        $objects = $this->get_iterated( $url, array(), $limit, $offset, 'emoticons', null, null, null, null, null, null, null, null, null, $returningTotal);
-
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $object['_total'] = count($objects);
-        }
-
-        // Set keys
-        foreach ($objects as $key => $row){
-            if ($key == '_total'){
-                $object[$key] = $row;
-                continue;
-            }
-            
-            $k = $row['regex'];
-            $object[$k] = $row;
-        }
-        
-        return $object;
-    }
-
-    /**
-     * Grabs a list of call channel specific badges
-     * 
-     * @param $chan - [string] Channel name to grab badges for
-     * @param $limit - [int] The limit of object to grab for the query
-     * @param $offest - [int] The offset to start the query from
-     * 
-     * @return $object - [array] Keyed array of all returned data for the badges
-     * 
-     * @version 5.0
-     */     
-    public function chat_getBadges($chan){        
-
-        $url = 'https://api.twitch.tv/kraken/chat/' . $chan . '/badges';
-        $get = array( 'client_id' => $this->twitch_client_id );
-        
-        $object = json_decode($this->cURL_get($url, $get, array(), false), true);
-        
-        return $object;                
-    }
-    
-    /**
      * Generates an OAuth token for chat login
      * 
      * @param $token - [string] Authentication key used for the session
@@ -1022,246 +705,6 @@ class TwitchPress_Twitch_API {
     }
     
     /**
-     * Gets a list of users that follow a given channel
-     * 
-     * @param $chan - [string] Channel name to get the followers for
-     * @param $limit - [int] the limit of users
-     * @param $offset - [int] The starting offset of the query
-     * @param $sorting - [string] Sorting direction, valid options are 'asc' and 'desc'
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $follows - [array] An unkeyed array of all followers to limit
-     * 
-     * @version 1.0
-     */ 
-    public function getFollowers($chan, $limit = -1, $offset = 0, $sorting = 'desc', $returnTotal = false){
-
-        $url = 'https://api.twitch.tv/kraken/channels/' . $chan . '/follows';
-        $followersObject = array();
-        $followers = array();
-        
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-             
-        $followersObject = $this->get_iterated( $url, array(), $limit, $offset, 'follows', null, null, null, null, null, null, null, null, null, $returningTotal);
-        
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $followers['_total'] = count($followersObject);
-        }
-        
-        foreach ($followersObject as $k => $follower){
-            if ($k == '_total'){
-                $followers[$k] = $follower;
-                continue;
-            }
-            
-            $key = $follower['user'][TWITCH_KEY_NAME];
-            $followers[$key] = $follower;
-        }
-        
-        // Return out our array
-        return $followers;
-    }
-    
-    /**
-     * Grab a lits of all channels a user follows
-     * 
-     * @param $username - [string] Username to get the follows of
-     * @param $limit - [int] the limit of users
-     * @param $offset - [int] The starting offset of the query
-     * @param $sorting - [string] Sorting direction, valid options are 'asc' and 'desc'
-     * @param $sortBy - [string] Sets the sort key.  Accepts 'created_at' and 'last_broadcast'
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $channels - [array] An unkeyed array of all followed channels to limit
-     * 
-     * @version 1.0
-     */ 
-    public function getFollows($username, $limit = -1, $offset = 0, $sorting = 'desc', $sortBy = 'created_at', $returnTotal = false){
-        
-        // Init some vars       
-        $channels = array();
-        $url = 'https://api.twitch.tv/kraken/users/' . $username . '/follows/channels';
-        
-        // Chck our sortby option
-        $sortBy = ($sortBy == 'last_broadcast') ? $sortBy : 'created_at';
-        
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-            
-        // Build our cURL query and store the array
-        $channelsObject = $this->get_iterated( $url, array(), $limit, $offset, 'follows', null, null, null, null, null, null, null, null, null, $returningTotal, $sortBy);
-        
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            // Including _total as the count of all object
-            $channels['_total'] = count($channelsObject);
-        }
-        
-        foreach ($channelsObject as $k => $channel){
-            if ($k == '_total'){
-                // Setting key
-                $channels[$k] = $channel;
-                continue;
-            }
-            
-            $key = $channel['channel'][TWITCH_KEY_NAME];
-            $channels[$key] = $channel;
-        }
-        
-        // Return out our unkeyed array
-        return $channels;        
-    }
-    
-    /**
-     * Checks To see if the provided user is currently following the channel
-     * 
-     * @param $targetChannel - [string] The target channel to check the relationship against
-     * @param $user          - [string] The user to check the relationship for
-     * 
-     * @return $following - [mixed] False if the user is not following or the user object if the user is
-     * 
-     * @version 1.0
-     */ 
-    public function checkUserFollowsChannel($targetChannel, $user){
-        $targetChannel = strval($targetChannel);
-        $user          = strval($user);
-        
-        // Init some vars
-        $url = "https://api.twitch.tv/kraken/users/$user/follows/channels/$targetChannel";
-            
-        // Build our cURL query and store the array
-        $relationShipObject = $this->cURL_get($url);
-        
-        // If the user was not found or is not following, return false
-        if (isset($relationShipObject['status']) && ($relationShipObject['status'] == 404)) {
-            return false;
-        }
-
-        // Return out our unkeyed array
-        return $relationShipObject;        
-    }
-    
-    /**
-     * Adds a channel to a user's following list
-     * 
-     * @param $user - [string] Username of the account to add the channel to
-     * @param $chan - [string] Channel name that the user will have added to their list
-     * @param $token - [string] Authentication key used for the session
-     * @param $code - [string] Code used to generate an Authentication key
-     * 
-     * @return $success - [bool] Success of the query
-     * 
-     * @version 5.0
-     */ 
-    public function followChan($user, $chan, $token, $code){
-
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'user_follows_edit', 'user', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; } 
-        
-        if( !$token ) {
-            $token = $this->twitch_client_token;
-        }
-        
-        $url = 'https://api.twitch.tv/kraken/users/' . $user . '/follows/channels/' . $chan;
-        $post = array( 'oauth_token' => $token, 'client_id' => $this->twitch_client_id );
-        
-        $result = $this->cURL_put($url, $post, array(), true);
-
-        if ($result == 200){
-            // Sucessfully followed channel
-            $result = true;              
-        } else {
-            // Unable to follow channel
-            $result = false;            
-        }
-
-        return $result;
-    }
-    
-    /**
-     * Removes a channel from a user's follow list
-     * 
-     * @param $user - [string] Username of the account to add the channel to
-     * @param $chan - [string] Channel name that the user will have added to their list
-     * @param $token - [string] Authentication key used for the session
-     * @param $code - [string] Code used to generate an Authentication key
-     * 
-     * @return $success - [bool] Success of the query
-     * 
-     * @version 5.1
-     */ 
-    public function unfollowChan($user, $chan, $token, $code){
-        
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'user_follows_edit', 'user', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; } 
-
-        if( !$token ) {
-            $token = $this->twitch_client_token;
-        }
-        
-        $url = 'https://api.twitch.tv/kraken/users/' . $user . '/follows/channels/' . $chan;
-        $delete = array( 'oauth_token' => $token, 'client_id' => $this->twitch_client_id );
-        
-        $result = $this->cURL_delete($url, $delete, array(), true);
-
-        if ($result == 204){
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    /**
-     * Grabs a list of most popular games being streamed on twitch with iteration
-     * to perform the request multiple times. This is to fulfill the requested number of
-     * games where initial request does not meet demand.  
-     * 
-     * @param $limit - [int] Set the limit of objects to grab
-     * @param $offset - [int] Sets the initial offset to start the query from
-     * @param $hls - [bool] Sets the query only to grab streams using HLS
-     * @param $returnTotal - [bool] Sets iteration to not ignore the _total key
-     * 
-     * @return $object - [array] A complete array of all channel objects in order based on the sorting rules
-     * 
-     * @version 1.0
-     */ 
-    public function get_top_games_iterated($limit = -1, $offset = 0, $hls = false, $returnTotal = false){
-        // Init some vars       
-        $gamesObject = array();
-        $games = array();        
-        $url = 'https://api.twitch.tv/kraken/games/top';
-
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-        
-        $gamesObject = $this->get_iterated( $url, array(), $limit, $offset, 'top', null, $hls, null, null, null, null, null, null, null, $returningTotal);
-        
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            // Including _total as the count of all object
-            $games['_total'] = count($gamesObject);
-        }
-        
-        // Strip out only the usernames from our array set
-        foreach ($gamesObject as $k => $game){
-            if ($k == '_total'){
-                // It isn't really the user, but this stops code changes
-                $games[$k] = $game;
-                continue;
-            }
-            
-            $key = $game['game']['name'];
-            $games[$key] = $game;
-        }
-        
-        return $games;
-    }
-
-    /**
      * Grabs a list of most popular games being streamed on twitch
      * 
      * @param $limit - [int] Set the limit of objects to grab
@@ -1286,70 +729,6 @@ class TwitchPress_Twitch_API {
     }
         
     /**
-     * Grabs All currently registered Ingest servers and some base stats
-     * 
-     * @return $ingests - [array] All returned ingest servers and the information associated with them
-     * 
-     * @version 5.0
-     */
-    public function getIngests(){
-        $ingests = array();
-        $url = 'https://api.twitch.tv/kraken/ingests';
-        $get = array( 'client_id' => $this->twitch_client_id );
-
-        $result = json_decode($this->cURL_get($url, $get, array()), true);
-
-        if (is_array($result) && !empty($result)){
-            foreach ($result as $key => $value){
-                if ($key == '_links'){
-                    continue;
-                }
-                
-                foreach ($value as $val){
-                    $k = $val['name'];
-                    $ingests[$k] = $val;
-                }
-            }
-        }
-
-        return $ingests;        
-    }        
-    
-    /**
-     * Returns an array of all streamers streaming in the supplied game catagory
-     * 
-     * @param $query - [string] A string parameter to search for
-     * @param $live - [bool] Sets the query to search only for live channels
-     * 
-     * @return $object - [array] An array of all resulting search returns
-     */ 
-    public function searchGameCat($query, $live = true){
-        $url = 'https://api.twitch.tv/kraken/search/games';
-        $get = array(
-            'query' => $query,
-            'type' => 'suggest',
-            'live' => $live, 
-            'client_id' => $this->twitch_client_id );
-        $result = array();
-        $object = array();
-        
-        $result = json_decode($this->cURL_get($url, $get, array(), false), true);
-
-        foreach ($result as $key => $value){
-            if ($key !== '_links'){
-                foreach ($value as $game){
-                    $k = $game['name'];
-                    if ($k != 'h'){
-                        $object[$k] = $game;
-                    }
-                }                
-            }
-        }
-
-        return $object;
-    }
-    
-    /**
      * Grabs the stream object of a given channel
      * 
      * @param $channel_id - [string] Channel ID to get the stream object for
@@ -1371,352 +750,6 @@ class TwitchPress_Twitch_API {
         }
         
         return $object;
-    }
-    
-    /**
-     * Gets the stream object of multiple channels and credentials
-     * All Params are optional or have default values
-     * 
-     * @param $game - [string] Limit returns to a specific game
-     * @param $channels - [array] Limit search to a specific set of channels
-     * @param $limit - [int] Limit of channel objects to return
-     * @param $offset - [int] Maximum number of objects to return
-     * @param $embedable - [bool] Limit search to only embedable channels
-     * @param $hls - [bool] Limit sear to channels only using hls
-     * @param $client_id - [string] Limit searches to only show streams from the applications of the supplied ID
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $object - [array] All returned data for the query parameters
-     */ 
-    public function getStreamsObjects($game = null, $channels = array(), $limit = -1, $offset = 0, $embedable = false, $hls = false, $client_id = null, $returnTotal = false){
-        // Init some vars       
-        $url = 'https://api.twitch.tv/kraken/streams';
-        $streamsObject = array();
-        $streams = array();
-        
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-        
-        // Build our cURL query and store the array
-        $streamsObject = $this->get_iterated( $url, array(), $limit, $offset, 'streams', null, $hls, null, $channels, $embedable, $client_id, null, null, $game, $returningTotal);
-        
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $streams['_total'] = count($streamsObject);
-        }
-        
-        // Strip out the data we don't need
-        foreach ($streamsObject as $key => $value) {
-            if ($key == '_total') {
-                // It isn't really the user, but this stops code changes
-                $streams[$key] = $value;
-                continue;
-            }
-            
-            foreach ($value as $k => $v) {
-                if ($k == 'channel') {
-                    $objKey = $v[TWITCH_KEY_NAME];
-                    $streams[$objKey] = $value;
-                    break;
-                }
-            }
-        }
-
-        return $streams;              
-    }
-    
-    /**
-     * Grabs a list of all featured streamers objects
-     * 
-     * @param $limit - [int] Limit of channel objects to return
-     * @param $offset - [int] Maximum number of objects to return
-     * @param $hls - [bool] Limit sear to channels only using hls
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $featuredObject - [array] Array of all stream objects for the query or false if the query fails
-     */ 
-    public function getFeaturedStreams($limit = -1, $offset = 0, $hls = false, $returnTotal = false){
-        // Init some vars
-        $featured = array();          
-        $url = 'https://api.twitch.tv/kraken/streams/featured';
-
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-        
-        // Build our cURL query and store the array
-        $featuredObject = $this->get_iterated( $url, array(), $limit, $offset, 'featured', null, null, null, null, null, null, null, null, null, $returningTotal);
-        
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $featured['_total'] = count($featuredObject);
-        }
-        
-        // Strip out the uneeded data
-        foreach ($featuredObject as $key => $value){
-            if ($key == '_total'){
-                // It isn't really the user, but this stops code changes
-                $featured[$key] = $value;
-                continue;
-            }
-            
-            if (($key != 'self') && ($key != 'next')){
-                $k = $value['stream']['channel'][TWITCH_KEY_NAME];
-                $featured[$k] = $value;
-            }
-        }
-        
-        return $featured;           
-    }
-    
-    /**
-     * Grabs the list of online channels that a user is following
-     * 
-     * @param $limit - [int] Limit of channel objects to return
-     * @param $offset - [int] Maximum number of objects to return
-     * @param $token - [string] Authentication key used for the session
-     * @param $code - [string] Code used to generate an Authentication key
-     * @param $hls - [bool] Limit sear to channels only using hls
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $videos - [array] array of all followed streams online
-     * 
-     * @version 1.3
-     */
-    public function getFollowedStreams($limit = -1, $offset = 0, $token, $code, $hls = false, $returnTotal = false){
- 
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'user_read', 'user', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; } 
-        
-        if( !$token ) {
-            $token = $this->twitch_client_token;
-        }
-        
-        $streams = array();
-        $url = 'https://api.twitch.tv/kraken/streams/followed';
-
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-        
-        $streamsObject = $this->get_iterated( $url, array(), $limit, $offset, 'streams', $token, $hls, null, null, null, null, null, null, null, $returningTotal);
-
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $streams['_total'] = count($streamsObject);
-        }
-        
-        // Strip out the uneeded data
-        foreach ($streamsObject as $key => $value){
-            if ($key == '_total'){
-                // It isn't really the user, but this stops code changes
-                $streams[$key] = $value;
-                continue;
-            }
-            
-            if (($key != 'self') && ($key != 'next')){
-                $k = $value['channel'][TWITCH_KEY_NAME];
-                $streams[$k] = $value;
-            }
-        }
-
-        return $streams;
-     }
-    
-    /**
-     * Gets the current viewers and the current live channels for Twitch
-     * 
-     * @param $hls - [bool] Limit sear to channels only using hls
-     * 
-     * @return $statistics - [array] (keyed) The current Twitch Statistics 
-     * 
-     * @version 1.0
-     */ 
-    public function getTwitchStatistics($hls = false){
-        $statistics = array();
-        $url = 'https://api.twitch.tv/kraken/streams/summary';
-        $get = array( 'hls' => $hls, 'client_id' => $this->twitch_client_id);
-
-        $result = json_decode($this->cURL_get($url, $get, array()), true);
-
-        if (is_array($result) && !empty($result)){
-            $statistics = $result;
-        }
-
-        return $statistics;        
-    }
-    
-    /**
-     * Returns the video object for the specified ID
-     * 
-     * @param $id - [string] String ID of the video to get
-     * 
-     * @return $object - [array] Video object returned from the query, key is the ID
-     * 
-     * @version 1.0
-     */
-    public function getVideo_ID($id){
-        // init some vars
-        $object = array();
-        $url = 'https://api.twitch.tv/kraken/videos/' . $id;
-        $get = array( 'client_id' => $this->twitch_client_id );
-        
-        $result = json_decode($this->cURL_get($url, $get, array(), false), true);
-        
-        // A safe way of checking that the video was returned
-        if (!empty($result) && array_key_exists('_id', $result)){
-            // Set the key and the array
-            $object[$id] = $result;            
-        } else {
-            $object[$id] = array();
-        }
-
-        return $object;             
-    }
-    
-    /**
-     * Returns the video objects of the given channel
-     * 
-     * @param $chan - [string] Channel name to grab video objects from
-     * @param $limit - [int] Limit of channel objects to return
-     * @param $offset - [int] Maximum number of objects to return
-     * @param $boradcastsOnly - [bool] If true, limits query to only past broadcasts, else will return highlights only
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $videoObjects - [array] array of all returned video objects, Key is ID
-     * 
-     * @version 1.3
-     */ 
-    public function getVideo_channel($chan, $limit = -1, $offset = 0, $boradcastsOnly = false, $returnTotal = false){
-        // Init some vars
-        $videoObjects = array();     
-        $videos = array();
-        $url = 'https://api.twitch.tv/kraken/channels/' . $chan . '/videos';
-        
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-            
-        // Build our cURL query and store the array
-        $videos = $this->get_iterated( $url, array(), $limit, $offset, 'videos', null, null, null, null, null, null, $boradcastsOnly, null, null, $returningTotal);
-        
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $videoObjects['_total'] = count($videos);
-        }
-        
-        // Key the data
-        foreach ($videos as $k => $video){
-            if ($k == '_total'){
-                $videoObjects[$k] = $video;
-                continue;
-            }
-            
-            $key = $video['_id'];
-            $videoObjects[$key] = $video;
-        }
-        
-        return $videoObjects;                  
-    }
-    
-    /**
-     * Grabs all videos for all channels a user is following
-     * 
-     * @param $limit - [int] Limit of channel objects to return
-     * @param $offset - [int] Maximum number of objects to return
-     * @param $token - [string] Authentication key used for the session
-     * @param $code - [string] Code used to generate an Authentication key
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $videosObject - [array] All video objects returned by the query, Key is ID
-     * 
-     * @version 1.0
-     */ 
-    public function getVideo_followed($limit = -1, $offset = 0, $token, $code, $returnTotal = false){
-
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'user_read', 'user', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; } 
-        
-        if( !$token ) {
-            $token = $this->twitch_client_token;
-        }
-        
-        // Init some vars       
-        $videosObject = array();            
-        $videos = array();
-        $url = 'https://api.twitch.tv/kraken/videos/followed';
-
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-        
-        // Build our cURL query and store the array
-        $videos = $this->get_iterated( $url, array(), $limit, $offset, 'videos', $token, null, null, null, null, null, null, null, null, $returningTotal);
-        
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)) {
-            $videosObject['_total'] = count($videos);
-        }
-        
-        // Set our keys
-        foreach ($videos as $k => $video) {
-            if ($k == '_total') {
-                $videosObject[$k] = $video;
-                continue;
-            }
-            
-            $key = $video['_id'];
-            $videosObject[$key] = $video;
-        }
-
-        return $videosObject;      
-    }
-    
-    /**
-     * Gets a list of the top viewed videos by the sorting parameters
-     * 
-     * @param $game - [string] Game name to sory the query by
-     * @param $limit - [int] Limit of channel objects to return
-     * @param $offset - [int] Maximum number of objects to return
-     * @param $period - [string] set the period for the query, valid values are 'week', 'month', 'all'
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $videosObject - [array] Array of all returned video objects, Key is ID
-     * 
-     * @version 1.0
-     */ 
-    public function getTopVideos($game = '', $limit = -1, $offset = 0, $period = 'week', $returnTotal = false){
-        // check the period to make sure it is valid
-        if (($period != 'week') && ($period != 'month') && ($period != 'all')){
-            $period = 'week';
-        }
-        
-        // Init some vars       
-        $videosObject = array();
-        $videos = array();
-        $url = 'https://api.twitch.tv/kraken/videos/top';
-
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
-            
-        // Build our cURL query and store the array
-        $videos = $this->get_iterated( $url, array(), $limit, $offset, 'videos', null, null, null, null, null, null, null, $period, $game, $returningTotal);
-
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $videosObject['_total'] = count($videos);
-        }
-        
-        // Set our keys
-        foreach ($videos as $k => $video){
-            if ($k == '_total'){
-                $videosObject[$k] = $video;
-                continue;
-            }
-            
-            $key = $video['_id'];
-            $videosObject[$key] = $video;
-        }
-
-        return $videosObject;         
     }
     
     /**
@@ -2035,79 +1068,629 @@ class TwitchPress_Twitch_API {
         );
         
         return array_rand( $return );
-    }
-     
+    } 
+    
+    ############################################################################
+    #                                                                          #
+    #                              NEW API (HELIX)                             #
+    #                                                                          #
+    ############################################################################    
+    
     /**
-     * Gets the team objects for all active teams
-     * 
-     * @param $limit - [int] Limit of channel objects to return
-     * @param $offset - [int] Maximum number of objects to return
-     * @param $returnTotal - [bool] Returns a _total row in the array
-     * 
-     * @return $teams - [array] Keyed array of all team objects.  Key is the team name
-     */ 
-    public function getTeams($limit = -1, $offset = 0, $returnTotal = false){        
-        // Init some vars       
-        $teams = array();        
-        $url = 'https://api.twitch.tv/kraken/teams';
+    * Get Extension Analytics 
+    * 
+    * Gets a URL that extension developers can use to download analytics reports 
+    * (CSV files) for their extensions. The URL is valid for 5 minutes. For detail 
+    * about analytics and the fields returned, see the Insights & Analytics guide.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-extension-analytics
+    * 
+    * @param mixed $after
+    * @param mixed $ended_at
+    * @param mixed $extension_id
+    * @param mixed $first
+    * @param mixed $started_at
+    * @param mixed $type
+    * 
+    * @version 1.0
+    */
+    function get_extension_analytics( string $after = null, string $ended_at = null, string $extension_id = null, integer $first = null, string $started_at = null, string $type = null ) {
         
-        // Check if we are returning a total and if we are in a limitless return (We can just count at that point and we will always have the correct number)
-        $returningTotal = (($limit != -1) || ($offset != 0)) ? $returnTotal : false;
+        $call_authentication = 'scope';
         
-        // Build our cURL query and store the array
-        $teamsObject = $this->get_iterated( $url, array(), $limit, $offset, 'teams', null, null, null, null, null, null, null, null, null, $returningTotal);
+        $scope = 'analytics:read:extensions';
+
+        $type = 'GET';
         
-        // Include the total if we were asked to return it (In limitless cases))
-        if ($returnTotal && ($limit == -1) && ($offset == 0)){
-            $teams['_total'] = count($teamsObject);
-        }
+        $url = 'https://api.twitch.tv/helix/analytics/extensions';
+    }
+
+    private function sandbox_get_extension_analytics( $test ) {
         
-        // Transfer to teams
-        foreach ($teamsObject as $k => $team){
-            if ($k == '_total'){
-                $teams[$k] = $team;
-                continue;
-            }
-            
-            $key = $team[TWITCH_KEY_NAME];
-            $teams[$key] = $team;
-        }
-        
-        return $teams;
     }
     
     /**
-     * Grabs the team object for the supplied team
-     * 
-     * @param $team - [string] Name of the team to grab the object for
-     * 
-     * @return $teamObject - [array] Object returned for the team queried
-     */ 
-    public function getTeam( $team ){
-        $url = 'https://api.twitch.tv/kraken/teams/' . $team;
-        $get = array();
-        
-        // Build our cURL query and store the array
-        $teamObject = json_decode($this->cURL_get($url, $get, array(), false, __FUNCTION__), true);
+    * Get Game Analytics
+    * 
+    * Gets a URL that game developers can use to download analytics reports 
+    * (CSV files) for their games. The URL is valid for 5 minutes. For detail 
+    * about analytics and the fields returned, see the Insights & Analytics guide.
+    * 
+    * The response has a JSON payload with a data field containing an array of 
+    * games information elements and can contain a pagination field containing 
+    * information required to query for more streams.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-game-analytics
+    * 
+    * @param string $after
+    * @param string $ended_at
+    * @param integer $first
+    * @param string $game_id
+    * @param string $started_at
+    * @param string $type
+    * 
+    * @version 1.0
+    */
+    function get_game_analytics( string $after = null, string $ended_at = null, integer $first = null, string $game_id = null, string $started_at = null, string $type = null ) {
 
-        return $teamObject;
-    }    
+        $call_authentication = 'scope';
+        
+        $scope = 'analytics:read:games';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/analytics/games';        
+    }
     
     /**
-     * Revoke access token for account. 
-     * 
-     * @version 5.0
-     */ 
-    public function revoke_access_tokens(){
-        $url = 'https://api.twitch.tv/kraken/oauth2/revoke';
-        $get = array( 'token' => $this->twitch_client_token, 'client_id' => $this->twitch_client_id );
-        
-        // Build our cURL query and store the array
-        $userObject = json_decode($this->cURL_get($url, $get, array(), false, __FUNCTION__), true);
+    * Get Bits Leaderboard 
+    * 
+    * Gets a ranked list of Bits leaderboard information 
+    * for an authorized broadcaster.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-bits-leaderboard
+    * @version 1.0 
+    * 
+    * @param mixed $count
+    * @param mixed $period
+    * @param mixed $started_at
+    * @param mixed $user_id
+    * 
+    * @version 1.0
+    */
+    function get_bits_leaderboard( integer $count = null, string $period = null, string $started_at = null, string $user_id = null ) {
 
-        return $userObject;          
-    }  
-                            
+        $call_authentication = 'scope';
+        
+        $scope = 'bits:read';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/bits/leaderboard';
+    }
+    
+    /**
+    * Create Clip
+    * 
+    * Creates a clip programmatically. This returns both an ID 
+    * and an edit URL for the new clip.
+    * 
+    * Clip creation takes time. We recommend that you query Get Clips, 
+    * with the clip ID that is returned here. If Get Clips returns a 
+    * valid clip, your clip creation was successful. If, after 15 seconds, 
+    * you still have not gotten back a valid clip from Get Clips, assume 
+    * that the clip was not created and retry Create Clip.
+    * 
+    * This endpoint has a global rate limit, across all callers. The limit 
+    * may change over time, but the response includes informative headers:
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#create-clip
+    * 
+    * @param mixed $broadcaster_id
+    * @param mixed $has_delay
+    * 
+    * @version 1.0
+    */
+    function create_clip( string $broadcaster_id, boolean $has_delay = null ) {
+
+        $call_authentication = 'scope';
+
+        $scope = 'clips:edit';
+        
+        $type = 'POST';
+        
+        $url = 'https://api.twitch.tv/helix/clips';           
+    }
+    
+    /**
+    * Get Clips
+    * 
+    * Gets clip information by clip ID (one or more), broadcaster ID (one only), 
+    * or game ID (one only).
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of clip information elements and a pagination field containing 
+    * information required to query for more streams.
+    * 
+    * @param mixed $broadcaster_id
+    * @param mixed $game_id
+    * @param mixed $id
+    * @param mixed $after
+    * @param mixed $before
+    * @param mixed $ended_at
+    * @param mixed $first
+    * @param mixed $started_at
+    * 
+    * @version 1.0
+    */
+    function get_clips( string $broadcaster_id, string $game_id, string $id, string $after = null, string $before = null, string $ended_at = null, integer $first = null, string $started_at = null ) {
+
+        $call_authentication = 'none';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/clips';           
+    }
+        
+    /**
+    * Create Entitlement Grants Upload URL
+    * 
+    * Creates a URL where you can upload a manifest file and notify users that
+    * they have an entitlement. Entitlements are digital items that users are 
+    * entitled to use. Twitch entitlements are granted to users gratis or as 
+    * part of a purchase on Twitch.
+    * 
+    * See the Drops Guide for details about using this 
+    * endpoint to notify users about Drops.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#create-entitlement-grants-upload-url
+    * 
+    * @param mixed $manifest_id
+    * @param mixed $type
+    * 
+    * @version 1.0
+    */
+    function create_entitlement_grants_upload_url( string $manifest_id, string $type ) {
+
+        $call_authentication = 'app_access_token';
+
+        $type = 'POST';
+        
+        $url = 'https://api.twitch.tv/helix/entitlements/upload';           
+    }
+         
+    /**
+    * Get Games
+    * 
+    * Gets game information by game ID or name. The response has a JSON 
+    * payload with a data field containing an array of games elements.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-games
+    * 
+    * @param mixed $id
+    * @param mixed $name
+    * @param mixed $box_art_url
+    * 
+    * @version 1.0
+    */
+    function get_games( string $id, string $name, object $box_art_url = null, string $id = null, string $name = null ) {
+
+        $call_authentication = 'none';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/games';           
+    }
+         
+    /**
+    * Get Top Games
+    * 
+    * Gets games sorted by number of current viewers on Twitch, most popular first.
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of games information elements and a pagination field containing 
+    * information required to query for more streams.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-top-games
+    * 
+    * @param mixed $after
+    * @param mixed $before
+    * @param mixed $first
+    * 
+    * @version 1.0
+    */
+    function get_top_games( string $after = null, string $before = null, string $first = integer ) {
+
+        $call_authentication = 'none';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/games/top';           
+    }
+         
+    /**
+    * Get Streams
+    * 
+    * Gets information about active streams. Streams are returned sorted by 
+    * number of current viewers, in descending order. Across multiple pages of 
+    * results, there may be duplicate or missing streams, 
+    * as viewers join and leave streams.
+    * 
+    * The response has a JSON payload with a data field containing an array of 
+    * stream information elements and a pagination field containing information 
+    * required to query for more streams.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-streams
+    * 
+    * @param mixed $after
+    * @param mixed $before
+    * @param mixed $community_id
+    * @param mixed $first
+    * @param mixed $game_id
+    * @param mixed $language
+    * @param mixed $user_id
+    * @param mixed $user_login
+    * 
+    * @version 1.0
+    */
+    function get_streams( string $after = null, string $before = null, string $community_id = null, integer $first = null, string $game_id = null, string $language = null, string $user_id = null, string $user_login = null ) {
+   
+        $call_authentication = 'none';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/streams';           
+    }
+         
+    /**
+    * Get Streams Metadata
+    * 
+    * Gets metadata information about active streams playing Overwatch or 
+    * Hearthstone. Streams are sorted by number of current viewers, in 
+    * descending order. Across multiple pages of results, there may be 
+    * duplicate or missing streams, as viewers join and leave streams.
+    * 
+    * The response has a JSON payload with a data field containing an array of 
+    * stream information elements and a pagination field containing information 
+    * required to query for more streams.
+    * 
+    * This endpoint has a global rate limit, across all callers. The limit 
+    * may change over time, but the response includes informative headers:
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-streams-metadata
+    * 
+    * @param mixed $after
+    * @param mixed $before
+    * @param mixed $community_id
+    * @param mixed $first
+    * @param mixed $game_id
+    * @param mixed $language
+    * @param mixed $user_id
+    * @param mixed $user_login
+    * 
+    * @version 1.0
+    */
+    function get_streams_metadata( string $after = null, string $before = null, string $community_id = null, integer $first = null, string $game_id = null, string $language = null, string $user_id = null, string $user_login = null ) {
+
+        $call_authentication = 'none';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/streams/metadata';           
+    }
+         
+    /**
+    * Create Stream Marker
+    * 
+    * Creates a marker in the stream of a user specified by a user ID. 
+    * A marker is an arbitrary point in a stream that the broadcaster 
+    * wants to mark; e.g., to easily return to later. The marker is 
+    * created at the current timestamp in the live broadcast when the 
+    * request is processed. Markers can be created by the stream owner 
+    * or editors. The user creating the marker is identified by a Bearer token.
+    * 
+    * Markers cannot be created in some cases (an error will occur):
+    *   ~ If the specified user’s stream is not live.
+    *   ~ If VOD (past broadcast) storage is not enabled for the stream.
+    *   ~ For premieres (live, first-viewing events that combine uploaded videos with live chat).
+    *   ~ For reruns (subsequent (not live) streaming of any past broadcast, including past premieres).
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#create-stream-marker
+    * 
+    * @param mixed $user_id
+    * @param mixed $description
+    * 
+    * @version 1.0
+    */
+    function create_stream_markers( string $user_id, string $description = null ) {
+
+        $call_authentication = 'scope';
+        
+        $scope = 'user:edit:broadcast';
+
+        $type = 'POST';
+        
+        $url = 'https://api.twitch.tv/helix/streams/markers';           
+    }
+         
+    /**
+    * Get Streams Markers
+    * 
+    * Gets a list of markers for either a specified user’s most recent stream 
+    * or a specified VOD/video (stream), ordered by recency. A marker is an 
+    * arbitrary point in a stream that the broadcaster wants to mark; 
+    * e.g., to easily return to later. The only markers returned are those 
+    * created by the user identified by the Bearer token.
+    * 
+    * The response has a JSON payload with a data field containing an array of 
+    * marker information elements and a pagination field containing information 
+    * required to query for more follow information.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-stream-markers
+    * 
+    * @param mixed $user_id
+    * @param mixed $video_id
+    * @param mixed $after
+    * @param mixed $before
+    * @param mixed $first
+    * 
+    * @version 1.0
+    */
+    function get_streams_markers( string $user_id, string $video_id, string $after = null, string $before = null, string $first = null ) {
+
+        $call_authentication = 'scope';
+
+        $scope = 'user:read:broadcast';
+        
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/streams/markers';           
+    }
+         
+    /**
+    * Get Users
+    * 
+    * Gets information about one or more specified Twitch users. 
+    * Users are identified by optional user IDs and/or login name. 
+    * If neither a user ID nor a login name is specified, the user is 
+    * looked up by Bearer token.
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of user-information elements. If this is provided, the response 
+    * includes the user’s email address.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-users
+    * 
+    * @param mixed $id
+    * @param mixed $login
+    * 
+    * @version 6.0
+    */
+    function get_users( string $id = null, string $login = null ) {
+                     exists in kraken 
+                  
+        $call_authentication = 'scope';
+        
+        $scope = 'user:read:email';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/users';           
+    }
+         
+    /**
+    * Get Users Follows [from giving ID]
+    * 
+    * Gets information on follow relationships between two Twitch users. 
+    * Information returned is sorted in order, most recent follow first. 
+    * This can return information like “who is lirik following,”, 
+    * “who is following lirik,” or “is user X following user Y.”
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of follow relationship elements and a pagination field containing 
+    * information required to query for more follow information.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-users-follows
+    * 
+    * @param mixed $after
+    * @param mixed $first
+    * @param mixed $from_id
+    * @param mixed $to_id
+    * 
+    * @version 1.0
+    */
+    function get_users_follows_from_id( string $after = null, integer $first = null, string $from_id = null, string $to_id = null ) {
+    
+        $call_authentication = 'none';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/users/follows?from_id=<user ID>';           
+    }
+    
+    /**
+    * Get Users Follows [to giving ID]
+    * 
+    * Gets information on follow relationships between two Twitch users. 
+    * Information returned is sorted in order, most recent follow first. 
+    * This can return information like “who is lirik following,”, 
+    * “who is following lirik,” or “is user X following user Y.”
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of follow relationship elements and a pagination field containing 
+    * information required to query for more follow information.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-users-follows
+    * 
+    * @param mixed $after
+    * @param mixed $first
+    * @param mixed $from_id
+    * @param mixed $to_id
+    * 
+    * @version 1.0
+    */
+    function get_users_follows_to_id( string $after = null, integer $first = null, string $from_id = null, string $to_id = null ) {
+    
+        $call_authentication = 'none';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/users/follows?to_id=<user ID>';           
+    }
+             
+    /**
+    * Update User
+    * 
+    * Updates the description of a user specified by a Bearer token.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#update-user
+    * 
+    * @version 1.0 
+    */
+    public function update_user() {
+  
+        $call_authentication = 'scope';
+
+        $scope = 'user:edit';
+        
+        $type = 'PUT';
+        
+        $url = 'https://api.twitch.tv/helix/users?description=<description>';           
+    }
+         
+    /**
+    * Get User Extensions
+    * 
+    * Gets a list of all extensions (both active and inactive) for a 
+    * specified user, identified by a Bearer token.
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of user-information elements.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-user-extensions
+    * 
+    * @version 1.0 
+    */
+    public function get_user_extensions() {
+ 
+        $call_authentication = 'scope';
+        
+        $scope = 'user:read:broadcast';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/users/extensions/list';           
+    }
+         
+    /**
+    * Get User Active Extensions
+    * 
+    * Gets information about active extensions installed by a specified user, 
+    * identified by a user ID or Bearer token.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-user-active-extensions
+    * 
+    * @param string $user_id 
+    * 
+    * @version 1.0 
+    */
+    public function get_user_active_extensions( string $user_id = null ) {
+
+        $call_authentication = 'scope';
+
+        $scope = array( 'user:read:broadcast', 'user:edit:broadcast' ); 
+        
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/users/extensions';           
+    }
+         
+    /**
+    * Update User Extensions
+    * 
+    * Updates the activation state, extension ID, and/or version number of 
+    * installed extensions for a specified user, identified by a Bearer token. 
+    * If you try to activate a given extension under multiple extension types, 
+    * the last write wins (and there is no guarantee of write order).
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#update-user-extensions
+    * 
+    * @version 1.0 
+    */
+    public function update_user_extensions() {
+
+        $call_authentication = 'scope';
+        
+        $scope = 'user:edit:broadcast';
+
+        $type = 'PUT';
+        
+        $url = 'https://api.twitch.tv/helix/users/extensions';           
+    }
+         
+    /**
+    * Get Videos
+    * 
+    * Gets video information by video ID (one or more), user ID (one only), 
+    * or game ID (one only).
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of video elements. For lookup by user or game, pagination is available, 
+    * along with several filters that can be specified as query string parameters.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-videos
+    * 
+    * @param mixed $id
+    * @param mixed $user_id
+    * @param mixed $game_id
+    * @param mixed $after
+    * @param mixed $before
+    * @param mixed $first
+    * @param mixed $language
+    * @param mixed $period
+    * @param mixed $sort
+    * @param mixed $type
+    * 
+    * @version 1.0
+    */
+    function get_videos( string $id, string $user_id, string $game_id, string $after = null, string $before = null, string $first = null, string $language = null, string $period = null, string $sort = null, string $type = null ) {
+  
+        $call_authentication = 'none';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/videos';           
+    }
+         
+    /**
+    * Get Webhook Subscriptions
+    * 
+    * Gets Webhook subscriptions, in order of expiration.
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of subscription elements and a pagination field containing information 
+    * required to query for more subscriptions.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-webhook-subscriptions
+    * 
+    * @param mixed $after
+    * @param mixed $first
+    * @param mixed $callback
+    * @param mixed $expires_at
+    * @param mixed $pagination
+    * @param mixed $topic
+    * @param mixed $total
+    * 
+    * @version 1.0
+    */
+    function get_webhook_subscriptions( string $after, string $first, string $callback = null, string $expires_at = null, string $pagination = null, string $topic = null, int $total = null ) {
+
+        $call_authentication = 'app_access_token';
+
+        $type = 'GET';
+        
+        $url = 'https://api.twitch.tv/helix/webhooks/subscriptions';           
+    }        
 }
 
 endif;                         

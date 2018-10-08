@@ -62,10 +62,10 @@ function twitchpress_subman_um_role_sync() {
     
     // Get the current users Twitch subscription plan. 
     $sub_plan = twitchpress_get_sub_plan( $wp_user_id, $twitch_channel_id );
-
+        
     // Get possible current UM role. 
     $current_role = get_user_meta( $wp_user_id, 'role', true );
-
+        
     if( !twitchpress_is_valid_sub_plan( $sub_plan ) ) 
     {
         // Get and apply default (none) UM role. 

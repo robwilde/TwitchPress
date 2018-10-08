@@ -1,6 +1,6 @@
 <?php
 /**
- * Twitch API Endpoints.
+ * Twitch API Version 6 Endpoints
  * 
  * This data is used to create a layer of endpoint validation and 
  * support development tools or just debugging feedback. 
@@ -10,26 +10,26 @@
  *
  * @author      Ryan Bayne
  * @category    Admin
- * @package     TwitchPress Kraken 5 Library
- * @version     1.0.0
+ * @package     TwitchPress Helix Library
+ * @version     1.0
  */
  
 function twitchpress_kraken_endpoints() { 
     return array(
-        'bits'        => twitchpress_kraken_endpoints_bits(),
-        'feed'        => twitchpress_kraken_endpoints_feed(), 
-        'channels'    => twitchpress_kraken_endpoints_channels(),
-        'chat'        => twitchpress_kraken_endpoints_chat(),
-        'clips'       => twitchpress_kraken_endpoints_clips(),
-        'collections' => twitchpress_kraken_endpoints_collections(),
-        'communities' => twitchpress_kraken_endpoints_communities(),
-        'games'       => twitchpress_kraken_endpoints_games(),
-        'ingests'     => twitchpress_kraken_endpoints_ingests(),
-        'search'      => twitchpress_kraken_endpoints_search(),
-        'steams'      => twitchpress_kraken_endpoints_streams(),
-        'teams'       => twitchpress_kraken_endpoint_teams(),
-        'users'       => twitchpress_kraken_endpoint_users(),
-        'video'       => twitchpress_kraken_endpoint_video(),
+        //'bits'        => twitchpress_kraken_endpoints_bits(),
+        //'feed'        => twitchpress_kraken_endpoints_feed(), 
+        //'channels'    => twitchpress_kraken_endpoints_channels(),
+        //'chat'        => twitchpress_kraken_endpoints_chat(),
+        //'clips'       => twitchpress_kraken_endpoints_clips(),
+        //'collections' => twitchpress_kraken_endpoints_collections(),
+        //'communities' => twitchpress_kraken_endpoints_communities(),
+        //'games'       => twitchpress_kraken_endpoints_games(),
+        //'ingests'     => twitchpress_kraken_endpoints_ingests(),
+        //'search'      => twitchpress_kraken_endpoints_search(),
+        //'steams'      => twitchpress_kraken_endpoints_streams(),
+        //'teams'       => twitchpress_kraken_endpoint_teams(),
+        //'users'       => twitchpress_kraken_endpoint_users(),
+        //'video'       => twitchpress_kraken_endpoint_video(),
     );
 }
 
