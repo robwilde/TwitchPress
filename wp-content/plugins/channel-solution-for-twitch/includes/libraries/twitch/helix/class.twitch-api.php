@@ -1076,6 +1076,67 @@ class TwitchPress_Twitch_API {
     #                                                                          #
     ############################################################################    
     
+    public function call( $type, $url, $file, $function, $line ) {
+        
+        // Create our own special Curl object which uses WP_Http_Curl()
+        $call_object = new TwitchPress_Curl();
+        $call_object->originating_file = $function;
+        $call_object->originating_function = $function;
+        $call_object->originating_line = $line;
+                
+        // Set none API related parameters i.e. cache and rate controls...
+        $call_object->call_params( 
+            $type, 
+            $url, 
+            false, 
+            0, 
+            false, 
+            null, 
+            false, 
+            false 
+        );
+
+        
+        
+        // Add the access_token as an OAuth header...
+        $call_object->headers = array(
+            'Authorization' => 'Bearer ' . $this->app_token,
+            'Accept'        => 'application/vnd.twitchtv.v5+json'
+        );
+
+        
+        
+        
+        // Start + make the request to Twitch.tv API in one line... 
+        $call_object->call_setup( 'twitch' );
+
+        
+        
+        
+        // Was the access_token value in $curl_reply_body set? 
+        if( isset( $call_object->response_code ) && $call_object->response_code == '200' ) {
+            return true;
+        }
+               
+               
+               
+               
+                
+        if( !isset( $call_object->response_code ) ) {
+            $this->bugnet->log( __FUNCTION__, __( 'No response code has been returned when validating an access_token', 'twitchpress' ), array(), true, false );            
+        }
+               
+               
+               
+               
+        if( $call_object->response_code !== '200' ) {   
+            $this->bugnet->log( __FUNCTION__, __( 'An access_token has expired because validation did not return code: 200', 'twitchpress' ), array(), true, false );            
+        }
+
+        
+        
+    }    
+    
     /**
     * Get Extension Analytics 
     * 
@@ -1102,7 +1163,9 @@ class TwitchPress_Twitch_API {
 
         $type = 'GET';
         
-        $url = 'https://api.twitch.tv/helix/analytics/extensions';
+        $url = 'https://api.twitch.tv/helix/analytics/extensions';         
+        
+        $this->call( $type, $url );
     }
 
     private function sandbox_get_extension_analytics( $test ) {

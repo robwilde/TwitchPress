@@ -160,6 +160,8 @@ class TwitchPress_Curl extends WP_Http_Curl {
     */
     public $response_message = null;
     
+    public $originating_file = null;
+    
     public $originating_function = null;
 
     public $originating_line = null;

@@ -80,7 +80,7 @@ function twitchpress_display_frontend_notices_undertitle() {
 * 
 * @deprecated
 */
-function twitchpress_display_frontend_notices_the_title( string $content ) {
+function twitchpress_display_frontend_notices_the_title( $content ) {
     return $content;
     if( !isset( $_GET['twitchpress_notice'] ) || !is_string( $_GET['twitchpress_notice'] ) ) { return; }
     elseif( !isset( $_GET['twitchpress_title'] ) || !is_string( $_GET['twitchpress_title'] ) ) { return; }
