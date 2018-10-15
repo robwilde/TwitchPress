@@ -1311,7 +1311,7 @@ function twitchpress_get_user_twitchid( $twitch_username ) {
     $user_object = $kraken->get_users( $twitch_username );
     if( isset( $user_object['users'][0]['_id'] ) && is_numeric( $user_object['users'][0]['_id'] ) ) {
         return $user_object['users'][0]['_id'];
-    } else {
+    } else {                                 
         return false;
     }
     unset( $kraken );   

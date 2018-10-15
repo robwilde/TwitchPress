@@ -100,7 +100,7 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
                     'type'    => 'radio',
                     'options' => array(
                         '5' => __( 'Kraken (v5)', 'twitchpress' ),
-                        '6' => __( 'Helix (v6) - Experimental', 'twitchpress' ),
+                        '6' => __( 'Helix (v6) - Not Ready (do not use live)', 'twitchpress' ),
                     ),
                     'autoload'        => true,
                     'show_if_checked' => 'option',

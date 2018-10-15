@@ -1099,11 +1099,11 @@ class TWITCHPRESS_Twitch_API {
         $call_object = new TwitchPress_Curl();
         $call_object->originating_function = __FUNCTION__;
         $call_object->originating_line = __LINE__;
+        $call_object->type = 'POST';
+        $call_object->endpoint = 'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id();
                 
         // Set none API related parameters i.e. cache and rate controls...
         $call_object->call_params( 
-            'post', 
-            'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id(), 
             false, 
             0, 
             false, 
@@ -1122,7 +1122,7 @@ class TWITCHPRESS_Twitch_API {
         ) );
 
         // Start + make the request in one line... 
-        $call_object->call_setup( 'twitch' );
+        $call_object->do_call( 'twitch' );
         
         // This method returns $call_twitch->curl_response_body;
         return $call_object;

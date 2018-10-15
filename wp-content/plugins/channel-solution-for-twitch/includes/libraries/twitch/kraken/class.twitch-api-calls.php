@@ -22,8 +22,8 @@ if (!extension_loaded('json')) trigger_error('PECL JSON or pear JSON is not inst
 if( !class_exists( 'TWITCHPRESS_Twitch_API_Calls' ) ) :
 
 class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
-        
-        public function get_main_streamlabs_user() {
+    
+    public function get_main_streamlabs_user() {
                   
         // Endpoint
         $url = 'https://streamlabs.com/api/v1.0/user?access_token=' . $this->get_main_access_token();

@@ -19,11 +19,22 @@ if (!extension_loaded('json')) trigger_error('PECL JSON or pear JSON is not inst
 if( !class_exists( 'TwitchPress_Twitch_API' ) ) :
 
 class TwitchPress_Twitch_API {
-   
+    
+    public $call_result = null; 
+    
     // Debugging variables.
     public $twitch_call_name = 'Unknown';
-
     public $twitch_sandbox_mode = false;
+    
+    // Public notice assistance (built outside of this class)...
+    public $public_notice_title = null;
+    public $public_notice_actions = array();
+    
+    // Administrator notice creation (built within this class)...
+    public $admin_notice_title = null;      // Usually a string of text
+    public $admin_notice_body = null;       // Usually just a string of text
+    public $admin_notice_actions = array(); // Multiple actions may be offered 
+    public $admin_user_request = false;     // true triggers output for the current admin user
     
     /**
     * Twitch API Version 6 Scopes
@@ -62,7 +73,8 @@ class TwitchPress_Twitch_API {
     );
   
     /**
-    * Array of streams for testing and generating sample content. 
+    * Array of endorsed channels, only partnered or official channels will be 
+    * added here to reduce the risk of unwanted/nsfw sample content. 
     * 
     * @var mixed
     * 
@@ -139,11 +151,11 @@ class TwitchPress_Twitch_API {
         $call_object = new TwitchPress_Curl();
         $call_object->originating_function = __FUNCTION__;
         $call_object->originating_line = __LINE__;
+        $call_object->type = 'POST';
+        $call_object->endpoint = 'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id();
                 
         // Set none API related parameters i.e. cache and rate controls...
         $call_object->call_params( 
-            'post', 
-            'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id(), 
             false, 
             0, 
             false, 
@@ -162,7 +174,7 @@ class TwitchPress_Twitch_API {
         ) );
 
         // Start + make the request in one line... 
-        $call_object->call_setup( 'twitch' );
+        $call_object->do_call( 'twitch' );
         
         // This method returns $call_twitch->curl_response_body;
         return $call_object;
@@ -536,8 +548,7 @@ class TwitchPress_Twitch_API {
         if( is_wp_error( $confirm_scope) || $confirm_scope == false ) { return $confirm_scope; }
          
         $url = 'https://api.twitch.tv/kraken/user';
-        GET
-        
+
         return $userObject;
     }
     
@@ -576,8 +587,6 @@ class TwitchPress_Twitch_API {
         }
 
         $url = 'https://api.twitch.tv/kraken/channel';
-        GET
-        
         return $object;
     }  
 
@@ -604,8 +613,7 @@ class TwitchPress_Twitch_API {
         }
                 
         $url = 'https://api.twitch.tv/kraken/users/' . $chan . '/blocks/' . $username;
-        PUT
-        
+
         // What did we get returned status wise?
         if ($result = 200){                                                                    
             $success = true;
@@ -640,8 +648,7 @@ class TwitchPress_Twitch_API {
         }
         
         $url = 'https://api.twitch.tv/kraken/users/' . $chan . '/blocks/' . $username;
-        DELETE
-        
+
         if ($success == '204'){
             // Successfully removed ' . $username . ' from ' . $chan . '\'s list of blocked users',
         } else if ($success == '422') {
@@ -1075,19 +1082,34 @@ class TwitchPress_Twitch_API {
     #                              NEW API (HELIX)                             #
     #                                                                          #
     ############################################################################    
+    public function get( $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' ) {
+        $this->call( 'GET', $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' );    
+    } 
     
-    public function call( $type, $url, $file, $function, $line ) {
+    public function post( $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto'  ) {
+        $this->call( 'POST', $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' );        
+    }
+    
+    public function put( $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' ) {
+        $this->call( 'PUT', $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' );        
+    }
+    
+    public function delete( $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' ) {
+        $this->call( 'DELETE', $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' );        
+    }
+        
+    function call( $type, $endpoint, $file, $function, $line, $caller_type = 'auto' ) {
         
         // Create our own special Curl object which uses WP_Http_Curl()
-        $call_object = new TwitchPress_Curl();
-        $call_object->originating_file = $function;
-        $call_object->originating_function = $function;
-        $call_object->originating_line = $line;
+        $this->call_object = new TwitchPress_Curl();
+        $this->call_object->originating_file = $function;
+        $this->call_object->originating_function = $function;
+        $this->call_object->originating_line = $line;
+        $this->call_object->type = $type;
+        $this->call_object->endpoint = $endpoint;
                 
-        // Set none API related parameters i.e. cache and rate controls...
-        $call_object->call_params( 
-            $type, 
-            $url, 
+        // Add none API related parameters to the object...
+        $this->call_object->call_params(  
             false, 
             0, 
             false, 
@@ -1096,46 +1118,32 @@ class TwitchPress_Twitch_API {
             false 
         );
 
-        
-        
-        // Add the access_token as an OAuth header...
-        $call_object->headers = array(
+        // Add common/default headers...
+        $this->call_object->headers = array(
             'Authorization' => 'Bearer ' . $this->app_token,
-            'Accept'        => 'application/vnd.twitchtv.v5+json'
         );
 
-        
-        
-        
         // Start + make the request to Twitch.tv API in one line... 
-        $call_object->call_setup( 'twitch' );
+        $this->call_object->do_call( 'twitch' );
 
-        
-        
-        
-        // Was the access_token value in $curl_reply_body set? 
-        if( isset( $call_object->response_code ) && $call_object->response_code == '200' ) {
-            return true;
+        if( isset( $this->call_object->response_code ) && $this->call_object->response_code == '200' ) {
+            // This will tell us that we should expect our wanted data to exist in $call_object
+            // and we can use $this->call_result to assume that any database insert/update has happened also
+            $this->call_result = true;
         }
-               
-               
-               
-               
-                
-        if( !isset( $call_object->response_code ) ) {
-            $this->bugnet->log( __FUNCTION__, __( 'No response code has been returned when validating an access_token', 'twitchpress' ), array(), true, false );            
+        else 
+        {    
+            $this->call_result = false; 
+             
+            if( !isset( $call_object->response_code ) ) {
+                $this->bugnet->log( __FUNCTION__, __( 'Response code not returned!', 'twitchpress' ), array(), true, false );            
+            }
+       
+            if( $call_object->response_code !== '200' ) {   
+                $this->bugnet->log( __FUNCTION__, sprintf( __( 'Response code [%s]', 'twitchpress' ), $call_object->response_code ), array(), true, false );            
+            }
         }
-               
-               
-               
-               
-        if( $call_object->response_code !== '200' ) {   
-            $this->bugnet->log( __FUNCTION__, __( 'An access_token has expired because validation did not return code: 200', 'twitchpress' ), array(), true, false );            
-        }
-
-        
-        
-    }    
+    }  
     
     /**
     * Get Extension Analytics 
@@ -1161,11 +1169,12 @@ class TwitchPress_Twitch_API {
         
         $scope = 'analytics:read:extensions';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/analytics/extensions';         
         
-        $url = 'https://api.twitch.tv/helix/analytics/extensions';         
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );
         
-        $this->call( $type, $url );
+        // We should now have $this->call_object with a response from the Twitch API...
+        
     }
 
     private function sandbox_get_extension_analytics( $test ) {
@@ -1194,15 +1203,15 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_game_analytics( string $after = null, string $ended_at = null, integer $first = null, string $game_id = null, string $started_at = null, string $type = null ) {
+    public function get_game_analytics( string $after = null, string $ended_at = null, integer $first = null, string $game_id = null, string $started_at = null, string $type = null ) {
 
         $call_authentication = 'scope';
         
         $scope = 'analytics:read:games';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/analytics/games';    
         
-        $url = 'https://api.twitch.tv/helix/analytics/games';        
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );    
     }
     
     /**
@@ -1221,15 +1230,15 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_bits_leaderboard( integer $count = null, string $period = null, string $started_at = null, string $user_id = null ) {
+    public function get_bits_leaderboard( integer $count = null, string $period = null, string $started_at = null, string $user_id = null ) {
 
         $call_authentication = 'scope';
         
         $scope = 'bits:read';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/bits/leaderboard';
         
-        $url = 'https://api.twitch.tv/helix/bits/leaderboard';
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );
     }
     
     /**
@@ -1254,15 +1263,15 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function create_clip( string $broadcaster_id, boolean $has_delay = null ) {
+    public function create_clip( string $broadcaster_id, boolean $has_delay = null ) {
 
         $call_authentication = 'scope';
 
         $scope = 'clips:edit';
+ 
+        $endpoint = 'https://api.twitch.tv/helix/clips';   
         
-        $type = 'POST';
-        
-        $url = 'https://api.twitch.tv/helix/clips';           
+        $this->post( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );        
     }
     
     /**
@@ -1286,13 +1295,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_clips( string $broadcaster_id, string $game_id, string $id, string $after = null, string $before = null, string $ended_at = null, integer $first = null, string $started_at = null ) {
+    public function get_clips( string $broadcaster_id, string $game_id, string $id, string $after = null, string $before = null, string $ended_at = null, integer $first = null, string $started_at = null ) {
 
         $call_authentication = 'none';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/clips'; 
         
-        $url = 'https://api.twitch.tv/helix/clips';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );          
     }
         
     /**
@@ -1313,13 +1322,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function create_entitlement_grants_upload_url( string $manifest_id, string $type ) {
+    public function create_entitlement_grants_upload_url( string $manifest_id, string $type ) {
 
         $call_authentication = 'app_access_token';
 
-        $type = 'POST';
+        $endpoint = 'https://api.twitch.tv/helix/entitlements/upload';  
         
-        $url = 'https://api.twitch.tv/helix/entitlements/upload';           
+        $this->post( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );         
     }
          
     /**
@@ -1336,13 +1345,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_games( string $id, string $name, object $box_art_url = null, string $id = null, string $name = null ) {
+    public function get_games( string $id, string $name ) {
 
         $call_authentication = 'none';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/games';  
         
-        $url = 'https://api.twitch.tv/helix/games';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );         
     }
          
     /**
@@ -1362,13 +1371,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_top_games( string $after = null, string $before = null, string $first = integer ) {
+    public function get_top_games( string $after = null, string $before = null, string $first = integer ) {
 
         $call_authentication = 'none';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/games/top';    
         
-        $url = 'https://api.twitch.tv/helix/games/top';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );       
     }
          
     /**
@@ -1396,13 +1405,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_streams( string $after = null, string $before = null, string $community_id = null, integer $first = null, string $game_id = null, string $language = null, string $user_id = null, string $user_login = null ) {
+    public function get_streams( string $after = null, string $before = null, string $community_id = null, integer $first = null, string $game_id = null, string $language = null, string $user_id = null, string $user_login = null ) {
    
         $call_authentication = 'none';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/streams';     
         
-        $url = 'https://api.twitch.tv/helix/streams';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );     
     }
          
     /**
@@ -1433,13 +1442,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_streams_metadata( string $after = null, string $before = null, string $community_id = null, integer $first = null, string $game_id = null, string $language = null, string $user_id = null, string $user_login = null ) {
+    public function get_streams_metadata( string $after = null, string $before = null, string $community_id = null, integer $first = null, string $game_id = null, string $language = null, string $user_id = null, string $user_login = null ) {
 
         $call_authentication = 'none';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/streams/metadata';    
         
-        $url = 'https://api.twitch.tv/helix/streams/metadata';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );       
     }
          
     /**
@@ -1465,15 +1474,15 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function create_stream_markers( string $user_id, string $description = null ) {
+    public function create_stream_markers( string $user_id, string $description = null ) {
 
         $call_authentication = 'scope';
         
         $scope = 'user:edit:broadcast';
 
-        $type = 'POST';
+        $endpoint = 'https://api.twitch.tv/helix/streams/markers';
         
-        $url = 'https://api.twitch.tv/helix/streams/markers';           
+        $this->post( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );           
     }
          
     /**
@@ -1499,15 +1508,15 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_streams_markers( string $user_id, string $video_id, string $after = null, string $before = null, string $first = null ) {
+    public function get_streams_markers( string $user_id, string $video_id, string $after = null, string $before = null, string $first = null ) {
 
         $call_authentication = 'scope';
 
         $scope = 'user:read:broadcast';
         
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/streams/markers';    
         
-        $url = 'https://api.twitch.tv/helix/streams/markers';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );       
     }
          
     /**
@@ -1529,16 +1538,18 @@ class TwitchPress_Twitch_API {
     * 
     * @version 6.0
     */
-    function get_users( string $id = null, string $login = null ) {
-                     exists in kraken 
-                  
+    public function get_users( string $id = null, string $login = null ) {
+
         $call_authentication = 'scope';
         
         $scope = 'user:read:email';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/users';
         
-        $url = 'https://api.twitch.tv/helix/users';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' ); 
+        
+        // We should now have $this->call_object with a response from the Twitch API...
+        twitchpress_var_dump( $this->call_object );          
     }
          
     /**
@@ -1562,13 +1573,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_users_follows_from_id( string $after = null, integer $first = null, string $from_id = null, string $to_id = null ) {
+    public function get_users_follows_from_id( string $after = null, integer $first = null, string $from_id = null, string $to_id = null ) {
     
         $call_authentication = 'none';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/users/follows?from_id=<user ID>';  
         
-        $url = 'https://api.twitch.tv/helix/users/follows?from_id=<user ID>';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );         
     }
     
     /**
@@ -1592,13 +1603,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_users_follows_to_id( string $after = null, integer $first = null, string $from_id = null, string $to_id = null ) {
+    public function get_users_follows_to_id( string $after = null, integer $first = null, string $from_id = null, string $to_id = null ) {
     
         $call_authentication = 'none';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/users/follows?to_id=<user ID>';  
         
-        $url = 'https://api.twitch.tv/helix/users/follows?to_id=<user ID>';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );        
     }
              
     /**
@@ -1616,9 +1627,9 @@ class TwitchPress_Twitch_API {
 
         $scope = 'user:edit';
         
-        $type = 'PUT';
+        $endpoint = 'https://api.twitch.tv/helix/users?description=<description>';     
         
-        $url = 'https://api.twitch.tv/helix/users?description=<description>';           
+        $this->put( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );      
     }
          
     /**
@@ -1640,9 +1651,9 @@ class TwitchPress_Twitch_API {
         
         $scope = 'user:read:broadcast';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/users/extensions/list';       
         
-        $url = 'https://api.twitch.tv/helix/users/extensions/list';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );    
     }
          
     /**
@@ -1663,9 +1674,9 @@ class TwitchPress_Twitch_API {
 
         $scope = array( 'user:read:broadcast', 'user:edit:broadcast' ); 
         
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/users/extensions';      
         
-        $url = 'https://api.twitch.tv/helix/users/extensions';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );     
     }
          
     /**
@@ -1686,9 +1697,9 @@ class TwitchPress_Twitch_API {
         
         $scope = 'user:edit:broadcast';
 
-        $type = 'PUT';
+        $endpoint = 'https://api.twitch.tv/helix/users/extensions';     
         
-        $url = 'https://api.twitch.tv/helix/users/extensions';           
+        $this->put( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );      
     }
          
     /**
@@ -1716,13 +1727,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_videos( string $id, string $user_id, string $game_id, string $after = null, string $before = null, string $first = null, string $language = null, string $period = null, string $sort = null, string $type = null ) {
+    public function get_videos( string $id, string $user_id, string $game_id, string $after = null, string $before = null, string $first = null, string $language = null, string $period = null, string $sort = null, string $type = null ) {
   
         $call_authentication = 'none';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/videos';          
         
-        $url = 'https://api.twitch.tv/helix/videos';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' ); 
     }
          
     /**
@@ -1746,13 +1757,13 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_webhook_subscriptions( string $after, string $first, string $callback = null, string $expires_at = null, string $pagination = null, string $topic = null, int $total = null ) {
+    public function get_webhook_subscriptions( string $after, string $first, string $callback = null, string $expires_at = null, string $pagination = null, string $topic = null, int $total = null ) {
 
         $call_authentication = 'app_access_token';
 
-        $type = 'GET';
+        $endpoint = 'https://api.twitch.tv/helix/webhooks/subscriptions';       
         
-        $url = 'https://api.twitch.tv/helix/webhooks/subscriptions';           
+        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );    
     }        
 }
 

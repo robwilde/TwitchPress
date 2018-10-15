@@ -79,11 +79,11 @@ class TwitchPress_Set_App {
         $call_object = new TwitchPress_Curl();
         $call_object->originating_function = __FUNCTION__;
         $call_object->originating_line = __LINE__;
-                
+        $call_object->type = 'POST';
+        $call_object->endpoint = 'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id();
+
         // Set none API related parameters i.e. cache and rate controls...
-        $call_object->call_params( 
-            'POST', 
-            'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id(), 
+        $call_object->call_params(  
             false, 
             0, 
             false, 
@@ -101,7 +101,7 @@ class TwitchPress_Set_App {
         ) );
 
         // Start + make the request to Twitch.tv API in one line... 
-        $call_object->call_setup( 'twitch' );
+        $call_object->do_call( 'twitch' );
         
         // Was the access_token value in $curl_reply_body set? 
         if( !isset( $call_object->curl_reply_body->access_token ) ) {
@@ -133,11 +133,11 @@ class TwitchPress_Set_App {
         $call_object = new TwitchPress_Curl();
         $call_object->originating_function = __FUNCTION__;
         $call_object->originating_line = __LINE__;
+        $call_object->type = 'GET';
+        $call_object->endpoint = 'https://id.twitch.tv/oauth2/validate';
                 
         // Set none API related parameters i.e. cache and rate controls...
         $call_object->call_params( 
-            'get', 
-            'https://id.twitch.tv/oauth2/validate', 
             false, 
             0, 
             false, 
@@ -153,7 +153,7 @@ class TwitchPress_Set_App {
         );
 
         // Start + make the request to Twitch.tv API in one line... 
-        $call_object->call_setup( 'twitch' );
+        $call_object->do_call( 'twitch' );
 
         // Was the access_token value in $curl_reply_body set? 
         if( isset( $call_object->response_code ) && $call_object->response_code == '200' ) {
@@ -185,11 +185,11 @@ class TwitchPress_Set_App {
         $call_object = new TwitchPress_Curl();
         $call_object->originating_function = __FUNCTION__;
         $call_object->originating_line = __LINE__;
-  
+        $call_object->type = 'POST';
+        $call_object->endpoint = 'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id();
+        
         // Set none API related parameters i.e. cache and rate controls...
         $call_object->call_params( 
-            'POST', 
-            'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id(), 
             false, 
             0, 
             false, 
@@ -207,7 +207,7 @@ class TwitchPress_Set_App {
         ) );
 
         // Start + make the request to Twitch.tv API in one line... 
-        $call_object->call_setup( 'twitch' );
+        $call_object->do_call( 'twitch' );
         
         // Was the access_token value in $curl_reply_body set? 
         if( !isset( $call_object->curl_reply_body->access_token ) ) {

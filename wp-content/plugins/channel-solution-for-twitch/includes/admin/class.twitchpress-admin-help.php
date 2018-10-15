@@ -660,10 +660,19 @@ class TwitchPress_Admin_Help {
     }
     
     public function testing() {
-        $app_obj = new TwitchPress_Set_App();
         
-        $app_obj->new_token();
+        $twitch_object = new TwitchPress_Twitch_API();
         
+        if( method_exists ( $twitch_object , 'get_users' ) )
+        {
+            $call_object = $twitch_object->get_users( null, 'zypherevolved' );
+            
+            twitchpress_var_dump( $twitch_object );
+        }
+        else
+        {
+            twitchpress_var_dump( 'get_users() method not defined' );
+        }
            
     }
 }

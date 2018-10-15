@@ -180,37 +180,13 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * but later we might have options that over-ride in-line defaults. 
     * 
     * @uses WP_Http_Curl() 
-    * @uses curl_version() 
-    * 
-    * @param string $type get|post|put|delete
-    * @param string $endpoint from functions.twitch-api-endpoints.php
-    * @param string $calling_function __FUNCTION__
-    * @param mixed $can_cache
-    * @param mixed $cache_time
-    * @param boolean $can_queue true allows rate limiting measures
+    * @uses curl_version()
     * 
     * @since 2.5.0
-    * @version 2.0
+    * @version 3.0
     */    
-    public function call_params( $type = null, $endpoint = null, $can_cache = null, $cache_time = null, $can_queue = null, $giving_user = null, $user_specific = null, $retry = null, $originating_function = null, $originating_line = null ) {
-        if( $type )
-        {
-            $this->type = $type; 
-        }
-        else
-        {
-            // Apply the admin setting to override the classes default...
-        }
-        
-        if( $endpoint )
-        {
-            $this->endpoint = $endpoint;
-        }
-        else
-        {
-            // Apply the admin setting to override the classes default...
-        }
-                
+    public function call_params( $can_cache = null, $cache_time = null, $can_queue = null, $giving_user = null, $user_specific = null, $retry = null, $originating_function = null, $originating_line = null ) {
+      
         if( $can_cache ) 
         {
             $this->can_cache = $can_cache;
@@ -273,7 +249,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * @since 2.5.0
     * @version 1.0
     */    
-    public function call_setup( $api_name, $optional_args = array() ) {
+    public function do_call( $api_name, $optional_args = array() ) {
         // Set $this values
         $this->api_name = $api_name;
         
