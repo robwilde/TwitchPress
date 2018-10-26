@@ -215,13 +215,19 @@ final class WordPressTwitchPress {
         require_once( 'includes/libraries/allapi/loader.php' );
         require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/functions.twitch-api-statuses.php' );
         require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api.php' );
-        require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api-calls.php' );        
+        
+        // Helix does not have separate classes...
+        if( TWITCHPRESS_API_NAME == 'kraken' ) {
+            require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api-calls.php' );        
+        }
+        
         require_once( 'includes/toolbars/class.twitchpress-toolbars.php' );        
         require_once( 'includes/class.twitchpress-curl.php' );
         require_once( 'includes/class.twitchpress-listener.php' );
         require_once( 'includes/class.twitchpress-sync.php' );
         require_once( 'includes/class.twitchpress-history.php' );
         include_once( plugin_basename( 'shortcodes.php' ) );
+        include_once( plugin_basename( 'post.php' ) );
         require_once( 'includes/class.twitchpress-listener-main-account-oauth.php' );
         
         // Load Core Objects

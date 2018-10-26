@@ -60,8 +60,19 @@ function twitchpress_sync_feed_to_wp( $channel_id = false ) {
     include_once( TWITCHPRESS_PLUGIN_DIR_PATH . 'includes/libraries/kraken5/class.kraken-calls.php' );
       
     // Make call to Twitch for the latest feed post. 
-    $kraken = new TWITCHPRESS_Twitch_API_Calls();
-    $feed_posts = $kraken->getFeedPosts( $channel_id, 5 );
+    if( TWITCHPRESS_API_NAME == 'kraken' )
+    {
+        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        $feed_posts = $kraken->getFeedPosts( $channel_id, 5 );
+    }
+    else
+    {
+        # untested
+        $helix = new TwitchPress_Twitch_API();
+        $feed_posts = $helix->getFeedPosts( $channel_id, 5 );
+    }
+    
+    
     unset( $kraken );
     if( !$feed_posts) { return; }
 

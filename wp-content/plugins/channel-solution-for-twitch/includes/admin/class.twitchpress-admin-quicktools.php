@@ -416,7 +416,14 @@ class TwitchPress_Tools {
         global $bugnet;
         
         // Create Class Objects
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        }
+        else
+        {   # untested
+            $helix = new TWITCHPRESS_Twitch_API();
+        }
 
         // Build the output for the entire procedure. 
         $output = __( 'Debugging Subscription Update Procedure', 'twitchpress' );
@@ -577,7 +584,14 @@ class TwitchPress_Tools {
         global $bugnet;
         
         // Create Class Objects
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        }
+        else
+        {   # untested
+            $helix = new TWITCHPRESS_Twitch_API();
+        }
 
         // Build the output for the entire procedure. 
         $output = __( 'Debugging Subscription Update Procedure', 'twitchpress' );

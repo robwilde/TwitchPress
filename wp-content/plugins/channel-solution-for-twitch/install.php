@@ -38,7 +38,8 @@ function twitchpress_activation_installation() {
     
     twitchpress_create_roles();
     twitchpress_create_files();
-    twitchpress_create_options();    
+    twitchpress_create_options();
+    twitchpress_add_capabilities_keyholder();    
                    
     // Queue upgrades/setup wizard
     $current_installed_version = get_option( 'twitchpress_version', null );
@@ -210,6 +211,7 @@ function twitchpress_get_developer_capabilities() {
     $capabilities = array();
 
     $capabilities['core'] = array(
+        'twitchpress_developer',
         'code_twitchpress',
         'twitchpressdevelopertoolbar'
     );
@@ -220,7 +222,7 @@ function twitchpress_get_developer_capabilities() {
 /**
  * Create roles and capabilities.
  * 
- * @version 1.0
+ * @version 2.0
  */
 function twitchpress_create_roles() {
     global $wp_roles;
@@ -281,21 +283,10 @@ function twitchpress_create_roles() {
     $new_admin_capabilities = twitchpress_get_developer_capabilities();
     foreach ( $new_admin_capabilities as $cap_group ) {
         foreach ( $cap_group as $cap ) {
-            $wp_roles->add_cap( 'twitchpressdeveloper', $cap );
-            // Ensure the first administration account has all capabilities.
-            if( get_current_user_id() == 1 ) {
-                $wp_roles->add_cap( 'administrator', $cap );    
-            }                 
+            $wp_roles->add_cap( 'twitchpressdeveloper', $cap );                
         }
     }        
     
-    // Add the plugins custom capabilities to administrators. 
-    $new_admin_capabilities = twitchpress_get_core_capabilities();
-    foreach ( $new_admin_capabilities as $cap_group ) {
-        foreach ( $cap_group as $cap ) {
-            $wp_roles->add_cap( 'administrator', $cap );                 
-        }
-    }
 }
 
 /**
@@ -369,4 +360,21 @@ function twitchpress_create_options() {
             }
         }
     }
+}
+
+/**
+* Use to add default capabilities to the key holder.
+* 
+* @version 1.0
+*/
+function twitchpress_add_capabilities_keyholder() {
+    
+    // Give the site owner permission to do everything a TwitchPress Developer would...
+    $user = new WP_User( 1 );
+
+    foreach ( twitchpress_get_developer_capabilities() as $cap_group ) {
+        foreach ( $cap_group as $cap ) {
+            $user->add_cap( $cap );                 
+        }
+    }        
 }

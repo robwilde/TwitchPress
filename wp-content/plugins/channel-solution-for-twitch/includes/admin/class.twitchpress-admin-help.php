@@ -199,16 +199,28 @@ class TwitchPress_Admin_Help {
         
         $output = '';
         
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
-
-        // Test Top Game 
-        $channel = $kraken->get_top_games( __FUNCTION__ );
-        
-        // Get main channel as a Twitch user.         
-        $twitch_user = $kraken->get_users( twitchpress_get_main_channels_name() );
-                
-        // Test Get Application Token
-        $token_result = twitchpress_get_app_token();
+        if( TWITCHPRESS_API_NAME == 'kraken' ) 
+        {
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+            
+            // Test Top Game 
+            $channel = $kraken->get_top_games( __FUNCTION__ );
+            
+            // Get main channel as a Twitch user.         
+            //$twitch_user = $kraken->get_users( twitchpress_get_main_channels_name() );
+                    
+            // Test Get Application Token
+            $token_result = twitchpress_get_app_token();
+        }
+        else 
+        {   # untested
+            $helix = new TwitchPress_Twitch_API(); 
+            
+            $channel = $helix->get_top_games();
+  
+            // Test Get Application Token
+            $token_result = twitchpress_get_app_token();  
+        }
 
         if( !isset( $channel['top'][0]['game']['name'] ) ) {
             $output .= __( '<h2>No Application Code</h2>', 'twitchpress' );
@@ -399,115 +411,231 @@ class TwitchPress_Admin_Help {
         $current_user_wp_id = get_current_user_id();
         $output = '';
         
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
-
-        // Test Get Users Token
-        $output .= '<h2>' . __( 'Test: Get Your Token', 'twitchpress' ) . '</h2>';
-        $token_result = $kraken->establish_user_token( __FUNCTION__, $current_user_wp_id );
-
-        if( $token_result ){$output .= __( 'Result: You have a token!' ); }
-        else{ $output .= __( 'Result: You do not have a token!' ); $overall_result = false; }
-
-        // Test Validate Users Token
-        $output .= '<h2>' . __( 'Test: Validating Your Token', 'twitchpress' ) . '</h2>';
-        $token_result = $kraken->check_user_token( $current_user_wp_id );
-        
-        if( isset( $token_result['token'] ) && isset( $token_result['scopes'] ) && isset( $token_result['name'] ) ) {
-            $output .= __( 'Result: Your token is valid. ' );    
-        }else{$output .= __( 'Result: Your token does not appear to be valid. ' ); $overall_result = false; }
- 
-        // Test Get Users Channel
-        $output .=  '<h2>Test: Get Your Channel</h2>';
-        $current_user_token = twitchpress_get_user_token( $current_user_wp_id );
-        $channel = $kraken->get_tokens_channel( $current_user_token );
-        
-        if( !isset( $channel['display_name'] ) || !$channel['display_name'] ) 
+        if( TWITCHPRESS_API_NAME == 'helix' ) 
         {
-            $output .= __( 'Could not get your channel because: ', 'twitchpress' );
-            $overall_result = false;    
-        }
-        elseif( is_numeric( $channel['status'] ) )
-        {
-            $output .= '<h3>' . __( 'Result: Error ', 'twitchpress' ) . $channel['status'] . '</h3>'; 
-            $output .= twitchpress_kraken_httpstatuses( $channel['status'], 'wiki' ); 
-            $overall_result = false;   
-        } 
-        else 
-        {          
-            if( isset( $channel['display_name'] ) ) { $channel_display_name = $channel['display_name']; }
-            if( isset( $channel['status'] ) ) { $channel_status = $channel['status']; }
-            if( isset( $channel['game'] ) ) { $channel_game = $channel['game']; }
-            
-            $output .= '<ul>';
-            $output .= '<li><strong>Channel ID: </strong>' . $channel['_id'] . '</li>';
-            $output .= '<li><strong>Display Name: </strong>' . $channel_display_name . '</li>';
-            $output .= '<li><strong>Status: </strong>' . $channel_status . '</li>';
-            $output .= '<li><strong>Game: </strong>' . $channel_game . '</li>';
-            $output .= '</ul>';
-        }
-  
-        // Check if user is subscribed to the main channel.
-        if( isset( $channel['_id'] ) ) 
-        {
-            $output .= '<h2>' . __( 'Test: Subscription Check Method One', 'twitchpress' ) . '</h2>';    
-            $users_subscription = $kraken->get_users_subscription_apicall( $channel['_id'], twitchpress_get_main_channels_twitchid(), $current_user_token ); 
-            if( !$users_subscription )
-            {
-                $output .= __( 'Not subscribed to the main channel.', 'twitchpress' );
-            }
-            else
-            {
-                $output .= __( 'Subscribed to the main channel', 'twitchpress' );
-            }
-        }
-        
-        // Subscription check two. 
-        if( isset( $channel['_id'] ) ) 
-        {        
-            $output .= '<h2>' . __( 'Test: Subscription Check Method Two', 'twitchpress' ) . '</h2>';
-            $users_sub_2 = $kraken->is_user_subscribed_to_main_channel( $current_user_wp_id );
-            if( !$users_sub_2 )
-            {
-                $output .= __( 'Not subscribed to the main channel.', 'twitchpress' );
-            }
-            else
-            {
-                // Get the full subscription object.
-                $sub_object = $kraken->getUserSubscription( $channel['_id'], twitchpress_get_main_channels_twitchid(), $current_user_token );
+            $helix = new TwitchPress_Twitch_API();
 
-                $output .= '<ul>';
+            // Test Get Users Token
+            $output .= '<h2>' . __( 'Test: Get Your Token', 'twitchpress' ) . '</h2>';
+            $token_result = $helix->establish_user_token( __FUNCTION__, $current_user_wp_id );
 
-                    $output .= '<li>Sub Plan: ' . $sub_object['sub_plan'] . '</li>';
-                    $output .= '<li>Plan Name: ' . $sub_object['sub_plan_name'] . '</li>';
-                    $output .= '<li>Channel ID: ' . $sub_object['channel']['_id'] . '</li>';
-                            
-                    if( $sub_object['channel']['partner'] )
-                    {
-                        $output .= '<li>Partner Status: ' . __( 'Partnered', 'twitchpress' ) . '<li>';
-                    }
-                    else
-                    {
-                        $output .= '<li>Partner Status: ' . __( 'Not Partnered', 'twitchpress' ) . '<li>';    
-                    }
+            if( $token_result ){$output .= __( 'Result: You have a token!' ); }
+            else{ $output .= __( 'Result: You do not have a token!' ); $overall_result = false; }
+
+            // Test Validate Users Token
+            $output .= '<h2>' . __( 'Test: Validating Your Token', 'twitchpress' ) . '</h2>';
+            $token_result = $helix->check_user_token( $current_user_wp_id );
+
+            if( isset( $token_result['token'] ) && isset( $token_result['scopes'] ) && isset( $token_result['name'] ) ) {
+                $output .= __( 'Result: Your token is valid. ' );    
+            }else{$output .= __( 'Result: Your token does not appear to be valid. ' ); $overall_result = false; }
+
+            // Test Get Users Channel
+            $output .=  '<h2>Test: Get Your Channel</h2>';
+            $current_user_token = twitchpress_get_user_token( $current_user_wp_id );
+            $channel = $helix->get_tokens_channel( $current_user_token );
+
+            if( !isset( $channel['display_name'] ) || !$channel['display_name'] ) 
+            {
+                $output .= __( 'Could not get your channel because: ', 'twitchpress' );
+                $overall_result = false;    
+            }
+            elseif( is_numeric( $channel['status'] ) )
+            {
+                $output .= '<h3>' . __( 'Result: Error ', 'twitchpress' ) . $channel['status'] . '</h3>'; 
+                $output .= twitchpress_kraken_httpstatuses( $channel['status'], 'wiki' ); 
+                $overall_result = false;   
+            } 
+            else 
+            {          
+                if( isset( $channel['display_name'] ) ) { $channel_display_name = $channel['display_name']; }
+                if( isset( $channel['status'] ) ) { $channel_status = $channel['status']; }
+                if( isset( $channel['game'] ) ) { $channel_game = $channel['game']; }
                 
+                $output .= '<ul>';
+                $output .= '<li><strong>Channel ID: </strong>' . $channel['_id'] . '</li>';
+                $output .= '<li><strong>Display Name: </strong>' . $channel_display_name . '</li>';
+                $output .= '<li><strong>Status: </strong>' . $channel_status . '</li>';
+                $output .= '<li><strong>Game: </strong>' . $channel_game . '</li>';
                 $output .= '</ul>';
-            }  
-        }      
- 
-        // Get Tokens Scopes
-        $output .= '<h2>' . __( 'Your Tokens Current Scopes', 'twitchpress' ) . '</h2>'; 
-        if( !$scope = twitchpress_get_users_token_scopes( $current_user_wp_id ) ) 
-        {
-            $output .= '<h3>' . __( 'No Scopes Found', 'twitchpress' ) . '</h3>';
-        } 
-        else 
-        {   
-            $output .= '<ol>';
-            foreach( $scope as $key => $item ) 
+            }
+
+            // Check if user is subscribed to the main channel.
+            if( isset( $channel['_id'] ) ) 
             {
-                $output .= '<li>' . esc_html( $item ) . '</li>';
-            }    
-            $output .= '</ol>';
+                $output .= '<h2>' . __( 'Test: Subscription Check Method One', 'twitchpress' ) . '</h2>';    
+                $users_subscription = $helix->get_users_subscription_apicall( $channel['_id'], twitchpress_get_main_channels_twitchid(), $current_user_token ); 
+                if( !$users_subscription )
+                {
+                    $output .= __( 'Not subscribed to the main channel.', 'twitchpress' );
+                }
+                else
+                {
+                    $output .= __( 'Subscribed to the main channel', 'twitchpress' );
+                }
+            }
+
+            // Subscription check two. 
+            if( isset( $channel['_id'] ) ) 
+            {        
+                $output .= '<h2>' . __( 'Test: Subscription Check Method Two', 'twitchpress' ) . '</h2>';
+                $users_sub_2 = $helix->is_user_subscribed_to_main_channel( $current_user_wp_id );
+                if( !$users_sub_2 )
+                {
+                    $output .= __( 'Not subscribed to the main channel.', 'twitchpress' );
+                }
+                else
+                {
+                    // Get the full subscription object.
+                    $sub_object = $helix->getUserSubscription( $channel['_id'], twitchpress_get_main_channels_twitchid(), $current_user_token );
+
+                    $output .= '<ul>';
+
+                        $output .= '<li>Sub Plan: ' . $sub_object['sub_plan'] . '</li>';
+                        $output .= '<li>Plan Name: ' . $sub_object['sub_plan_name'] . '</li>';
+                        $output .= '<li>Channel ID: ' . $sub_object['channel']['_id'] . '</li>';
+                                
+                        if( $sub_object['channel']['partner'] )
+                        {
+                            $output .= '<li>Partner Status: ' . __( 'Partnered', 'twitchpress' ) . '<li>';
+                        }
+                        else
+                        {
+                            $output .= '<li>Partner Status: ' . __( 'Not Partnered', 'twitchpress' ) . '<li>';    
+                        }
+                    
+                    $output .= '</ul>';
+                }  
+            }      
+
+            // Get Tokens Scopes
+            $output .= '<h2>' . __( 'Your Tokens Current Scopes', 'twitchpress' ) . '</h2>'; 
+            if( !$scope = twitchpress_get_users_token_scopes( $current_user_wp_id ) ) 
+            {
+                $output .= '<h3>' . __( 'No Scopes Found', 'twitchpress' ) . '</h3>';
+            } 
+            else 
+            {   
+                $output .= '<ol>';
+                foreach( $scope as $key => $item ) 
+                {
+                    $output .= '<li>' . esc_html( $item ) . '</li>';
+                }    
+                $output .= '</ol>';
+            }                
+        }
+        elseif( TWITCHPRESS_API_NAME == 'kraken' )
+        {
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+
+            // Test Get Users Token
+            $output .= '<h2>' . __( 'Test: Get Your Token', 'twitchpress' ) . '</h2>';
+            $token_result = $kraken->establish_user_token( __FUNCTION__, $current_user_wp_id );
+
+            if( $token_result ){$output .= __( 'Result: You have a token!' ); }
+            else{ $output .= __( 'Result: You do not have a token!' ); $overall_result = false; }
+
+            // Test Validate Users Token
+            $output .= '<h2>' . __( 'Test: Validating Your Token', 'twitchpress' ) . '</h2>';
+            $token_result = $kraken->check_user_token( $current_user_wp_id );
+            
+            if( isset( $token_result['token'] ) && isset( $token_result['scopes'] ) && isset( $token_result['name'] ) ) {
+                $output .= __( 'Result: Your token is valid. ' );    
+            }else{$output .= __( 'Result: Your token does not appear to be valid. ' ); $overall_result = false; }
+     
+            // Test Get Users Channel
+            $output .=  '<h2>Test: Get Your Channel</h2>';
+            $current_user_token = twitchpress_get_user_token( $current_user_wp_id );
+            $channel = $kraken->get_tokens_channel( $current_user_token );
+            
+            if( !isset( $channel['display_name'] ) || !$channel['display_name'] ) 
+            {
+                $output .= __( 'Could not get your channel because: ', 'twitchpress' );
+                $overall_result = false;    
+            }
+            elseif( is_numeric( $channel['status'] ) )
+            {
+                $output .= '<h3>' . __( 'Result: Error ', 'twitchpress' ) . $channel['status'] . '</h3>'; 
+                $output .= twitchpress_kraken_httpstatuses( $channel['status'], 'wiki' ); 
+                $overall_result = false;   
+            } 
+            else 
+            {          
+                if( isset( $channel['display_name'] ) ) { $channel_display_name = $channel['display_name']; }
+                if( isset( $channel['status'] ) ) { $channel_status = $channel['status']; }
+                if( isset( $channel['game'] ) ) { $channel_game = $channel['game']; }
+                
+                $output .= '<ul>';
+                $output .= '<li><strong>Channel ID: </strong>' . $channel['_id'] . '</li>';
+                $output .= '<li><strong>Display Name: </strong>' . $channel_display_name . '</li>';
+                $output .= '<li><strong>Status: </strong>' . $channel_status . '</li>';
+                $output .= '<li><strong>Game: </strong>' . $channel_game . '</li>';
+                $output .= '</ul>';
+            }
+      
+            // Check if user is subscribed to the main channel.
+            if( isset( $channel['_id'] ) ) 
+            {
+                $output .= '<h2>' . __( 'Test: Subscription Check Method One', 'twitchpress' ) . '</h2>';    
+                $users_subscription = $kraken->get_users_subscription_apicall( $channel['_id'], twitchpress_get_main_channels_twitchid(), $current_user_token ); 
+                if( !$users_subscription )
+                {
+                    $output .= __( 'Not subscribed to the main channel.', 'twitchpress' );
+                }
+                else
+                {
+                    $output .= __( 'Subscribed to the main channel', 'twitchpress' );
+                }
+            }
+            
+            // Subscription check two. 
+            if( isset( $channel['_id'] ) ) 
+            {        
+                $output .= '<h2>' . __( 'Test: Subscription Check Method Two', 'twitchpress' ) . '</h2>';
+                $users_sub_2 = $kraken->is_user_subscribed_to_main_channel( $current_user_wp_id );
+                if( !$users_sub_2 )
+                {
+                    $output .= __( 'Not subscribed to the main channel.', 'twitchpress' );
+                }
+                else
+                {
+                    // Get the full subscription object.
+                    $sub_object = $kraken->getUserSubscription( $channel['_id'], twitchpress_get_main_channels_twitchid(), $current_user_token );
+
+                    $output .= '<ul>';
+
+                        $output .= '<li>Sub Plan: ' . $sub_object['sub_plan'] . '</li>';
+                        $output .= '<li>Plan Name: ' . $sub_object['sub_plan_name'] . '</li>';
+                        $output .= '<li>Channel ID: ' . $sub_object['channel']['_id'] . '</li>';
+                                
+                        if( $sub_object['channel']['partner'] )
+                        {
+                            $output .= '<li>Partner Status: ' . __( 'Partnered', 'twitchpress' ) . '<li>';
+                        }
+                        else
+                        {
+                            $output .= '<li>Partner Status: ' . __( 'Not Partnered', 'twitchpress' ) . '<li>';    
+                        }
+                    
+                    $output .= '</ul>';
+                }  
+            }      
+     
+            // Get Tokens Scopes
+            $output .= '<h2>' . __( 'Your Tokens Current Scopes', 'twitchpress' ) . '</h2>'; 
+            if( !$scope = twitchpress_get_users_token_scopes( $current_user_wp_id ) ) 
+            {
+                $output .= '<h3>' . __( 'No Scopes Found', 'twitchpress' ) . '</h3>';
+            } 
+            else 
+            {   
+                $output .= '<ol>';
+                foreach( $scope as $key => $item ) 
+                {
+                    $output .= '<li>' . esc_html( $item ) . '</li>';
+                }    
+                $output .= '</ol>';
+            }            
         }
         
         // Avoid making these requests for every admin page request. 
@@ -549,7 +677,14 @@ class TwitchPress_Admin_Help {
         $current_user_id = get_current_user_id();
         $output = '';
         
-        $twitch_api = new TWITCHPRESS_Twitch_API_Calls();
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {
+            $twitch_api = new TWITCHPRESS_Twitch_API_Calls();
+        }
+        else
+        {   # untested
+            $twitch_api = new TWITCHPRESS_Twitch_API();
+        }
 
         $output .= '<h2>' . __( 'Application Credentials', 'twitchpress' ) . '</h2>';
         $output .= '<p>Old App ID Method: ' . twitchpress_get_main_client_id() . '</p>';
@@ -619,7 +754,14 @@ class TwitchPress_Admin_Help {
         $current_user_id = get_current_user_id();
         $output = '';
         
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {
+            $kraken_or_helix = new TWITCHPRESS_Twitch_API_Calls();
+        }
+        else
+        {   # untested
+            $kraken_or_helix = new TWITCHPRESS_Twitch_API();
+        }
 
         $output .= '<h2>' . __( 'Main Channel Credentials', 'twitchpress' ) . '</h2>';
         $output .= '<p>Main Channel Name: ' .          twitchpress_get_main_channels_name() . '</p>';
@@ -634,7 +776,7 @@ class TwitchPress_Admin_Help {
         $output .= '<p>' . twitchpress_get_main_channels_name() . '</p>';
         
         // Get main channel as a Twitch user.         
-        $twitch_user = $kraken->get_users( twitchpress_get_main_channels_name() );
+        $twitch_user = $kraken_or_helix->get_users( twitchpress_get_main_channels_name() );
 
         // Main Channel ID
         $output .= '<h2>' . __( 'Main Channel ID', 'twitchpress' ) . '</h2>';
@@ -660,19 +802,7 @@ class TwitchPress_Admin_Help {
     }
     
     public function testing() {
-        
-        $twitch_object = new TwitchPress_Twitch_API();
-        
-        if( method_exists ( $twitch_object , 'get_users' ) )
-        {
-            $call_object = $twitch_object->get_users( null, 'zypherevolved' );
-            
-            twitchpress_var_dump( $twitch_object );
-        }
-        else
-        {
-            twitchpress_var_dump( 'get_users() method not defined' );
-        }
+
            
     }
 }

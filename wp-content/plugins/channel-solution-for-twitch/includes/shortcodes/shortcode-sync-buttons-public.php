@@ -18,7 +18,7 @@ add_shortcode( 'twitchpress_sync_buttons_public', 'twitchpress_shortcode_visitor
 add_action( 'admin_post_twitchpress_manual_public_sync_twitch', 'twitchpress_manual_public_sync_twitch' );
 add_action( 'admin_post_twitchpress_manual_public_sync_streamlabs', 'twitchpress_manual_public_sync_streamlabs' );
                                                                  
-// Not logged in handlers.
+// Not logged in (not authenticated) handlers.
 add_action( 'admin_post_nopriv_twitchpress_manual_public_sync_twitch', 'twitchpress_admin_post_nopriv_reject_sync' );
 add_action( 'admin_post_nopriv_twitchpress_manual_public_sync_streamlabs', 'twitchpress_admin_post_nopriv_reject_sync' );
                                                           
@@ -29,7 +29,7 @@ add_action( 'admin_post_nopriv_twitchpress_manual_public_sync_streamlabs', 'twit
 * 
 * @param mixed $atts
 * 
-* @version 1.0
+* @version 2.0
 */
 function twitchpress_shortcode_visitor_api_sync_buttons( $atts ) {            
     global $post; 
@@ -60,8 +60,6 @@ function twitchpress_shortcode_visitor_api_sync_buttons( $atts ) {
                 </th>                
             </tr>';
         
-    $permalink = get_post_permalink( $post->ID, true );
-    
     $atts = shortcode_atts( array(             
             //'channel_id'   => null
     ), $atts, 'twitchpress_sync_buttons_public' );    
@@ -118,9 +116,9 @@ function twitchpress_manual_public_sync_twitch() {
     $something_updated = false;                  
     $key = null;
     
-    # TODO: call appropriate Twitch  API method for processing a WP user Twitch.tv sync                
+    # TODO: call appropriate Twitch API method for processing a WP user Twitch.tv sync                
     
-    // Redirect visitor back to back and trigger pre-set notice to be displayed. 
+    // Redirect visitor back to original page and trigger pre-set notice to be displayed. 
     twitchpress_shortcode_procedure_redirect( 0, array(), array(), 'twitchpress' );
     exit;
 }
@@ -134,13 +132,12 @@ function twitchpress_manual_public_sync_streamlabs( $values = array() ) {
     
     # TODO: call appropriate Streamlabs API method for processing a WP user Twitch.tv sync    
     
-    // Redirect visitor back to back and trigger pre-set notice to be displayed. 
+    // Redirect visitor back to original page and trigger pre-set notice to be displayed. 
     twitchpress_shortcode_procedure_redirect( 0, array(), array(), 'officialstreamlabsextension' );
     exit;
 }
 
 function twitchpress_admin_post_nopriv_reject_sync() {
-    wp_die( __( 'The action you requested requires you to be logged into this website.', 'twitchpress-subman' ), __( 'Please Login First', 'twitchpress-subman' ));
+    wp_die( __( 'Test.', 'twitchpress-subman' ), __( 'Please Login First', 'twitchpress-subman' ));
     exit;
 }
-

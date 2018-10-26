@@ -1,7 +1,7 @@
 <?php  
 /**
-* Redirect during shortcode processing, with parameters for displaying
-* a notice with a message that applies to the result. 
+* Redirect during shortcode processing, 
+* with parameters for displaying a front-end notice.
 * 
 * @param mixed $message_source is the plugin name i.e. "core" or "subscribermanagement" or "loginextension" etc
 * @param mixed $message_key
@@ -1307,8 +1307,17 @@ function twitchpress_scopecheckboxpublic_required_icon( $scope ){
 * @return integer from Twitch user object or false if failure detected.
 */
 function twitchpress_get_user_twitchid( $twitch_username ) {
-    $kraken = new TWITCHPRESS_Twitch_API_Calls();
-    $user_object = $kraken->get_users( $twitch_username );
+    if( TWITCHPRESS_API_NAME == 'kraken' ) 
+    {
+        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        $user_object = $kraken->get_users( $twitch_username );
+    }
+    else
+    {   # untested
+        $helix = new TwitchPress_Twitch_API();
+        $user_object = $helix->get_users( null, $twitch_username );    
+    }
+    
     if( isset( $user_object['users'][0]['_id'] ) && is_numeric( $user_object['users'][0]['_id'] ) ) {
         return $user_object['users'][0]['_id'];
     } else {                                 
@@ -1497,4 +1506,15 @@ function twitchpress_get_user_sync_time( $user_id ) {
 */
 function twitchpress_encode_transient_name( $endpoint, $originating_function, $origination_line ) {
     return base64_encode( serialize( array( $endpoint, $originating_function, $origination_line ) ) );   
+}
+
+function twitchpress_get_call_count() {
+    return get_option( 'twitchpress_twitchapi_call_count' );
+}
+
+function twitchpress_get_new_call_id() {
+    $old_call_count = twitchpress_get_call_count();
+    $new_call_count = $old_call_count + 1;
+    update_option( 'twitchpress_twitchapi_call_count', $new_call_count, true );
+    return $new_call_count;       
 }

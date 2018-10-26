@@ -62,7 +62,10 @@ class TwitchPress_Admin_Settings {
             $settings[] = include( 'settings/class.twitchpress-settings-kraken.php' ); 
             $settings[] = include( 'settings/class.twitchpress-settings-users.php' );    
             $settings[] = include( 'settings/class.twitchpress-settings-otherapi.php' );    
-
+            
+            // The read only page (might be setup for developer-only UI eventually)
+            $settings[] = include( 'settings/class.twitchpress-settings-readonly.php' );    
+            
             if( defined( 'TWITCHPRESS_SHOW_SETTINGS_BOT' ) ) {
                     
             }

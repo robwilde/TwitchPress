@@ -20,7 +20,13 @@ if( !class_exists( 'TwitchPress_Twitch_API' ) ) :
 
 class TwitchPress_Twitch_API {
     
-    public $call_result = null; 
+    /**
+    * Post-request boolean value for tracking the calls purpose
+    * and ability to meet requirements. 
+    * 
+    * @var mixed
+    */
+    public $call_result = false; 
     
     // Debugging variables.
     public $twitch_call_name = 'Unknown';
@@ -88,51 +94,12 @@ class TwitchPress_Twitch_API {
     );
 
     public function __construct(){
+        $this->bugnet = new BugNet();
+        
         if( get_option( 'twitchress_sandbox_mode_switch' ) == 'yes' ) { 
             $this->twitch_sandbox_mode = true; 
         }
     } 
-    
-    /**
-    * Checks if application credentials are set.
-    * 
-    * @returns boolean true if set else an array of all the missing credentials.
-    * 
-    * @version 1.0
-    */
-    public function is_app_set() {
-        $missing = array();
-        
-        if( !$this->twitch_channel_id ) {
-            $missing[] = __( 'Channel ID', 'twitchpress' );        
-        }    
-        
-        if( !$this->twitch_client_url ) {
-            $missing[] = __( 'Client URL', 'twitchpress' );        
-        }    
-        
-        if( !$this->twitch_client_id ) {
-            $missing[] = __( 'Client ID', 'twitchpress' );        
-        }    
-        
-        if( !$this->twitch_client_secret ) {
-            $missing[] = __( 'Client Secret', 'twitchpress' );        
-        }    
-        
-        if( !$this->twitch_client_code ) {
-            $missing[] = __( 'Client Code', 'twitchpress' );        
-        }    
-        
-        if( !$this->twitch_client_token ) {
-            $missing[] = __( 'Client Token', 'twitchpress' );        
-        }       
-        
-        if( $missing ) {
-            return $missing;
-        }
-        
-        return true;
-    }
     
     /**
      * Generate an App Access Token as part of OAuth Client Credentials Flow. 
@@ -148,14 +115,14 @@ class TwitchPress_Twitch_API {
     public function request_app_access_token( $requesting_function = null ){
 
         // Create our Curl object which uses WP_Http_Curl()
-        $call_object = new TwitchPress_Curl();
-        $call_object->originating_function = __FUNCTION__;
-        $call_object->originating_line = __LINE__;
-        $call_object->type = 'POST';
-        $call_object->endpoint = 'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id();
+        $this->curl_object = new TwitchPress_Curl();
+        $this->curl_object->originating_function = __FUNCTION__;
+        $this->curl_object->originating_line = __LINE__;
+        $this->curl_object->type = 'POST';
+        $this->curl_object->endpoint = 'https://api.twitch.tv/kraken/oauth2/token?client_id=' . twitchpress_get_app_id();
                 
         // Set none API related parameters i.e. cache and rate controls...
-        $call_object->call_params( 
+        $this->curl_object->call_params( 
             false, 
             0, 
             false, 
@@ -166,7 +133,7 @@ class TwitchPress_Twitch_API {
         
         // Use app data from registry...
         $twitch_app = TwitchPress_Object_Registry::get( 'twitchapp' );
-        $call_object->set_curl_body( array(
+        $this->curl_object->set_curl_body( array(
             'client_id'        => $twitch_app->app_id,
             'client_secret'    => $twitch_app->app_secret,
             'redirect_uri'     => $twitch_app->app_redirect,
@@ -174,10 +141,10 @@ class TwitchPress_Twitch_API {
         ) );
 
         // Start + make the request in one line... 
-        $call_object->do_call( 'twitch' );
+        $this->curl_object->do_call( 'twitch' );
         
         // This method returns $call_twitch->curl_response_body;
-        return $call_object;
+        return $this->curl_object;
     }
     
     /**
@@ -226,19 +193,19 @@ class TwitchPress_Twitch_API {
             $code = $this->twitch_client_code;
         }
         
-        $url = 'https://api.twitch.tv/kraken/oauth2/token';
-        $post = array(
-            'client_id' => $this->twitch_client_id,         
-            'client_secret' => $this->twitch_client_secret,
-            'grant_type' => 'authorization_code',
-            'redirect_uri' => $this->twitch_client_url,
-            'code' => $code,
-            'state' => $this->twitch_client_token
-        );
-       
-        $options = array();
-          
-        $result = json_decode($this->cURL_post($url, $post, $options, false), true);
+        $endpoint = 'https://api.twitch.tv/kraken/oauth2/token';
+
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'POST', $endpoint );
+ 
+        $this->call_object->grant_type = 'authorization_code';
+ 
+        $this->call_object->auth_code = $code;
+        
+        $this->call_object->state = twitchpress_get_app_token();
+        
+        $this->call();
+        
+        $result = $this->call_object->curl_reply_response;
  
         if ( is_array( $result ) && array_key_exists( 'access_token', $result ) )
         {
@@ -307,15 +274,14 @@ class TwitchPress_Twitch_API {
         $user_token = twitchpress_get_user_token( $wp_user_id );
         if( !$user_token ){ return false;}
         
-        $url = 'https://api.twitch.tv/kraken';
-        $post = array(
-            'oauth_token' => $user_token,
-            'client_id'   => $this->twitch_client_id,
-        );
-        $options = array();
+        $endpoint = 'https://api.twitch.tv/kraken';
 
-        $result = json_decode( $this->cURL_get( $url, $post, $options, false, __FUNCTION__ ), true );                   
-
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint );
+        
+        $this->call();
+        
+        $result = $this->call_result;
+        
         $token = array();
         
         if ( isset( $result['token'] ) && isset( $result['token']['valid'] ) && $result['token']['valid'] !== false )
@@ -427,17 +393,22 @@ class TwitchPress_Twitch_API {
         $token_refresh = twitchpress_get_user_token_refresh( $user_id );
         if( !$token_refresh ) { return false; }
         
-        $url = 'https://api.twitch.tv/kraken/oauth2/token';
-        $post = array(
-            'client_id' => $this->twitch_client_id,         
-            'client_secret' => $this->twitch_client_secret,
-            'grant_type' => 'refresh_token',
-            'refresh_token' => urlencode( $token_refresh ),
-            'scope' => twitchpress_prepare_scopes( twitchpress_get_visitor_scopes() )
-        );
-       
-        $options = array();
-        $result = json_decode( $this->cURL_post( $url, $post, $options, false ), true );
+        $endpoint = 'https://api.twitch.tv/kraken/oauth2/token';
+
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'POST', $endpoint );
+        
+        $this->call_object->grant_type = 'refresh_token';
+        
+        $this->call_object->refresh_token = $token_refresh;
+        
+        $this->call_object->scope = twitchpress_prepare_scopes( twitchpress_get_visitor_scopes() );
+        
+        $this->call();
+        
+        $result = $this->call_result;
+        //$result = json_decode( $this->cURL_post( $url, $post, $options, false ), true );
+        
+        
         
             # Success Example $result
             #
@@ -583,11 +554,16 @@ class TwitchPress_Twitch_API {
         if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
         
         if( !$token ) {
-            $token = $this->twitch_client_token;
+            $token = twitchpress_get_app_token();
         }
 
-        $url = 'https://api.twitch.tv/kraken/channel';
-        return $object;
+        $endpoint = 'https://api.twitch.tv/kraken/channel';
+        
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint );
+        
+        $this->call();
+        
+        return $this->call_object->curl_reply_response;
     }  
 
     /**
@@ -710,31 +686,7 @@ class TwitchPress_Twitch_API {
 
         return $chatToken;                
     }
-    
-    /**
-     * Grabs a list of most popular games being streamed on twitch
-     * 
-     * @param $limit - [int] Set the limit of objects to grab
-     * @param $offset - [int] Sets the initial offset to start the query from
-     * @param $hls - [bool] Sets the query only to grab streams using HLS
-     * @param $returnTotal - [bool] Sets iteration to not ignore the _total key
-     * 
-     * @return $object - [array] A complete array of all channel objects in order based on the sorting rules
-     * 
-     * @version 5.0
-     */ 
-    public function get_top_games( $using_function ){
-        $url = 'https://api.twitch.tv/kraken/games/top';
-        $get = array( 'client_id' => $this->twitch_client_id );
-        $object = json_decode($this->cURL_get($url, $get, array(), false, $using_function ), true);
-        
-        if (!is_array($object)){
-            $object = array();
-        }
-        
-        return $object;
-    }
-        
+            
     /**
      * Grabs the stream object of a given channel
      * 
@@ -997,24 +949,18 @@ class TwitchPress_Twitch_API {
      * 
      * @version 5.1
      */ 
-    public function getUserSubscription( $twitch_user_id, $chan_id, $user_token = false ){   
-
-        // Sandbox Mode - avoid processing this function and instead process the _sandbox copy of it. 
-        if( $this->twitch_sandbox_mode ) { return $this->get_channel_subscriptions_sandbox(); }
-             
-        // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
-        $confirm_scope = twitchpress_confirm_scope( 'channel_check_subscription', 'user', __FUNCTION__ );
-        if( is_wp_error( $confirm_scope) ) { return $confirm_scope; }
+    public function getUserSubscription( $twitch_user_id, $chan_id, $user_token ){   
         
-        $url = 'https://api.twitch.tv/kraken/users/' . $twitch_user_id . '/subscriptions/' . $chan_id;
-        $get = array( 'oauth_token' => $user_token, 'client_id' => $this->twitch_client_id );   
+        $call_authentication = 'channel_check_subscription';
 
-        // Build our cURL query and store the array
-        $subscribed = json_decode( $this->cURL_get( $url, $get, array(), false, __FUNCTION__ ), true );
-                 
-        return $subscribed;
+        $endpoint = 'https://api.twitch.tv/kraken/users/' . $twitch_user_id . '/subscriptions/' . $chan_id;  
+        
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'automatic', $endpoint );
+        
+        $this->call();        
     }
-    
+                                 
+                                  
     /**
     * Sandbox-mode edition of getUserSubscription().
     * 
@@ -1082,34 +1028,27 @@ class TwitchPress_Twitch_API {
     #                              NEW API (HELIX)                             #
     #                                                                          #
     ############################################################################    
-    public function get( $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' ) {
-        $this->call( 'GET', $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' );    
-    } 
-    
-    public function post( $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto'  ) {
-        $this->call( 'POST', $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' );        
-    }
-    
-    public function put( $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' ) {
-        $this->call( 'PUT', $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' );        
-    }
-    
-    public function delete( $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' ) {
-        $this->call( 'DELETE', $endpoint, $originating_file, $originating_function, $originating_line, $caller_type = 'auto' );        
-    }
-        
-    function call( $type, $endpoint, $file, $function, $line, $caller_type = 'auto' ) {
+
+    /**
+    * Creates the $this->call_object using class TwitchPress_Curl()
+    * and it is after this method we can add our options/parameters.
+    * 
+    * We then use $this->call() to execute. 
+    * 
+    * @version 1.0
+    */
+    public function curl( $file, $function, $line, $type = 'get', $endpoint ) {
         
         // Create our own special Curl object which uses WP_Http_Curl()
-        $this->call_object = new TwitchPress_Curl();
-        $this->call_object->originating_file = $function;
-        $this->call_object->originating_function = $function;
-        $this->call_object->originating_line = $line;
-        $this->call_object->type = $type;
-        $this->call_object->endpoint = $endpoint;
+        $this->curl_object = new TwitchPress_Curl();
+        $this->curl_object->originating_file = $file;
+        $this->curl_object->originating_function = $function;
+        $this->curl_object->originating_line = $line;
+        $this->curl_object->type = $type;
+        $this->curl_object->endpoint = $endpoint;
                 
         // Add none API related parameters to the object...
-        $this->call_object->call_params(  
+        $this->curl_object->call_params(  
             false, 
             0, 
             false, 
@@ -1119,28 +1058,36 @@ class TwitchPress_Twitch_API {
         );
 
         // Add common/default headers...
-        $this->call_object->headers = array(
-            'Authorization' => 'Bearer ' . $this->app_token,
+        $this->curl_object->headers = array(
+            'Authorization' => 'Bearer ' . twitchpress_get_app_token(),
         );
+    }   
+    
+    /**
+    * Using the values in $this->call_object execute a call to Twitch. 
+    *  
+    * @version 1.0
+    */
+    function call() {
 
         // Start + make the request to Twitch.tv API in one line... 
-        $this->call_object->do_call( 'twitch' );
+        $this->curl_object->do_call( 'twitch' );
 
-        if( isset( $this->call_object->response_code ) && $this->call_object->response_code == '200' ) {
+        if( isset( $this->curl_object->response_code ) && $this->curl_object->response_code == '200' ) {
             // This will tell us that we should expect our wanted data to exist in $call_object
             // and we can use $this->call_result to assume that any database insert/update has happened also
-            $this->call_result = true;
+            $this->curl_object->call_result = true;
         }
         else 
         {    
-            $this->call_result = false; 
+            $this->curl_object->call_result = false; 
              
-            if( !isset( $call_object->response_code ) ) {
-                $this->bugnet->log( __FUNCTION__, __( 'Response code not returned!', 'twitchpress' ), array(), true, false );            
+            if( !isset( $this->curl_object->response_code ) ) {
+                $this->bugnet->log( __FUNCTION__, sprintf( __( 'Response code not returned! Call ID [%s]', 'twitchpress' ), $this->curl_object->get_call_id() ), array(), true, false );            
             }
        
-            if( $call_object->response_code !== '200' ) {   
-                $this->bugnet->log( __FUNCTION__, sprintf( __( 'Response code [%s]', 'twitchpress' ), $call_object->response_code ), array(), true, false );            
+            if( $this->curl_object->response_code !== '200' ) {   
+                $this->bugnet->log( __FUNCTION__, sprintf( __( 'Response code [%s] Call ID [%s]', 'twitchpress' ), $this->call_object->response_code, $this->curl_object->get_call_id() ), array(), true, false );            
             }
         }
     }  
@@ -1351,7 +1298,9 @@ class TwitchPress_Twitch_API {
 
         $endpoint = 'https://api.twitch.tv/helix/games';  
         
-        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );         
+        $this->curl();
+        
+        $this->call( 'GET', $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );         
     }
          
     /**
@@ -1371,13 +1320,15 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_top_games( string $after = null, string $before = null, string $first = integer ) {
+    public function get_top_games( string $after = null, string $before = null, string $first = null ) {
 
         $call_authentication = 'none';
 
         $endpoint = 'https://api.twitch.tv/helix/games/top';    
-        
-        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );       
+
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint ); 
+ 
+        $this->call( 'GET', $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );    
     }
          
     /**
@@ -1542,11 +1493,13 @@ class TwitchPress_Twitch_API {
 
         $call_authentication = 'scope';
         
-        $scope = 'user:read:email';
-
         $endpoint = 'https://api.twitch.tv/helix/users';
         
-        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' ); 
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint ); 
+        
+        $this->call_object->scope = 'user:read:email';
+        
+        $this->call();
         
         // We should now have $this->call_object with a response from the Twitch API...
         twitchpress_var_dump( $this->call_object );          

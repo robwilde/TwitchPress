@@ -30,6 +30,14 @@ class TwitchPress_Curl extends WP_Http_Curl {
     private $call_parameters = array(); 
 
     /**
+    * Call count option "twitchpress_twitchapi_call_count" doubles
+    * as a call ID.
+    * 
+    * @var mixed
+    */
+    private $call_id = 0;
+    
+    /**
     * get, put, delete, post
     * 
     * @var mixed
@@ -42,6 +50,8 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * @var string
     */
     public $endpoint = 'https://api.twitch.tv/kraken/games/top'; 
+    
+    public $scope = null;
     
     /**
     * Can this call be cached? 
@@ -166,6 +176,8 @@ class TwitchPress_Curl extends WP_Http_Curl {
 
     public $originating_line = null;
     
+    public $refresh_token = null;
+    
     public function __construct() {
         $this->curl_version = curl_version();
         $this->current_user = get_current_user_id();
@@ -253,6 +265,9 @@ class TwitchPress_Curl extends WP_Http_Curl {
         // Set $this values
         $this->api_name = $api_name;
         
+        // Establish a call ID that can be used in logs...
+        $this->call_id = twitchpress_get_new_call_id(); 
+                     
         // Create the WordPress Http Curl object
         $this->WP_Http_Curl_Object = new WP_Http_Curl();
         
@@ -384,7 +399,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
             set_transient( $this->transient_name, $transient_value, $this->cache_time ); 
         }
     }  
-    
+
     public function check_response_code() {
         if( isset( $this->curl_reply['response']['code'] ) ) {
             $this->response_code = $this->curl_reply['response']['code'];
@@ -418,5 +433,9 @@ class TwitchPress_Curl extends WP_Http_Curl {
     
     public function set_curl_body( array $body ) {
         $this->curl_request_body = $body;
+    }
+    
+    public function get_call_id() {
+        return $this->call_id;
     }
 }

@@ -128,8 +128,15 @@ class TwitchPress_Systematic_Syncing {
             ); 
         }
                                                                           
-        // Load Kraken and set credentials for the app + channel.  
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        // Load Kraken and set credentials for the app + channel. 
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        { 
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        }
+        else
+        {   # untested
+            $helix = new TwitchPress_Twitch_API();    
+        }
         
         $id = twitchpress_get_main_channel_id();// Right now everything defaults to the main channel.
 
@@ -148,9 +155,16 @@ class TwitchPress_Systematic_Syncing {
         $token = twitchpress_get_main_channels_token();
         
         $code = twitchpress_get_main_channels_code(); 
-          
-        $subscribers = $kraken->get_channel_subscribers( $id, $option['subs_limit'], $option['offset'] , 'asc', $token, $code );
-
+        
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {  
+            $subscribers = $kraken->get_channel_subscribers( $id, $option['subs_limit'], $option['offset'] , 'asc', $token, $code );
+        }
+        else
+        {
+            $subscribers = $helix->get_channel_subscribers();
+        }
+        
         if( $subscribers !== null && isset( $subscribers['subscriptions'] ) )
         {
             if( isset( $subscribers['_total'] ) && $subscribers['_total'] < $option['subs_limit'] ) 
@@ -196,7 +210,7 @@ class TwitchPress_Systematic_Syncing {
         // Update the jobs option. 
         update_option( 'twitchpress_sync_job_channel_subscribers', $option, false );
         
-        unset($kraken);               
+        unset( $kraken, $helix );               
     } 
     
     /**
@@ -546,16 +560,30 @@ class TwitchPress_Systematic_Syncing {
     * 
     * @version 1.0
     */
-    public function user_sub_sync( $wp_user_id, $output_notice = false ){       
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
-
+    public function user_sub_sync( $wp_user_id, $output_notice = false ){  
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {     
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        }
+        else
+        {   # untested
+            $helix = new TwitchPress_Twitch_API();    
+        }
+        
         $twitch_user_id = twitchpress_get_user_twitchid_by_wpid( $wp_user_id );    
         $twitch_channel_id = twitchpress_get_main_channels_twitchid();
         $twitch_user_token = twitchpress_get_user_token( $wp_user_id );
         
         // Get the full subscription object.
-        $twitch_sub_response = $kraken->getUserSubscription( $twitch_user_id, $twitch_channel_id, $twitch_user_token );
-
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {
+            $twitch_sub_response = $kraken->getUserSubscription( $twitch_user_id, $twitch_channel_id, $twitch_user_token );
+        }
+        else
+        {
+            $twitch_sub_response = $helix->getUserSubscription( $twitch_user_id, $twitch_channel_id, $twitch_user_token );    
+        }
+        
         // Get possible existing sub plan from a earlier sub sync.
         $local_sub_plan = get_user_meta( $wp_user_id, 'twitchpress_sub_plan_' . $twitch_channel_id, true  );
         
@@ -682,7 +710,15 @@ class TwitchPress_Systematic_Syncing {
         global $bugnet;
      
         // Does the giving user subscribe to the main channel?
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        }
+        else
+        {   # untested
+            $helix = new TWITCHPRESS_Twitch_API();
+        }     
+            
         $channel_id = twitchpress_get_main_channels_twitchid();
         $channel_token = twitchpress_get_main_channels_token();
 

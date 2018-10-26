@@ -42,7 +42,14 @@ function twitchpress_channel_status_shortcode( $atts ) {
         return $cache; 
     }
     
-    $twitchpress = new TWITCHPRESS_Twitch_API_Calls();
+    if( TWITCHPRESS_API_NAME == 'kraken' )
+    {
+        $twitchpress = new TWITCHPRESS_Twitch_API_Calls();
+    }
+    else
+    {   # untested
+        $helix = new TWITCHPRESS_Twitch_API();
+    }
 
     // Get channel ID using the channel/username. 
     if( $atts['channel_id'] === null && $atts['channel_name'] !== null )
@@ -105,8 +112,15 @@ function twitchpress_channel_status_line_shortcode( $atts ) {
         return $cache; 
     }
     
-    $twitchpress = new TWITCHPRESS_Twitch_API_Calls();
-
+    if( TWITCHPRESS_API_NAME == 'kraken' )
+    {
+        $twitchpress = new TWITCHPRESS_Twitch_API_Calls();
+    }
+    else
+    {   # untested
+        $helix = new TWITCHPRESS_Twitch_API();
+    }
+    
     // Get channel ID using the channel/username. 
     if( $atts['channel_id'] === null && $atts['channel_name'] !== null )
     {
@@ -172,8 +186,15 @@ function twitchpress_channel_status_box_shortcode( $atts ) {
         return $cache; 
     }
     
-    $twitchpress = new TWITCHPRESS_Twitch_API_Calls();
-
+    if( TWITCHPRESS_API_NAME == 'kraken' )
+    {
+        $twitchpress = new TWITCHPRESS_Twitch_API_Calls();
+    }
+    else
+    {   # untested
+        $helix = new TWITCHPRESS_Twitch_API();
+    }
+    
     // Get channel ID using the channel/username. 
     if( $atts['channel_id'] === null && $atts['channel_name'] !== null )
     {

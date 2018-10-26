@@ -83,12 +83,15 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 = 2.8.0: NOT RELEASED = 
 * Bugfixes
     - No changes
-* Feature Enhancements
+* Feature Changes
     - Function var_dump_twitchpress() now returns if function wp_get_current_user() does not exist due to an issue experienced during development.
-* Technical Enhancements
+    - New Read-Only settings view for developers only - requires the "twitchpress_developer" capability to view
+* Technical Changes
+    - Function twitchpress_create_roles() no longer grants TwitchPress capabilities to all administrators
     - Function twitchpress_encode_transient_name() now requires three specific values instead of the entire request body.
     - New function missing_token() in class.twitchpress-set-app.php will replace an empty/null option value for app token (client access_token)
     - Improved application access_token renewal (then some performance improvements to come on this work)
+    - New call ID (integer counter) option "twitchpress_twitchapi_call_count" added using a new settings file
 * Configuration
     - No changes
 * Database
@@ -97,9 +100,9 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 = 2.7.0: 23rd September 2018 = 
 * Bugfixes
     - Type hinting error caused
-* Feature Enhancements
+* Feature Changes
     - No changes
-* Technical Enhancements
+* Technical Changes
     - New curl class further integrated into setup wizard procedure (change in approach to getting access token)
 * Configuration
     - No changes
@@ -112,9 +115,9 @@ New setup step added. Please open the Help tab and go to the Installation sectio
     - Recent changes to twitchpress_scopes() caused incorrect handling of the returned scope array.
     - twitchpress_setup_application_save() now uses new functions for storing application credentials and not just option_update()
     - Overall the new values for storing Twitch application credentials were not applied enough.
-* Feature Enhancements
+* Feature Changes
     - No changes
-* Technical Enhancements
+* Technical Changes
     - Function twitchpress_kraken_endpoints_feed() removed
     - Function var_dump_twitchpress() now uses a different function to determine if user is allowed to see ouput
     - App Status test "Get Application Token" no longer performs a call it just checks if token is stored.
@@ -127,9 +130,9 @@ New setup step added. Please open the Help tab and go to the Installation sectio
 = 2.5.0: 16th September 2018 = 
 * Bugfixes
     - Possible fix for activation error "WordPress Already Installed" related to plugins install.php file.  
-* Feature Enhancements
+* Feature Changes
     - No changes
-* Technical Enhancements
+* Technical Changes
     - Removed bad use of var_dump
     - functions.twitchpress-core.php contents moved to functions.php and file deleted
     - twitchpressformatting.php is now included in the main file

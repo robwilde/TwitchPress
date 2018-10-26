@@ -54,7 +54,15 @@ class TwitchPress_Custom_Posts_TwitchFeed {
             return false;
         }
         
-        $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        if( TWITCHPRESS_API_NAME == 'kraken' )
+        {
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+        }
+        else
+        {   # untested
+            $helix = new TWITCHPRESS_Twitch_API();
+        }
+        
         $send = array( 'content' => $post->post_content );
         $result = $kraken->postFeedPost( $send, array() );
         

@@ -727,7 +727,14 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
             $bugnet->trace( 'twitchpressloginextensionlistener',__LINE__,__FUNCTION__,__FILE__,false,__( 'Request to process login has started.', 'twitchpress' ),array(),true);
 
             // Summon the Kraken! 
-            $kraken = new TWITCHPRESS_Twitch_API_Calls();
+            if( TWITCHPRESS_API_NAME == 'kraken' )
+            {
+                $kraken = new TWITCHPRESS_Twitch_API_Calls();
+            }
+            else
+            {   # untested
+                $helix = new TWITCHPRESS_Twitch_API();
+            }
             
             // Ensure code is ready.
             if( !twitchpress_validate_code( $_GET['code'] ) ) 
@@ -1116,13 +1123,18 @@ if ( ! class_exists( 'TwitchPress_Login' ) ) :
             $do_autologin = false;
             $temp_option_autologin = false;
 
-            // Generate oAuth2 URL.
-            $kraken = new TWITCHPRESS_Twitch_API();
+            // We will not do this with helix, instead we will work towards a more global
+            // value or an approach that disables services and takes such situations very serious!
+            if( TWITCHPRESS_API_NAME == 'kraken' ) 
+            {
+                // Generate oAuth2 URL.
+                $kraken = new TWITCHPRESS_Twitch_API();
 
-            // Ensure Twitch app is setup to avoid pointless API calls.
-            $is_app_set = $kraken->is_app_set();
-            if( !$is_app_set ) {
-                return;
+                // Ensure Twitch app is setup to avoid pointless API calls.
+                $is_app_set = $kraken->is_app_set();
+                if( !$is_app_set ) {
+                    return;
+                }
             }
 
             // States array is used to process visitor on returning from Twitch.tv.
