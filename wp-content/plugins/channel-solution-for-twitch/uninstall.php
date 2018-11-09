@@ -139,7 +139,6 @@ function twitchpress_remove_roles() {
     foreach ( $capabilities as $cap_group ) {
         foreach ( $cap_group as $cap ) {
             $wp_roles->remove_cap( 'twitchpressdeveloper', $cap );
-            $wp_roles->remove_cap( 'administrator', $cap );
         }
     }
 

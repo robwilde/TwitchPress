@@ -6,7 +6,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, Twitch.tv, Twitch Feed, Twitch Channel, Twitch Team, Twitch Embed, Twitch Stream, Twitch Suite, Twitch Bot, Twitch Chat 
 Requires at least: 4.9
 Tested up to: 4.9
-Stable tag: 2.8.0
+Stable tag: 2.11.0
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
@@ -26,10 +26,10 @@ with the Twitch API.
 = Links =                                                                
 *   <a href="https://twitchpress.wordpress.com" title="">Blog</a>
 *   <a href="https://github.com/RyanBayne/TwitchPress-Login-Extension" title="">GitHub</a>       
-*   <a href="https://twitter.com/ryan_r_bayne" title="Follow the projects Tweets.">Developers Twitter</a
+*   <a href="https://twitter.com/ryan_r_bayne" title="Follow the projects Tweets.">Developers Twitter</a>
 *   <a href="https://twitter.com/twitchpress" title="Follow the projects Tweets.">TwitchPress Twitter</a>
 *   <a href="https://www.twitch.tv/zypherevolved" title="Follow my Twitch channel.">Authors Twitch</a>   
-*   <a href="https://discord.gg/NaRB3wE" title="Chat about TwitchPress on Discord.">Discord Chat</a>     
+*   <a href="https://discord.gg/ScrhXPE" title="Chat about TwitchPress on Discord.">Discord Chat</a>     
 *   <a href="https://www.patreon.com/zypherevolved" title="">Patreon Pledges</a>     
 *   <a href="https://www.paypal.me/zypherevolved" title="">PayPal Donations</a>       
 
@@ -76,13 +76,63 @@ Translator needed to localize the Channel Solution for Twitch.
 
 == Upgrade Notice ==
 
-New setup step added. Please open the Help tab and go to the Installation section. Click on the Authorize Main Channel button. 
+There are no special instructions for this upgrade.  
 
 == Changelog ==
-
-= 2.8.0: NOT RELEASED = 
+= 2.11.1: NOT RELEASED =                                           
 * Bugfixes
     - No changes
+* Feature Changes
+    - No changes
+* Technical Changes
+    - trim() applied to redirect URL value entered in Setup Wizard
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.11.0: 5th November 2018 =                                           
+* Bugfixes
+    - Use of undefined constant twitchpress_format_plugin_slug
+    - Cases of main channel credentials not being updated to object registry
+* Feature Changes
+    - Sync extension removed from extensions list in Setup Wizard as it is no longer used
+* Technical Changes
+    - Discord links updated due to deleted channel causing links to become invalid!
+    - Further renaming of options by adding "twitchpress_" to the new
+    - Function twitchpress_update() now updates the object registry for the newer option keys
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.10.0: 2nd November 2018 =
+* Bugfixes
+    - Possible fix for activation fault.
+* Feature Changes
+    - No changes
+* Technical Changes
+    - No changes
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.9.0: 1st November 2018 =
+* Bugfixes
+    - Plugin will no longer prevent administration access after uninstallation.
+* Feature Changes
+    - No changes
+* Technical Changes
+    - No changes
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.8.0: 30th October 2018 = 
+* Bugfixes
+    - Fixes the fault preventing access to setup wizard.
 * Feature Changes
     - Function var_dump_twitchpress() now returns if function wp_get_current_user() does not exist due to an issue experienced during development.
     - New Read-Only settings view for developers only - requires the "twitchpress_developer" capability to view
@@ -92,6 +142,8 @@ New setup step added. Please open the Help tab and go to the Installation sectio
     - New function missing_token() in class.twitchpress-set-app.php will replace an empty/null option value for app token (client access_token)
     - Improved application access_token renewal (then some performance improvements to come on this work)
     - New call ID (integer counter) option "twitchpress_twitchapi_call_count" added using a new settings file
+    - Added class.twitch-api-sandbox.php for holding sandboxed functions rather than mixing them within the main class
+    - Patreon links updated to ZypheREvolved gaming focused profile
 * Configuration
     - No changes
 * Database

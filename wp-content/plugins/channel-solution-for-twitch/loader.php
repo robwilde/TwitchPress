@@ -26,7 +26,7 @@ final class WordPressTwitchPress {
      * 
      * @deprecated use constant TWITCHPRESS_VERSION
      */
-    public $version = '2.6.0';
+    public $version = '2.8.0';
 
     /**
      * Minimum WP version.
@@ -153,12 +153,12 @@ final class WordPressTwitchPress {
         if ( ! defined( 'TWITCHPRESS_HOME' ) ) {              define( 'TWITCHPRESS_HOME', 'https://wordpress.org/plugins/channel-solution-for-twitch' ); }
         if ( ! defined( 'TWITCHPRESS_FORUM' ) ) {             define( 'TWITCHPRESS_FORUM', 'https://wordpress.org/support/plugin/channel-solution-for-twitch' ); }
         if ( ! defined( 'TWITCHPRESS_TWITTER' ) ) {           define( 'TWITCHPRESS_TWITTER', false ); }
-        if ( ! defined( 'TWITCHPRESS_DONATE' ) ) {            define( 'TWITCHPRESS_DONATE', 'https://www.patreon.com/ryanbayne' ); }
+        if ( ! defined( 'TWITCHPRESS_DONATE' ) ) {            define( 'TWITCHPRESS_DONATE', 'https://www.patreon.com/zypherevolved' ); }
         if ( ! defined( 'TWITCHPRESS_SKYPE' ) ) {             define( 'TWITCHPRESS_SKYPE', 'https://join.skype.com/gxXhLoy6ce8e' ); }
         if ( ! defined( 'TWITCHPRESS_GITHUB' ) ) {            define( 'TWITCHPRESS_GITHUB', 'https://github.com/RyanBayne/TwitchPress' ); }
         if ( ! defined( 'TWITCHPRESS_SLACK' ) ) {             define( 'TWITCHPRESS_SLACK', false ); }
         if ( ! defined( 'TWITCHPRESS_DOCS' ) ) {              define( 'TWITCHPRESS_DOCS', false ); }
-        if ( ! defined( 'TWITCHPRESS_DISCORD' ) ) {           define( 'TWITCHPRESS_DISCORD', 'https://discord.gg/NaRB3wE' ); }
+        if ( ! defined( 'TWITCHPRESS_DISCORD' ) ) {           define( 'TWITCHPRESS_DISCORD', 'https://discord.gg/ScrhXPE' ); }
        
         // Author (social) constants - can act as default when support constants are false.                                                                                                              
         if ( ! defined( 'TWITCHPRESS_AUTHOR_HOME' ) ) {       define( 'TWITCHPRESS_AUTHOR_HOME', 'https://ryanbayne.wordpress.com' ); }
@@ -169,7 +169,7 @@ final class WordPressTwitchPress {
         if ( ! defined( 'TWITCHPRESS_AUTHOR_SKYPE' ) ) {      define( 'TWITCHPRESS_AUTHOR_SKYPE', 'https://join.skype.com/gNuxSa4wnQTV' ); }
         if ( ! defined( 'TWITCHPRESS_AUTHOR_GITHUB' ) ) {     define( 'TWITCHPRESS_AUTHOR_GITHUB', 'https://github.com/RyanBayne' ); }
         if ( ! defined( 'TWITCHPRESS_AUTHOR_LINKEDIN' ) ) {   define( 'TWITCHPRESS_AUTHOR_LINKEDIN', 'https://www.linkedin.com/in/ryanrbayne/' ); }
-        if ( ! defined( 'TWITCHPRESS_AUTHOR_DISCORD' ) ) {    define( 'TWITCHPRESS_AUTHOR_DISCORD', 'https://discord.gg/PcqNqNh' ); }
+        if ( ! defined( 'TWITCHPRESS_AUTHOR_DISCORD' ) ) {    define( 'TWITCHPRESS_AUTHOR_DISCORD', 'https://discord.gg/ScrhXPE' ); }
         if ( ! defined( 'TWITCHPRESS_AUTHOR_SLACK' ) ) {      define( 'TWITCHPRESS_AUTHOR_SLACK', 'https://ryanbayne.slack.com/threads/team/' ); }
         
         // Twitch API
@@ -191,7 +191,7 @@ final class WordPressTwitchPress {
     /**
      * Include required core files.
      * 
-     * @version 2.0
+     * @version 3.0
      */
     public function includes() {
         
@@ -214,7 +214,12 @@ final class WordPressTwitchPress {
         require_once( 'includes/class.twitchpress-ajax.php' );
         require_once( 'includes/libraries/allapi/loader.php' );
         require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/functions.twitch-api-statuses.php' );
-        require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api.php' );
+        
+        if( get_option( 'twitchress_sandbox_mode_switch' ) == 'yes' ) {  
+            require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api-sandbox.php' );
+        } else {
+            require_once( 'includes/libraries/twitch/' . TWITCHPRESS_API_NAME . '/class.twitch-api.php' );            
+        }
         
         // Helix does not have separate classes...
         if( TWITCHPRESS_API_NAME == 'kraken' ) {
@@ -227,7 +232,7 @@ final class WordPressTwitchPress {
         require_once( 'includes/class.twitchpress-sync.php' );
         require_once( 'includes/class.twitchpress-history.php' );
         include_once( plugin_basename( 'shortcodes.php' ) );
-        include_once( plugin_basename( 'post.php' ) );
+        include_once( plugin_basename( 'requests.php' ) );
         require_once( 'includes/class.twitchpress-listener-main-account-oauth.php' );
         
         // Load Core Objects
@@ -336,7 +341,9 @@ final class WordPressTwitchPress {
     */
     public function load_debugger() {   
         global $bugnet;
+        
         include_once( TWITCHPRESS_PLUGIN_DIR_PATH . 'includes/libraries/bugnet/class.bugnet.php' );
+        
         $bugnet = new BugNet();
         $bugnet->log_directory = TWITCHPRESS_LOG_DIR;
         $bugnet->plugin_name = TWITCHPRESS_PLUGIN_BASENAME;    
@@ -345,6 +352,7 @@ final class WordPressTwitchPress {
         $bugnet_object = new BugNet(); 
         $bugnet_object->log_directory = TWITCHPRESS_LOG_DIR;
         $bugnet_object->plugin_name = TWITCHPRESS_PLUGIN_BASENAME;
+        
         // Add the bugnet class object to our object registry.                 
         $bugnet_object = TwitchPress_Object_Registry::add( 'bugnet', $bugnet_object );
     }

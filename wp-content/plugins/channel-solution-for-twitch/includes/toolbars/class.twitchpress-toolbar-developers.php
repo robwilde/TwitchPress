@@ -9,7 +9,9 @@
  * @author   Ryan Bayne
  * @category Admin
  * @package  TwitchPress/Toolbars
- * @since    1.0.0
+ * @since    1.0
+ * 
+ * @version 6.0
  */
  
 if ( ! defined( 'ABSPATH' ) ) {

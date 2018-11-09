@@ -52,7 +52,7 @@ class TwitchPress_Admin_Help {
             '<p><a href="https://github.com/ryanbayne/twitchpress" target="_blank">' . __( 'GitHub', 'twitchpress' ) . '</a></p>' .
             '<p><a href="https://twitchpress.wordpress.com" target="_blank">' . __( 'Blog', 'twitchpress' ) . '</a></p>'.
             '<p><a href="https://www.reddit.com/r/twitchpress/" target="_blank">' . __( 'Reddit', 'twitchpress' ) . '</a></p>' .
-            '<p><a href="https://discord.gg/VU7EjRu" target="_blank">' . __( 'Discord', 'twitchpress' ) . '</a></p>' .
+            '<p><a href="https://discord.gg/ScrhXPE" target="_blank">' . __( 'Discord', 'twitchpress' ) . '</a></p>' .
             '<p><a href="https://twitch.tv/zypherevolved" target="_blank">' . __( 'My Twitch', 'twitchpress' ) . '</a></p>' . 
             '<p><a href="https://dev.twitch.tv/dashboard/apps" target="_blank">' . __( 'Twitch Apps', 'twitchpress' ) . '</a></p>' .
             '<p><a href="https://github.com/RyanBayne/TwitchPress/wiki/Extensions" target="_blank">' . __( 'Extensions', 'twitchpress' ) . '</a></p>' . 
@@ -65,9 +65,9 @@ class TwitchPress_Admin_Help {
             'title'     => __( 'Help &amp; Support', 'twitchpress' ),
             'content'   => '<h2>' . __( 'Help &amp; Support', 'twitchpress' ) . '</h2>' . 
             '<p><a href="https://join.skype.com/bVtDaGHd9Nnl/" class="button button-primary">' . __( 'Skype', 'twitchpress' ) . '</a> <a href="https://twitchpress.slack.com/" class="button button-primary">' . __( 'Slack', 'twitchpress' ) . '</a> <a href="https://trello.com/b/PEkkYDAJ/twitchpress" class="button button-primary">' . __( 'Trello', 'twitchpress' ) . '</a> <a href="https://github.com/RyanBayne/twitchpress/issues" class="button button-primary">' . __( 'Bugs', 'twitchpress' ) . '</a> </p>' . 
-            '<h2>' . __( 'Pointers Tutorial', 'twitchpress' ) . '</h2>' .
-            '<p>' . __( 'The plugin will explain some features using WordPress pointers.', 'twitchpress' ) . '</p>' .
-            '<p><a href="' . admin_url( 'admin.php?page=twitchpress&amp;twitchpresstutorial=normal' ) . '" class="button button-primary">' . __( 'Start Tutorial', 'twitchpress' ) . '</a></p>' .
+            //'<h2>' . __( 'Pointers Tutorial', 'twitchpress' ) . '</h2>' .
+            //'<p>' . __( 'The plugin will explain some features using WordPress pointers.', 'twitchpress' ) . '</p>' .
+            //'<p><a href="' . admin_url( 'admin.php?page=twitchpress&amp;twitchpresstutorial=normal' ) . '" class="button button-primary">' . __( 'Start Tutorial', 'twitchpress' ) . '</a></p>' .
             '<h2>' . __( 'Report A Bug', 'twitchpress' ) . '</h2>' .
             '<p>You could save a lot of people a lot of time by reporting issues. Tell the developers and community what has gone wrong by creating a ticket. Please explain what you were doing, what you expected from your actions and what actually happened. Screenshots and short videos are often a big help as the evidence saves us time, we will give you cookies in return.</p>' .  
             '<p><a href="' . TWITCHPRESS_GITHUB . '/issues?state=open' . '" class="button button-primary">' . __( 'Report a bug', 'twitchpress' ) . '</a></p>',
@@ -692,9 +692,9 @@ class TwitchPress_Admin_Help {
         $output .= '<p>App Redirect: ' . twitchpress_get_app_redirect() . '</p>';
 
         // Test Top Game 
-        $output .= '<h2>' . __( 'Test: Get Top Game', 'twitchpress' ) . '</h2>';
-        $channel = $twitch_api->get_top_games( __FUNCTION__ );
-        $output .= $channel['top'][0]['game']['name'];        
+        //$output .= '<h2>' . __( 'Test: Get Top Game', 'twitchpress' ) . '</h2>';
+        //$channel = $twitch_api->get_top_games( __FUNCTION__ );
+        //$output .= $channel['top'][0]['game']['name'];        
 
         // Test Get Application Token
         $output .= '<h2>' . __( 'Test: Get Application Token', 'twitchpress' ) . '</h2>';
@@ -779,8 +779,8 @@ class TwitchPress_Admin_Help {
         $twitch_user = $kraken_or_helix->get_users( twitchpress_get_main_channels_name() );
 
         // Main Channel ID
-        $output .= '<h2>' . __( 'Main Channel ID', 'twitchpress' ) . '</h2>';
-        $output .= '<p>' . $twitch_user['users'][0]['_id'] . '</p>';
+        //$output .= '<h2>' . __( 'Main Channel ID', 'twitchpress' ) . '</h2>';
+        //$output .= '<p>' . $twitch_user['users'][0]['_id'] . '</p>';
                 
         // Test Get Application Token
         $output .= '<h2>' . __( 'Test: Get Application Token', 'twitchpress' ) . '</h2>';

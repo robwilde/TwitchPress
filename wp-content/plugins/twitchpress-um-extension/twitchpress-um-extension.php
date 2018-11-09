@@ -12,7 +12,7 @@ Copyright: © 2017 - 2018 Ryan Bayne
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 */
-
+               
 // Prohibit direct script loading
 defined( 'ABSPATH' ) || die( 'Direct script access is not allowed!' );
 /**
@@ -59,7 +59,6 @@ class TwitchPress_UM {
             self::$instance = new self();
         }
         return self::$instance;
-        
     } 
     
     /**
@@ -83,6 +82,7 @@ class TwitchPress_UM {
      * *Singleton* via the `new` operator from outside of this class.
      */
     protected function __construct() {
+                  wp_die( __LINE__ . '  ' . __FILE__ );
 
         $this->define_constants();
         
@@ -96,7 +96,11 @@ class TwitchPress_UM {
      * @version 1.0
      */
     private function define_constants() {
-  
+        
+    wp_die( __LINE__ . '  ' . __FILE__ );
+    exit;
+                     
+                     
         $upload_dir = wp_upload_dir();
 
         // Main (package) constants.
@@ -165,7 +169,7 @@ class TwitchPress_UM {
     /**
      * Hooks
      * 
-     * @version 2.0
+     * @version 2.5
      */
     private function attach_hooks() {   
         // Add sections to users tab. 
@@ -182,16 +186,27 @@ class TwitchPress_UM {
         // Decide a users role when the sub data has been updated. 
         add_action( 'twitchpress_user_sub_sync_finished', array( $this, 'set_twitch_subscribers_um_role' ), 2, 1 );// Passes user ID.
                                 
-        // Apply UM role based on users Twitch plan data if it is available.  
-        add_action( 'edit_user_profile', array( $this, 'set_twitch_subscribers_um_role' ), 5, 1 );// Passes user object. 
-        add_action( 'edit_user_profile_update', array( $this, 'set_twitch_subscribers_um_role' ), 5, 1 );// Passes user ID.
+        // Hook into subscription sync functions and apply UM role...
         add_action( 'twitchpress_sync_new_twitch_subscriber', array( $this, 'set_twitch_subscribers_um_role' ), 5, 1 );// Passes user ID.
         add_action( 'twitchpress_sync_continuing_twitch_subscriber', array( $this, 'set_twitch_subscribers_um_role' ), 5, 1 );// Passes user ID.
         add_action( 'twitchpress_sync_discontinued_twitch_subscriber', array( $this, 'set_twitch_subscribers_um_role' ), 5, 1 );// Passes user ID.
         add_action( 'twitchpress_manualsubsync', array( $this, 'set_twitch_subscribers_um_role' ), 5, 1 );// Passes user ID.
+                   wp_die('set_current_users_um_role_based_on_twitch_sub');
+                     exit;
+        // Update the current users Twitch.tv subscription status for main channel...
+        add_action( 'admin_init', array( $this, 'set_current_users_um_role_based_on_twitch_sub' ), 10, 1 );
 
-        // Systematic actions. 
-        add_action( 'wp_loaded', array( $this, 'set_current_users_um_role_based_on_twitch_sub' ), 5, 1 );
+        // Hook into edit profile requests with refresh(redirect) if subscription changes...
+        // this runs near the end of the user profile editing screen in the admin menus...
+        add_action( 'edit_user_profile', array( $this, 'set_twitch_subscribers_um_role' ), 5, 1 );
+           #will need refresh 
+           
+           
+        #show_user_profile // Runs near the end of the user profile editing screen.   
+           
+            
+
+        /* Not found a great hook for update users when an admin is querying the user */
     }
 
     public static function install() {
@@ -234,10 +249,14 @@ class TwitchPress_UM {
     * 
     * @version 1.0
     */
-    public function set_current_users_um_role_based_on_twitch_sub() {
+    public function set_current_users_um_role_based_on_twitch_sub() {    
+                     wp_die('set_current_users_um_role_based_on_twitch_sub');
+                     exit;
         if( !is_user_logged_in() ) { return false; }
         
-        if( !twitchpress_is_sync_due( __FILE__, __FUNCTION__, __LINE__, 60 ) ) { return; }
+        if( !twitchpress_is_sync_due( __FILE__, __FUNCTION__, __LINE__, 120 ) ) { return; }
+        
+        
         
         // Avoid processing the owner of the main channel (might not be admin with ID 1)
         if( twitchpress_is_current_user_main_channel_owner() ) { return; }
@@ -254,10 +273,11 @@ class TwitchPress_UM {
     * @param mixed $channel_id
     * @param mixed $api_response
     * 
-    * @version 2.3
+    * @version 3.0
     */
     public function set_twitch_subscribers_um_role( $wp_user_id ) {
-
+        if( !twitchpress_is_sync_due( __FILE__, __FUNCTION__, __LINE__, 60 ) ) { return; }
+        
         // Get the current filter to help us trace backwards from log entries. 
         $filter = current_filter();
 

@@ -83,41 +83,76 @@ function twitchpress_install_action_do_update() {
 * Automatic updater - runs when plugin is activated which happens during
 * a standard WordPress plugin update.
 * 
-* @version 1.0
+* @version 2.0
 */
 function twitchpress_update() {
     
-    // 2.3.0 renames options
+    // 2.3.0 renames options and sort out a messy system that even confused me! 
     if( $old = get_option( 'twitchpress_main_channel_name' ) ) {
         add_option( 'twitchpress_main_channels_name', $old );
+        TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_name', $old );
         unset( $old );    
     }
     
     if( $old = get_option( 'twitchpress_main_channel_id' ) ) {
         add_option( 'twitchpress_main_channels_id', $old );
+        TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_id', $old );
         unset( $old );    
     }
     
     if( $old = get_option( 'twitchpress_main_redirect_uri' ) ) {
         add_option( 'twitchpress_app_redirect', $old );
+        TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_redirect', $old );
         unset( $old );    
     }
     
-    if( $old = get_option( 'twitchpress_main_client_id' ) ) {
+    if( $old = get_option( 'twitchpress_main_client_id' ) ) { 
         add_option( 'twitchpress_app_id', $old );
+        TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_id', $old );
         unset( $old );    
     }
     
     if( $old = get_option( 'twitchpress_main_client_secret' ) ) {
         add_option( 'twitchpress_app_secret', $old );
+        TwitchPress_Object_Registry::update_var( 'twitchapp', 'app_secret', $old );
         unset( $old );    
     }
     
     if( $old = get_option( 'twitchpress_main_code' ) ) {
         add_option( 'twitchpress_main_channels_code', $old );
+        TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_code', $old );
         unset( $old );    
     }
-   
+
+    if( $old = get_option( 'main_channels_refresh_token' ) ) {
+        add_option( 'twitchpress_main_channels_refresh_token', $old );
+        TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_refresh', $old );
+        unset( $old );    
+    }
+    
+    if( $old = get_option( 'main_channels_scopes' ) ) {
+        add_option( 'twitchpress_main_channels_scopes', $old );
+        TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_scopes', $old );
+        unset( $old );    
+    }            
+
+    if( $old = get_option( 'main_channels_name' ) ) {
+        add_option( 'twitchpress_main_channels_name', $old );
+        TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_name', $old );
+        unset( $old );    
+    }
+    
+    if( $old = get_option( 'main_channels_id' ) ) {
+        add_option( 'twitchpress_main_channels_id', $old );
+        TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_id', $old );
+        unset( $old );    
+    }
+
+    if( $old = get_option( 'main_channels_postid' ) ) {
+        add_option( 'twitchpress_main_channels_postid', $old );
+        TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_postid', $old );
+        unset( $old );    
+    }               
 }
     
 /**
@@ -150,7 +185,7 @@ function twitchpress_offer_wizard() {
         $offer_wizard = 'twitchpress_main_channels_name';
         
     } elseif( !twitchpress_get_main_channels_twitchid() ) {
-        
+                         
         $offer_wizard = 'twitchpress_main_channels_id';
         
     } elseif( !twitchpress_get_app_id() ) {
@@ -346,7 +381,7 @@ function twitchpress_create_options() {
     $settings = TwitchPress_Admin_Settings::get_settings_pages();
 
     foreach ( $settings as $section ) {
-        if ( ! method_exists( $section, 'get_settings' ) ) {
+        if ( !method_exists( $section, 'get_settings' ) ) {
             continue;
         }
         $subsections = array_unique( array_merge( array( '' ), array_keys( $section->get_sections() ) ) );

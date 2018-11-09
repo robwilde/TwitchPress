@@ -6,6 +6,7 @@
  * @link https://www.twitch.tv/p/developer-agreement
  * 
  * @author   Ryan Bayne
+ * @version 6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

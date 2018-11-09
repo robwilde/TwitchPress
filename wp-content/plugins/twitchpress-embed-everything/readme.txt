@@ -29,7 +29,7 @@ The feature is still a beta in October 2017 and for now this extension should be
 *   <a href="https://twitter.com/ryan_r_bayne" title="Follow the projects Tweets.">Developers Twitter</a>     
 *   <a href="https://twitter.com/twitchpress" title="Follow the projects Tweets.">Plugins Twitter</a>     
 *   <a href="https://www.twitch.tv/zypherevolved" title="Follow my Twitch channel.">Authors Twitch</a>     
-*   <a href="https://discord.gg/NaRB3wE" title="Chat about TwitchPress on Discord.">Discord Chat</a>          
+*   <a href="https://discord.gg/ScrhXPE" title="Chat about TwitchPress on Discord.">Discord Chat</a>          
 *   <a href="https://www.patreon.com/zypherevolved" title="">Patreon Donations</a>     
 *   <a href="https://www.paypal.me/zypherevolved" title="">PayPal Donations</a>       
 

@@ -222,7 +222,7 @@ class TWITCHPRESS_Listener_Main_Twitchtv_Account_oAuth {
     * Make a test call by getting the current users Twitch channel and take
     * the opportunity to get any data we do not yet have.
     * 
-    * @version 1.0
+    * @version 2.0
     */
     function channel() {
         // Confirm the giving main (default) channel is valid. 
@@ -233,8 +233,8 @@ class TWITCHPRESS_Listener_Main_Twitchtv_Account_oAuth {
             return;                         
         } 
 
-        update_option( 'twitchpress_main_channel_id', $user_objects['users'][0]['_id'], true );        
-
+        twitchpress_update_main_channels_id( $user_objects['users'][0]['_id'] );
+        
         // Assume the channel is owned by the current logged in admin or they just want it paired with the current WP account. 
         // Store all possible details in user meta. 
         twitchpress_update_user_oauth( 

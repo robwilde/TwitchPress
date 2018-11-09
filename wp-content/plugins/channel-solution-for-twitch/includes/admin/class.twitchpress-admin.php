@@ -131,7 +131,7 @@ class TwitchPress_Admin {
         if ( get_transient( '_twitchpress_activation_redirect' ) ) {
             delete_transient( '_twitchpress_activation_redirect' );
 
-            if ( ( ! empty( $_GET['page'] ) && in_array( $_GET['page'], array( 'twitchpress-setup' ) ) ) || is_network_admin() || isset( $_GET['activate-multi'] ) || ! current_user_can( 'manage_twitchpress' ) || apply_filters( 'twitchpress_prevent_automatic_wizard_redirect', false ) ) {
+            if ( ( ! empty( $_GET['page'] ) && in_array( $_GET['page'], array( 'twitchpress-setup' ) ) ) || is_network_admin() || isset( $_GET['activate-multi'] ) || apply_filters( 'twitchpress_prevent_automatic_wizard_redirect', false ) ) {
                 return;
             }
 
@@ -141,8 +141,7 @@ class TwitchPress_Admin {
                 twitchpress_redirect_tracking( $admin_url, __LINE__, __FUNCTION__ );
                 exit;
             }
-        }
-                
+        }       
     }
 
     /**

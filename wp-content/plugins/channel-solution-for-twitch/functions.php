@@ -308,6 +308,12 @@ function twitchpress_get_sub_plan( $wp_user_id, $twitch_channel_id ) {
     return get_user_meta( $wp_user_id, 'twitchpress_sub_plan_' . $twitch_channel_id, true  );    
 }
 
+######################################################################
+#                                                                    #
+#                        MAIN CHANNEL [GET]                          #
+#                                                                    #
+######################################################################
+
 /**
 * Get the main channel name.
 * This is entered by the key holder during the setup wizard.
@@ -410,36 +416,75 @@ function twitchpress_update_main_channels_token( $new_token ) {
     return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_token', $new_token );
 }
 
+/**
+* Updates main channels refresh token in options table and object registry.
+* 
+* @param mixed $new_refresh_token
+* 
+* @version 2.0
+*/
 function twitchpress_update_main_channels_refresh_token( $new_refresh_token ) {
     $new_code = sanitize_key( $new_refresh_token );
-    update_option( 'main_channels_refresh_token', sanitize_key( $new_refresh_token ), false ); 
+    update_option( 'twitchpress_main_channels_refresh_token', sanitize_key( $new_refresh_token ), false ); 
     return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_refresh_token', $new_refresh_token );
 }
 
+/**
+* Updates main channels accepted scopes in relation to the owner/admins accepted
+* scopes during authorization. Storing them as the channels scopes is a simplier
+* way to obtain the data. 
+* 
+* Updates option table and object registry.
+* 
+* @param mixed $new_main_channels_scopes
+* 
+* @version 2.0
+*/
 function twitchpress_update_main_channels_scopes( $new_main_channels_scopes ) {
     $new_code = $new_main_channels_scopes;
-    update_option( 'main_channels_scopes', $new_main_channels_scopes, false ); 
+    update_option( 'twitchpress_main_channels_scopes', $new_main_channels_scopes, false ); 
     return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_scopes', $new_main_channels_scopes );
 }
 
+/**
+* Updates option table and object registry with new main channel name.
+* 
+* @param mixed $new_main_channels_name
+* 
+* @version 2.0
+*/
 function twitchpress_update_main_channels_name( $new_main_channels_name ) {
     $new_code = sanitize_key( $new_main_channels_name );
-    update_option( 'main_channels_name', sanitize_key( $new_main_channels_name ), false ); 
+    update_option( 'twitchpress_main_channels_name', sanitize_key( $new_main_channels_name ), false ); 
     return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_name', $new_main_channels_name );
 }
 
+/**
+* Updates option table and object registry with new main channel (twitch)ID.
+* 
+* @param mixed $new_main_channels_id
+* 
+* @version 2.0
+*/
 function twitchpress_update_main_channels_id( $new_main_channels_id ) {
     $new_code = sanitize_key( $new_main_channels_id );
-    update_option( 'main_channels_id', sanitize_key( $new_main_channels_id ), false ); 
+    update_option( 'twitchpress_main_channels_id', sanitize_key( $new_main_channels_id ), false ); 
     return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_id', $new_main_channels_id );
 }
 
+/**
+* Updates option table and object registry with new main channel post ID.
+* 
+* @param mixed $new_main_channels_postid
+* 
+* @version 2.0
+*/
 function twitchpress_update_main_channels_postid( $new_main_channels_postid ) {
     $new_code = sanitize_key( $new_main_channels_postid );
-    update_option( 'main_channels_postid', sanitize_key( $new_main_channels_postid ), false ); 
+    update_option( 'twitchpress_main_channels_postid', sanitize_key( $new_main_channels_postid ), false ); 
     return TwitchPress_Object_Registry::update_var( 'mainchannelauth', 'main_channels_postid', $new_main_channels_postid );
-}
-    
+}              
+             
 ######################################################################
 #                                                                    #
 #                        APPLICATION [GET]                           #
@@ -1466,6 +1511,10 @@ function twitchpress_is_sync_due( $file, $function, $line, $delay ) {
         // Not enough time has passed since the last event. 
         return false;
     }
+}
+
+function twitchpress_flood_protector(  $file, $function, $line, $delay ) {
+    twitchpress_is_sync_due( $file, $function, $line, $delay );    
 }
 
 /**

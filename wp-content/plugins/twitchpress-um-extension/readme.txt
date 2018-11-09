@@ -31,7 +31,7 @@ Currently requires the following plugins:
 *   <a href="https://twitter.com/ryan_r_bayne" title="Follow the projects Tweets.">Developers Twitter</a>     
 *   <a href="https://twitter.com/twitchpress" title="Follow the projects Tweets.">Plugins Twitter</a>     
 *   <a href="https://www.twitch.tv/zypherevolved" title="Follow my Twitch channel.">Authors Twitch</a>     
-*   <a href="https://discord.gg/NaRB3wE" title="Chat about TwitchPress on Discord.">Discord Chat</a>          
+*   <a href="https://discord.gg/ScrhXPE" title="Chat about TwitchPress on Discord.">Discord Chat</a>          
 *   <a href="https://www.patreon.com/zypherevolved" title="">Patreon Donations</a>     
 *   <a href="https://www.paypal.me/zypherevolved" title="">PayPal Donations</a>       
 
@@ -66,7 +66,9 @@ No special upgrade instructions this time.
 == Changelog ==
 = 2.1.0: NOT RELEASED = 
 * Function twitchpress_get_main_channels_twitchid() is now called later in set_twitch_subscribers_um_role() (closer to when needed)
-* 
+* Action edit_user_profile replaced with personal_options_update
+* Now using set_current_user hook to run role updating and this may replace other hooks
+* Added flood prevention to function set_twitch_subscribers_um_role()
 
 = 2.0.0: October 3, 2018 = 
 * Bug fix affecting roles being applied properly. 

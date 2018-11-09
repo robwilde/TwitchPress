@@ -23,15 +23,15 @@ if( !class_exists( 'TwitchPress_Admin_Setup_Wizard' ) ) :
  * @author      Ryan Bayne
  * @category    Admin
  * @package     TwitchPress/Admin
- * @version     1.0.0
+ * @version     2.0
 */
 class TwitchPress_Admin_Setup_Wizard {
 
     /** @var string Current Step */
-    private $step   = '';
+    private $step = '';
 
     /** @var array Steps for the setup wizard */
-    private $steps  = array();
+    private $steps = array();
 
     /** @var boolean Is the wizard optional or required? */
     private $optional = false;
@@ -40,7 +40,7 @@ class TwitchPress_Admin_Setup_Wizard {
      * Hook in tabs.
      */
     public function __construct() {
-        if ( apply_filters( 'twitchpress_enable_setup_wizard', true ) && current_user_can( 'manage_twitchpress' ) ) {
+        if ( apply_filters( 'twitchpress_enable_setup_wizard', true ) && current_user_can( 'activate_plugins' ) ) {
             add_action( 'admin_menu', array( $this, 'admin_menus' ) );
             add_action( 'admin_init', array( $this, 'setup_wizard' ) );
         } 
@@ -258,7 +258,7 @@ class TwitchPress_Admin_Setup_Wizard {
               
         <p class="twitchpress-setup-actions step">
             <a href="https://dev.twitch.tv/dashboard/apps" class="button button-large" target="_blank"><?php _e( 'Manage Twitch Apps', 'twitchpress' ); ?></a>                                                                
-            <a href="https://discord.gg/uu7HyR7" class="button button-large" target="_blank"><?php _e( 'Live Chat Help (Discord)', 'twitchpress' ); ?></a>                
+            <a href="https://discord.gg/ScrhXPE" class="button button-large" target="_blank"><?php _e( 'Live Chat Help (Discord)', 'twitchpress' ); ?></a>                
         </p>
                                                 
         <form method="post">
@@ -630,14 +630,14 @@ class TwitchPress_Admin_Setup_Wizard {
         update_option( 'twitchpress_main_channels_name',  $main_channel,  true );
        
         // Store the application credentials and information related to the where the app is created. 
-        update_option( 'twitchpress_main_redirect_uri',  $redirect_uri,  true );// depreciated use twitchpress_app_redirect
+        update_option( 'twitchpress_main_redirect_uri',  trim( $redirect_uri ),  true );// depreciated use twitchpress_app_redirect
         update_option( 'twitchpress_main_client_id',     $app_id,     true );// depreciated
         update_option( 'twitchpress_main_client_secret', $app_secret, true );// depreciated
  
         // New values going forward in 2018, the above will populate the main channel credentials.  
         twitchpress_update_app_id( $app_id );
         twitchpress_update_app_secret( $app_secret );
-        twitchpress_update_app_redirect( $redirect_uri );
+        twitchpress_update_app_redirect( trim( $redirect_uri ) );
         
         ########################################################################
         #                                                                      #
@@ -749,7 +749,7 @@ class TwitchPress_Admin_Setup_Wizard {
     /**
      * Folders and files step.
      * 
-     * @version 1.2
+     * @version 1.3
      */
     public function twitchpress_setup_folders() { 
         global $bugnet;
@@ -760,7 +760,7 @@ class TwitchPress_Admin_Setup_Wizard {
             __FUNCTION__,
             __FILE__,
             true,
-            __( 'Listener forewarded administrator back to Setup Wizard.', 'twitchpress' )
+            __( 'Listener forwarded administrator back to Setup Wizard.', 'twitchpress' )
         );
         
         $upload_dir = wp_upload_dir();?>
@@ -855,13 +855,7 @@ class TwitchPress_Admin_Setup_Wizard {
                 'description' => __( 'Allow your visitors to login and register using their Twitch account.', 'twitchpress' ),
                 'repo-slug'   => 'twitchpress-login-extension',
                 'source'        => 'remote'
-            ),  
-            'twitchpress-sync-extension' => array(
-                'name'        => __( 'TwitchPress Sync Extension', 'twitchpress' ),
-                'description' => __( 'Required for building an advanced Twitch suite that needs to get data from Twitch.tv regularly.', 'twitchpress' ),
-                'repo-slug'   => 'twitchpress-sync-extension',
-                'source'        => 'remote'
-            ),  
+            ),    
             'twitchpress-um-extension' => array(
                 'name'        => __( 'TwitchPress UM Extension', 'twitchpress' ),
                 'description' => __( 'Requires the Ultimate Member plugin.', 'twitchpress' ),
