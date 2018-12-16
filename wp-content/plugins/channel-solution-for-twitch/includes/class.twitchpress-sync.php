@@ -89,7 +89,7 @@ class TwitchPress_Systematic_Syncing {
     */
     public function systematic_syncing() {          
         // Apply a short delay on all syncing activity. 
-        if( !twitchpress_is_sync_due( __LINE__, __FUNCTION__, __LINE__, 60 ) )
+        if( !twitchpress_is_sync_due( __LINE__, __FUNCTION__, __LINE__, 120 ) )
         {
             return;        
         }
@@ -138,7 +138,7 @@ class TwitchPress_Systematic_Syncing {
             $helix = new TwitchPress_Twitch_API();    
         }
         
-        $id = twitchpress_get_main_channel_id();// Right now everything defaults to the main channel.
+        $id = twitchpress_get_main_channels_twitchid();// Right now everything defaults to the main channel.
 
         $earliest_time = $option['last_time'] + $option['delay'];
         
@@ -553,7 +553,7 @@ class TwitchPress_Systematic_Syncing {
     }
     
     /**
-    * Sync subscription data from Twitch to WP
+    * User side request to Twitch API for subscription data.
     * 
     * @param mixed $wp_user_id
     * @param mixed $notice_output
@@ -700,11 +700,11 @@ class TwitchPress_Systematic_Syncing {
     }   
          
     /**
-    * Saves the users Twitch subscription status for the main channel.
+    * Channel side request for subscription data.
     * 
     * @returns true if a change is made and false if no change to sub status has been made.
     * 
-    * @version 2.2
+    * @version 2.5
     */
     private function main_channel_sub_sync( $user_id, $output_notice = false ) {
         global $bugnet;
@@ -731,7 +731,7 @@ class TwitchPress_Systematic_Syncing {
         $twitch_sub_response = $kraken->getChannelSubscription( $users_twitch_id, $channel_id, $channel_token );
 
         // Get possible existing sub plan from an earlier sub sync...
-        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . twitchpress_get_main_channel_id(), true  );
+        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . $channel_id, true  );
         
         // If Twitch user is a subscriber to channel do_action() early here, maybe a simple thank you notice. 
         if( isset( $twitch_sub_response['error'] ) || $twitch_sub_response === null ) 

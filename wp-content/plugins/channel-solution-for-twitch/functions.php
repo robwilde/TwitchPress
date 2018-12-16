@@ -1,4 +1,42 @@
 <?php  
+add_filter( 'get_avatar', 'twitchpress_slug_get_avatar', 10, 5 );
+function twitchpress_slug_get_avatar( $avatar, $id_or_email, $size, $default, $alt = '' ) {
+  
+    //If is email, try and find user ID...
+    if( !is_numeric( $id_or_email ) ){
+        $user = get_user_by( 'email', $id_or_email );
+        if( $user ){
+            $id_or_email = $user->ID;
+        }
+    }
+
+    //If still no user ID, return...
+    if( !is_numeric( $id_or_email ) ){
+        return $avatar;
+    }
+
+    //Find URL of saved avatar in user meta...
+    $saved = get_user_meta( $id_or_email, 'twitchpress_avatar_url', true );  
+     
+    //check if it is a URL
+    if( filter_var( $saved, FILTER_VALIDATE_URL ) ) {
+        //return saved image
+        return sprintf( '<img src="%s?s=%" alt="%" />', esc_url( $saved ), $size, esc_attr( $alt ) );
+    }
+
+    //return normal
+    return $avatar;
+
+}
+
+function twitchpress_update_user_meta_avatar( $wp_user_id, $url ) {     
+    if( isset( $url ) && $url )
+    {   
+        return update_user_meta( $wp_user_id, 'twitchpress_avatar_url', $url );                    
+    }    
+    return false;
+}
+
 /**
 * Redirect during shortcode processing, 
 * with parameters for displaying a front-end notice.
@@ -66,12 +104,9 @@ function twitchpress_scopes( $scope_only = false ) {
         'channel_check_subscription' => array(),
         'channel_commercial'         => array(),
         'channel_editor'             => array(),
-        'channel_feed_edit'          => array(),
-        'channel_feed_read'          => array(),
         'channel_read'               => array(),
         'channel_stream'             => array(),
         'channel_subscriptions'      => array(),
-        'chat_login'                 => array(),
         'collections_edit'           => array(),
         'communities_edit'           => array(),
         'communities_moderate'       => array(),
@@ -81,7 +116,17 @@ function twitchpress_scopes( $scope_only = false ) {
         'user_read'                  => array(),
         'user_subscriptions'         => array(),
         'viewing_activity_read'      => array(),
-        'openid'                     => array()        
+        'openid'                     => array(),           /* New Helix Scopes */
+        'analytics:read:extensions'  => array(),// View analytics data for your extensions.
+        'analytics:read:games'       => array(),// View analytics data for your games.
+        'bits:read'                  => array(),// View Bits information for your channel.
+        'clips:edit'                 => array(),// Manage a clip object.
+        'user:edit'                  => array(),// Manage a user object.
+        'user:edit:broadcast'        => array(),// Edit your channel’s broadcast configuration, including extension configuration. (This scope implies user:read:broadcast capability.)
+        'user:read:broadcast'        => array(),// View your broadcasting configuration, including extension configurations.
+        'user:read:email'            => array(),// Read authorized user’s email address. 
+        'chat:read'                  => array(), 
+        'chat:edit'                  => array(),               
     );
 
     // We can return scopes without additional information.
@@ -99,15 +144,22 @@ function twitchpress_scopes( $scope_only = false ) {
     $scope['channel_subscriptions']['label']      = __( 'Get Your Subscribers', 'twitchpress' );
     $scope['user_subscriptions']['label']         = __( 'Get Your Subscriptions', 'twitchpress' );
     $scope['channel_check_subscription']['label'] = __( 'Check Viewers Subscription', 'twitchpress' );
-    $scope['chat_login']['label']                 = __( 'Chat Permission', 'twitchpress' );
-    $scope['channel_feed_read']['label']          = __( 'Get Channel Feed', 'twitchpress' );
-    $scope['channel_feed_edit']['label']          = __( 'Post To Channels Feed', 'twitchpress' );
     $scope['communities_edit']['label']           = __( 'Manage Users Communities', 'twitchpress' );
     $scope['communities_moderate']['label']       = __( 'Manage Community Moderators', 'twitchpress' );
     $scope['collections_edit']['label']           = __( 'Manage Video Collections', 'twitchpress' );
     $scope['viewing_activity_read']['label']      = __( 'Viewer Heartbeat Service', 'twitchpress' );
-    $scope['openid']['label']                     = __( 'OpenID Connect Service', 'twitchpress' );
-            
+    $scope['openid']['label']                     = __( 'OpenID Connect Service', 'twitchpress' );    
+    $scope['analytics:read:extensions']['label']  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['analytics:read:games']['label']       = __( 'New Helix Scope', 'twitchpress' );
+    $scope['bits:read']['label']                  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['clips:edit']['label']                 = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:edit']['label']                  = __( 'New Helix Scope', 'twitchpress' );      
+    $scope['user:edit:broadcast']['label']        = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:read:broadcast']['label']        = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:read:email']['label']            = __( 'New Helix Scope', 'twitchpress' );
+    $scope['chat:read']['label']                  = __( 'New Helix Scope', 'twitchpress' );                    
+    $scope['chat:edit']['label']                  = __( 'New Helix Scope', 'twitchpress' );                    
+    
     // Add official api descriptions - copied from official API documention.
     $scope['user_read']['apidesc']                  = __( 'Read access to non-public user information, such as email address.', 'twitchpress' );
     $scope['user_blocks_edit']['apidesc']           = __( 'Ability to ignore or unignore on behalf of a user.', 'twitchpress' );
@@ -120,14 +172,21 @@ function twitchpress_scopes( $scope_only = false ) {
     $scope['channel_subscriptions']['apidesc']      = __( 'Read access to all subscribers to your channel.', 'twitchpress' );
     $scope['user_subscriptions']['apidesc']         = __( 'Read access to subscriptions of a user.', 'twitchpress' );
     $scope['channel_check_subscription']['apidesc'] = __( 'Read access to check if a user is subscribed to your channel.', 'twitchpress' );
-    $scope['chat_login']['apidesc']                 = __( 'Ability to log into chat and send messages', 'twitchpress' );
-    $scope['channel_feed_read']['apidesc']          = __( 'Ability to view to a channel feed.', 'twitchpress' );
-    $scope['channel_feed_edit']['apidesc']          = __( 'Ability to add posts and reactions to a channel feed.', 'twitchpress' );
     $scope['communities_edit']['apidesc']           = __( 'Manage a user’s communities.', 'twitchpress' );
     $scope['communities_moderate']['apidesc']       = __( 'Manage community moderators.', 'twitchpress' );
     $scope['collections_edit']['apidesc']           = __( 'Manage a user’s collections (of videos).', 'twitchpress' );
     $scope['viewing_activity_read']['apidesc']      = __( 'Turn on Viewer Heartbeat Service ability to record user data.', 'twitchpress' );
-    $scope['openid']['apidesc']                     = __( 'Use OpenID Connect authentication.', 'twitchpress' );
+    $scope['openid']['apidesc']                     = __( 'Use OpenID Connect authentication.', 'twitchpress' );    
+    $scope['analytics:read:extensions']['apidesc']  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['analytics:read:games']['apidesc']       = __( 'New Helix Scope', 'twitchpress' );
+    $scope['bits:read']['apidesc']                  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['clips:edit']['apidesc']                 = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:edit']['apidesc']                  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:edit:broadcast']['apidesc']        = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:read:broadcast']['apidesc']        = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:read:email']['apidesc']            = __( 'New Helix Scope', 'twitchpress' );
+    $scope['chat:read']['apidesc']                  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['chat:edit']['apidesc']                  = __( 'New Helix Scope', 'twitchpress' );
             
     // Add user-friendly descriptions.
     $scope['user_read']['userdesc']                  = __( 'Get email address.', 'twitchpress' );
@@ -141,15 +200,22 @@ function twitchpress_scopes( $scope_only = false ) {
     $scope['channel_subscriptions']['userdesc']      = __( 'Read access to all subscribers to your channel.', 'twitchpress' );
     $scope['user_subscriptions']['userdesc']         = __( 'Permission to get your subscriptions.', 'twitchpress' );
     $scope['channel_check_subscription']['userdesc'] = __( 'Read access to check if a user is subscribed to your channel.', 'twitchpress' );
-    $scope['chat_login']['userdesc']                 = __( 'Ability to log into your chat and send messages', 'twitchpress' );
-    $scope['channel_feed_read']['userdesc']          = __( 'Ability to import your channel feed.', 'twitchpress' );
-    $scope['channel_feed_edit']['userdesc']          = __( 'Ability to add posts and reactions to your channel feed.', 'twitchpress' );
-    $scope['communities_edit']['label']              = __( 'Manage your user’s communities.', 'twitchpress' );
-    $scope['communities_moderate']['label']          = __( 'Manage your community moderators.', 'twitchpress' );
-    $scope['collections_edit']['label']              = __( 'Manage your collections (of videos).', 'twitchpress' );
-    $scope['viewing_activity_read']['label']         = __( 'Turn on Viewer Heartbeat Service to record your user data.', 'twitchpress' );
-    $scope['openid']['label']                        = __( 'Allow your OpenID Connect for authentication on this site.', 'twitchpress' );
-    
+    $scope['communities_edit']['userdesc']           = __( 'Manage your user’s communities.', 'twitchpress' );
+    $scope['communities_moderate']['userdesc']       = __( 'Manage your community moderators.', 'twitchpress' );
+    $scope['collections_edit']['userdesc']           = __( 'Manage your collections (of videos).', 'twitchpress' );
+    $scope['viewing_activity_read']['userdesc']      = __( 'Turn on Viewer Heartbeat Service to record your user data.', 'twitchpress' );
+    $scope['openid']['userdesc']                     = __( 'Allow your OpenID Connect for authentication on this site.', 'twitchpress' );
+    $scope['analytics:read:extensions']['userdesc']  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['analytics:read:games']['userdesc']       = __( 'New Helix Scope', 'twitchpress' );
+    $scope['bits:read']['userdesc']                  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['clips:edit']['userdesc']                 = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:edit']['userdesc']                  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:edit:broadcast']['userdesc']        = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:read:broadcast']['userdesc']        = __( 'New Helix Scope', 'twitchpress' );
+    $scope['user:read:email']['userdesc']            = __( 'New Helix Scope', 'twitchpress' );
+    $scope['chat:read']['userdesc']                  = __( 'New Helix Scope', 'twitchpress' );
+    $scope['chat:edit']['userdesc']                  = __( 'New Helix Scope', 'twitchpress' );
+              
     return $scope;  
 }   
     
@@ -510,7 +576,7 @@ function twitchpress_get_app_redirect() {
     $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
     return isset( $obj->app_redirect ) ? $obj->app_redirect : null; 
 }
-
+                   
 function twitchpress_get_app_token() {
     $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
     return isset( $obj->app_token ) ? $obj->app_token : null;    
@@ -518,7 +584,7 @@ function twitchpress_get_app_token() {
 
 function twitchpress_get_app_token_scopes() {
     $obj = TwitchPress_Object_Registry::get( 'twitchapp' );
-    return isset( $obj->token_scopes ) ? $obj->token_scopes : null;    
+    return isset( $obj->app_scopes ) ? $obj->app_scopes : null;    
 }
 
 function twitchpress_get_app_token_expiry() {
@@ -592,11 +658,11 @@ function twitchpress_get_global_accepted_scopes() {
     $global_accepted_scopes = array();
 
     foreach( twitchpress_scopes( true ) as $key => $scope ) {
-        if( get_option( 'twitchpress_scope_' . $scope ) == 'yes' ) {
+        if( get_option( 'twitchpress_scope_' . str_replace( ':', '_', $scope ) ) == 'yes' ) {
             $global_accepted_scopes[] = $scope;
         }
     }       
-    
+   
     return $global_accepted_scopes;
 }
 
@@ -668,13 +734,13 @@ function twitchpress_generate_authorization_url( $permitted_scopes, $local_state
     $scope = twitchpress_prepare_scopes( $permitted_scopes, true );
 
     // Build oauth2 URL.
-    $url = 'https://api.twitch.tv/kraken/oauth2/authorize?' .
+    $url = 'https://id.twitch.tv/oauth2/authorize?' .
         'response_type=code' . '&' .
         'client_id=' . twitchpress_get_app_id() . '&' .
-        'redirect_uri=' . twitchpress_get_app_redirect() . '&' .
+        'redirect_uri=' . get_option( 'twitchpress_app_redirect', 'Redirect Value Not Set In WordPress' ) . '&' .
         'scope=' . $scope . '&' .
         'state=' . $local_state['random14'];
-        
+                                 
     $bugnet->log( __FUNCTION__, sprintf( __( 'The oAuth2 URL is %s.', 'twitchpress' ), $url ), array(), true, false );
     
     return $url;       
@@ -719,7 +785,7 @@ function twitchpress_is_dashboard() {
 * Use to check for Ajax or XMLRPC request. Use this function to avoid
 * running none urgent tasks during existing operations and demanding requests.
 */
-function twitchpress_is_background_process() {        
+function twitchpress_is_background_process() {   
     if ( ( 'wp-login.php' === basename( $_SERVER['SCRIPT_FILENAME'] ) )
             || ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST )
             || ( defined( 'DOING_CRON' ) && DOING_CRON )
@@ -1224,8 +1290,31 @@ function var_dump_twitchpress( $var ) {
     echo '<pre>'; var_dump( $var ); echo '</pre>';
 }
 
-function twitchpress_var_dump( $var ) {
-    return var_dump_twitchpress( $var );    
+function twitchpress_var_dump( $var, $function = null, $line = null, $file = null, $wp_die = false  ) {
+                                    
+    if( !twitchpress_are_errors_allowed() ){ return false; }
+    
+    $header = '';
+    if( $function ) {
+        $header .= 'Function: ' . $function . ' '; 
+    }
+    if( $line ) {
+        $header .= 'Line: ' . $line . ' ';    
+    }
+    if( $file ) {
+        $header .= 'File: ' . $file . ' ';    
+    }
+    if( $header ) {
+        echo '<h4>' . $header . '</h4>';     
+    }
+    
+    if( !function_exists( 'wp_get_current_user' ) ) { return null; }
+    
+    echo '<pre>'; var_dump( $var ); echo '</pre>';   
+    
+    if( $wp_die ) {
+        wp_die(); 
+    } 
 }
 
 function wp_die_twitchpress( $html ) {
@@ -1242,30 +1331,31 @@ function wp_die_twitchpress( $html ) {
 * @version 1.0
 */
 function twitchpress_are_errors_allowed() {
-    if( twitchpress_is_background_process() ) { 
+
+    if( twitchpress_is_background_process() ) {  
         return false; 
-    }        
-                     
+    }    
+               
     if( !get_option( 'twitchpress_displayerrors' ) || get_option( 'twitchpress_displayerrors' ) !== 'yes' ) {
-        return false;
+       return false;
     }
 
     // We can bypass the protection to display errors for a specified user.
-    if( 'BYPASS' == get_option( 'bugnet_error_dump_user_id') ) {
-        return true;    
+    if( 'BYPASS' == get_option( 'bugnet_error_dump_user_id') ) {  
+       return true;    
     } 
     
     // A value of ADMIN allows anyone with "activate_plugins" permission to see errors.
-    if( !current_user_can( 'activate_plugins' ) ) {
-        return false;
+    if( !current_user_can( 'activate_plugins' ) ) {    
+       return false;
     }  
-    elseif( 'ADMIN' == get_option( 'bugnet_error_dump_user_id') ) {
-        return true;    
+    elseif( 'ADMIN' == get_option( 'bugnet_error_dump_user_id') ) { 
+       return true;    
     }
-    
+
     // Match current users ID to the entered ID which restricts error display to a single user.
-    if( get_current_user_id() != get_option( 'bugnet_error_dump_user_id') ) {
-        return false;    
+    if( get_current_user_id() != get_option( 'bugnet_error_dump_user_id') ) {  
+       return false;    
     } 
     
     return true;
@@ -1474,7 +1564,7 @@ function twitchpress_add_sync_timing( $file, $function, $line, $delay ) {
 
 /**
 * A standard method for establishing time delay and if a giving method is
-* due to run. Use this within any procedure to end it short or continue. 
+* due to run. Use this within any function/method to end it early. 
 * 
 * Sets new time() if due to make it easier to manage delays within procedures. 
 * 
@@ -1534,14 +1624,99 @@ function twitchpress_is_current_user_main_channel_owner( $user_id = null ) {
 }
 
 /**
-* Returns the user meta value for the last time their Twitch data
-* was synced with WordPress. Value is 
+* Returns the user meta value for the last time their Twitch data (as a whole)
+* was synced with WordPress. Do not use this when dealing with individual
+* values such as the users Twitch subscription to the main channel. 
 * 
 * @returns integer time set using time() or false/null. 
 * @version 1.0
 */
 function twitchpress_get_user_sync_time( $user_id ) {
     return get_user_meta( $user_id, 'twitchpress_sync_time', true );
+}
+
+/**
+* Use when handling the WordPress current authenticated user. 
+* 
+* This function is used to determine if the current user needs to be
+* processed within the function or should the procedure be ended early. 
+* 
+* @version 1.0
+*/
+function twitchpress_is_current_user_sync_due( $function, $line, $file, $seconds ) {
+    return twitchpress_is_users_sync_due( TWITCHPRESS_CURRENTUSERID, $function, $line, $file, $seconds );
+}
+
+/**
+* Not the same as twitchpress_get_user_sync_time() which is a basic timer for
+* when syncing large amounts of data. 
+* 
+* This function can be used when making calls to the API for smaller amounts of data
+* and so allows anti-flooding in more locations while not using a single value to
+* block all requests.
+* 
+* @param mixed $wp_user_id
+* @param mixed $function
+* @param mixed $line
+* @param mixed $file
+* @param mixed $seconds
+* 
+* @version 2.0
+*/
+function twitchpress_is_users_sync_due( $wp_user_id, $function, $line, $file, $seconds ) {
+  
+    $sync_data = twitchpress_get_current_user_sync_transient();
+    if( isset( $sync_data[ $wp_user_id ][$function][$line][$file] ) )
+    {
+        $earliest_time = $sync_data[ $wp_user_id ][$function][$line][$file] + $seconds; 
+        
+        if( $earliest_time < time() )
+        {
+            $sync_data[ $wp_user_id ][$function][$line][$file] = time();
+            
+            twitchpress_update_current_user_sync_transient( $sync_data );
+            
+            return true;// because $seconds have passed since the last sync! 
+        }    
+        else
+        {
+            return false;// because $seconds have not yet passed since the last sync!
+        }
+    }
+    else
+    {   
+        $sync_data[ $wp_user_id ][$function][$line][$file] = time();
+        twitchpress_update_current_user_sync_transient( $sync_data );
+        return true;    
+    }
+}
+
+function twitchpress_update_current_user_sync_transient( $sync_data ) {
+    delete_transient( 'twitchpress_current_user_syncing_' . date('Ymd') );
+    set_transient( 'twitchpress_current_user_syncing_' . date('Ymd'), $sync_data, 3600 );    
+}
+
+/**
+* A daily transient is created for storing some user related sync data. Rather than
+* make many user meta data values we maintain one array and can add it to the object
+* registry after it's initial use. 
+* 
+* @returns boolean false if no data has been set before else returns array
+* 
+* @version 1.0 
+*/
+function twitchpress_get_current_user_sync_transient() {
+    $transient_name = 'twitchpress_current_user_syncing_' . date('Ymd');
+
+    // Get or set transient array of user sync times...
+    $trans_val = get_transient( $transient_name );
+    if( $trans_val && !is_array( $trans_val ) ) 
+    {
+        twitchpress_update_current_user_sync_transient( array() );
+        return false; 
+    }
+    
+    return $trans_val;
 }
 
 /**

@@ -71,7 +71,7 @@ function twitchpress_options_twitch_api() {
     $arr[ 'twitchpress_app_secret' ] = array();// Client Secret
     $arr[ 'twitchpress_app_redirect' ] = array();// Redirect URL
     $arr[ 'twitchpress_app_token' ] = array();// Generated Token
-    $arr[ 'twitchpress_app_token_scopes' ] = array();// Tokens Scopes
+    $arr[ 'twitchpress_app_scopes' ] = array();// Tokens Scopes
     $arr[ 'twitchpress_app_expiry' ] = array();// Tokens Scopes
     
     // API calls made on behalf 
@@ -191,12 +191,9 @@ function twitchpress_options_scope() {
     $arr[ 'twitchpress_scope_channel_check_subscription' ] = array();
     $arr[ 'twitchpress_scope_channel_commercial' ] = array();
     $arr[ 'twitchpress_scope_channel_editor' ] = array();
-    $arr[ 'twitchpress_scope_channel_feed_edit' ] = array();
-    $arr[ 'twitchpress_scope_channel_feed_read' ] = array();
     $arr[ 'twitchpress_scope_channel_read' ] = array();
     $arr[ 'twitchpress_scope_channel_stream' ] = array();
     $arr[ 'twitchpress_scope_channel_subscriptions' ] = array();
-    $arr[ 'twitchpress_scope_chat_login' ] = array();
     $arr[ 'twitchpress_scope_collections_edit' ] = array();
     $arr[ 'twitchpress_scope_communities_edit' ] = array();
     $arr[ 'twitchpress_scope_communities_moderate' ] = array();
@@ -219,12 +216,9 @@ function twitchpress_options_visitor_scope() {
     $arr[ 'twitchpress_visitor_scope_channel_check_subscription' ] = array();
     $arr[ 'twitchpress_visitor_scope_channel_commercial' ] = array();
     $arr[ 'twitchpress_visitor_scope_channel_editor' ] = array();
-    $arr[ 'twitchpress_visitor_scope_channel_feed_edit' ] = array();
-    $arr[ 'twitchpress_visitor_scope_channel_feed_read' ] = array();
     $arr[ 'twitchpress_visitor_scope_channel_read' ] = array();
     $arr[ 'twitchpress_visitor_scope_channel_stream' ] = array();
     $arr[ 'twitchpress_visitor_scope_channel_subscriptions' ] = array();
-    $arr[ 'twitchpress_visitor_scope_chat_login' ] = array();
     $arr[ 'twitchpress_visitor_scope_collections_edit' ] = array();
     $arr[ 'twitchpress_visitor_scope_communities_edit' ] = array();
     $arr[ 'twitchpress_visitor_scope_communities_moderate' ] = array();

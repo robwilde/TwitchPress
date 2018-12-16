@@ -329,40 +329,7 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
                     'autoload'        => false,
                     'scope'           => 'channel_check_subscription',
                 ),
-                
-                array(
-                    'desc'            => __( 'chat_login: Ability to log into chat and send messages.', 'twitchpress' ),
-                    'id'              => 'twitchpress_scope_chat_login',
-                    'default'         => $default,
-                    'type'            => 'scopecheckbox',
-                    'checkboxgroup'   => '',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                    'scope'           => 'chat_login',
-                ),
               
-                array(
-                    'desc'            => __( 'channel_feed_read: Ability to view to a channel feed.', 'twitchpress' ),
-                    'id'              => 'twitchpress_scope_channel_feed_read',
-                    'default'         => $default,
-                    'type'            => 'scopecheckbox',
-                    'checkboxgroup'   => '',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                    'scope'           => 'channel_feed_read',
-                ),
-                
-                array(
-                    'desc'            => __( 'channel_feed_edit: Ability to add posts and reactions to a channel feed."', 'twitchpress' ),
-                    'id'              => 'twitchpress_scope_channel_feed_edit',
-                    'default'         => $default,
-                    'type'            => 'scopecheckbox',
-                    'checkboxgroup'   => '',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                    'scope'           => 'channel_feed_edit',
-                ),
-
                 array(
                     'desc'            => __( 'communities_edit: Manage a user’s communities."', 'twitchpress' ),
                     'id'              => 'twitchpress_scope_communities_edit',
@@ -394,17 +361,6 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
                     'show_if_checked' => 'yes',
                     'autoload'        => false,
                     'scope'           => 'collections_edit',
-                ),
-
-                array(
-                    'desc'            => __( 'channel_feed_edit: Turn on Viewer Heartbeat Service ability to record user data."', 'twitchpress' ),
-                    'id'              => 'twitchpress_scope_viewing_activity_read',
-                    'default'         => $default,
-                    'type'            => 'scopecheckbox',
-                    'checkboxgroup'   => 'end',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                    'scope'           => 'viewing_activity_read',
                 ),
  
                 array(
@@ -540,40 +496,7 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
                     'autoload'        => false,
                     'scope'           => 'channel_check_subscription',
                 ),
-                
-                array(
-                    'desc'            => __( 'chat_login: Ability to log into chat and send messages.', 'twitchpress' ),
-                    'id'              => 'twitchpress_visitor_scope_chat_login',
-                    'default'         => $default,
-                    'type'            => 'scopecheckboxpublic',
-                    'checkboxgroup'   => '',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                    'scope'           => 'chat_login',
-                ),
-              
-                array(
-                    'desc'            => __( 'channel_feed_read: Ability to view to a channel feed.', 'twitchpress' ),
-                    'id'              => 'twitchpress_visitor_scope_channel_feed_read',
-                    'default'         => $default,
-                    'type'            => 'scopecheckboxpublic',
-                    'checkboxgroup'   => '',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                    'scope'           => 'channel_feed_read',
-                ),
-                
-                array(
-                    'desc'            => __( 'channel_feed_edit: Ability to add posts and reactions to a channel feed."', 'twitchpress' ),
-                    'id'              => 'twitchpress_visitor_scope_channel_feed_edit',
-                    'default'         => $default,
-                    'type'            => 'scopecheckboxpublic',
-                    'checkboxgroup'   => '',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                    'scope'           => 'channel_feed_edit',
-                ),
-
+                              
                 array(
                     'desc'            => __( 'communities_edit: Manage a user’s communities."', 'twitchpress' ),
                     'id'              => 'twitchpress_visitor_scope_communities_edit',
@@ -605,17 +528,6 @@ class TwitchPress_Settings_Kraken extends TwitchPress_Settings_Page {
                     'show_if_checked' => 'yes',
                     'autoload'        => false,
                     'scope'           => 'collections_edit',
-                ),
-
-                array(
-                    'desc'            => __( 'channel_feed_edit: Turn on Viewer Heartbeat Service ability to record user data."', 'twitchpress' ),
-                    'id'              => 'twitchpress_visitor_scope_viewing_activity_read',
-                    'default'         => $default,
-                    'type'            => 'scopecheckboxpublic',
-                    'checkboxgroup'   => 'end',
-                    'show_if_checked' => 'yes',
-                    'autoload'        => false,
-                    'scope'           => 'viewing_activity_read',
                 ),
  
                 array(

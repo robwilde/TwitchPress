@@ -104,6 +104,7 @@ class TwitchPress_Admin_Setup_Wizard {
                 'handler' => ''
             )
         );
+        
         $this->step = isset( $_GET['step'] ) ? sanitize_key( $_GET['step'] ) : current( array_keys( $this->steps ) );
         $suffix     = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
@@ -326,13 +327,6 @@ class TwitchPress_Admin_Setup_Wizard {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="twitchpress_scope_channel_read"><?php _e( 'channel_read', 'twitchpress' ); ?></label></th>
-                    <td>
-                        <input type="checkbox" id="twitchpress_scope_channel_read" name="twitchpress_scopes[]" class="input-checkbox" value="channel_read" <?php checked( get_option( 'twitchpress_scope_channel_read' ), 'yes', true ); ?> />
-                        <label for="twitchpress_scope_channel_read"><?php _e( 'Read access to non-public channel information, including email address and stream key.', 'twitchpress' ); ?></label>
-                    </td>
-                </tr>
-                <tr>
                     <th scope="row"><label for="twitchpress_scope_channel_editor"><?php _e( 'channel_editor', 'twitchpress' ); ?></label></th>
                     <td>
                         <input type="checkbox" id="twitchpress_scope_channel_editor" name="twitchpress_scopes[]" class="input-checkbox" value="channel_editor" <?php checked( get_option( 'twitchpress_scope_channel_editor' ), 'yes', true ); ?> />
@@ -375,27 +369,6 @@ class TwitchPress_Admin_Setup_Wizard {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="twitchpress_scope_chat_login"><?php _e( 'chat_login', 'twitchpress' ); ?></label></th>
-                    <td>
-                        <input type="checkbox" id="twitchpress_scope_chat_login" name="twitchpress_scopes[]" class="input-checkbox" value="chat_login" <?php checked( get_option( 'twitchpress_scope_chat_login' ), 'yes', true ); ?> />
-                        <label for="twitchpress_scope_chat_login"><?php _e( 'Ability to log into chat and send messages.', 'twitchpress' ); ?></label>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="twitchpress_scope_channel_feed_read"><?php _e( 'channel_feed_read', 'twitchpress' ); ?></label></th>
-                    <td>
-                        <input type="checkbox" id="twitchpress_scope_channel_feed_read" name="twitchpress_scopes[]" class="input-checkbox" value="channel_feed_read" <?php checked( get_option( 'twitchpress_scope_channel_feed_read' ), 'yes', true ); ?> />
-                        <label for="twitchpress_scope_channel_feed_read"><?php _e( 'Ability to view to a channel feed.', 'twitchpress' ); ?></label>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="twitchpress_scope_channel_feed_edit"><?php _e( 'channel_feed_edit', 'twitchpress' ); ?></label></th>
-                    <td>
-                        <input type="checkbox" id="twitchpress_scope_channel_feed_edit" name="twitchpress_scopes[]" class="input-checkbox" value="channel_feed_edit" <?php checked( get_option( 'twitchpress_scope_channel_feed_edit' ), 'yes', true ); ?> />
-                        <label for="twitchpress_scope_channel_feed_edit"><?php _e( 'Ability to add posts and reactions to a channel feed.', 'twitchpress' ); ?></label>
-                    </td>
-                </tr>
-                <tr>
                     <th scope="row"><label for="twitchpress_scope_communities_edit"><?php _e( 'communities_edit', 'twitchpress' ); ?></label></th>
                     <td>
                         <input type="checkbox" id="twitchpress_scope_communities_edit" name="twitchpress_scopes[]" class="input-checkbox" value="communities_edit" <?php checked( get_option( 'twitchpress_scope_communities_edit' ), 'yes', true ); ?> />
@@ -430,8 +403,79 @@ class TwitchPress_Admin_Setup_Wizard {
                         <label for="twitchpress_scope_openid"><?php _e( 'Give permission  for the site to use OpenID Connect authentication.', 'twitchpress' ); ?></label>
                     </td>
                 </tr>
-            </table>    
-                
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_analytics_read_extensions"><?php _e( 'analytics:read:extensions', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_analytics_read_extensions" name="twitchpress_scopes[]" class="input-checkbox" value="analytics_read_extensions" <?php checked( get_option( 'twitchpress_scope_analytics_read_extensions' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_analytics_read_extensions"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_analytics_read_games"><?php _e( 'analytics:read:games', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_analytics_read_games" name="twitchpress_scopes[]" class="input-checkbox" value="analytics_read_games" <?php checked( get_option( 'twitchpress_scope_analytics_read_games' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_analytics_read_games"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_bits_read"><?php _e( 'bits:read', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_bits_read" name="twitchpress_scopes[]" class="input-checkbox" value="bits_read" <?php checked( get_option( 'twitchpress_scope_bits_read' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_bits_read"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_clips_edit"><?php _e( 'clips:edit', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_clips_edit" name="twitchpress_scopes[]" class="input-checkbox" value="clips_edit" <?php checked( get_option( 'twitchpress_scope_clips_edit' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_clips_edit"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_user_edit"><?php _e( 'user:edit', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_user_edit" name="twitchpress_scopes[]" class="input-checkbox" value="user_edit" <?php checked( get_option( 'twitchpress_scope_user_edit' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_user_edit"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_user_edit_broadcast"><?php _e( 'user:edit:broadcast', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_user_edit_broadcast" name="twitchpress_scopes[]" class="input-checkbox" value="user_edit_broadcast" <?php checked( get_option( 'twitchpress_scope_user_edit_broadcast' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_user_edit_broadcast"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_user_read_broadcast"><?php _e( 'user:read:broadcast', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_user_read_broadcast" name="twitchpress_scopes[]" class="input-checkbox" value="user_read_broadcast" <?php checked( get_option( 'twitchpress_scope_user_read_broadcast' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_user_read_broadcast"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_user_read_email"><?php _e( 'user:read:email', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_user_read_email" name="twitchpress_scopes[]" class="input-checkbox" value="user_read_email" <?php checked( get_option( 'twitchpress_scope_user_read_email' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_user_read_email"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_chat_read"><?php _e( 'chat:read', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_chat_read" name="twitchpress_scopes[]" class="input-checkbox" value="chat_read" <?php checked( get_option( 'twitchpress_scope_chat_read' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_chat_read"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_scope_chat_edit"><?php _e( 'chat:edit', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_scope_chat_edit" name="twitchpress_scopes[]" class="input-checkbox" value="chat_edit" <?php checked( get_option( 'twitchpress_scope_chat_edit' ), 'yes', true ); ?> />
+                        <label for="twitchpress_scope_chat_edit"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+
+            </table>  
+                    
             <h3><?php _e( 'Permissions Scope for Visitors', 'twitchpress' ); ?></h3>
             <p><?php _e( 'Select the scopes that will be needed for public features. Most sites will only need 2-3 scopes unless you are building a Twitch suite for full channel management. Visitors will be shown your selected scopes during an oAuth2 request.', 'twitchpress' ); ?></p>
              
@@ -442,7 +486,7 @@ class TwitchPress_Admin_Setup_Wizard {
                         <input type="checkbox" id="twitchpress_visitor_scope_user_read" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="user_read" <?php checked( get_option( 'twitchpress_visitor_scope_user_read' ), 'yes', true ); ?> />
                         <label for="twitchpress_visitor_scope_user_read"><?php _e( 'Read access to non-public user information, such as email address.', 'twitchpress' ); ?></label>
                     </td>
-                </tr>
+                </tr>                
                 <tr>
                     <th scope="row"><label for="twitchpress_visitor_scope_user_blocks_edit"><?php _e( 'user_blocks_edit', 'twitchpress' ); ?></label></th>
                     <td>
@@ -514,27 +558,6 @@ class TwitchPress_Admin_Setup_Wizard {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="twitchpress_visitor_scope_chat_login"><?php _e( 'chat_login', 'twitchpress' ); ?></label></th>
-                    <td>
-                        <input type="checkbox" id="twitchpress_visitor_scope_chat_login" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="chat_login" <?php checked( get_option( 'twitchpress_visitor_scope_chat_login' ), 'yes', true ); ?> />
-                        <label for="twitchpress_visitor_scope_chat_login"><?php _e( 'Ability to log into chat and send messages.', 'twitchpress' ); ?></label>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="twitchpress_visitor_scope_channel_feed_read"><?php _e( 'channel_feed_read', 'twitchpress' ); ?></label></th>
-                    <td>
-                        <input type="checkbox" id="twitchpress_visitor_scope_channel_feed_read" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="channel_feed_read" <?php checked( get_option( 'twitchpress_visitor_scope_channel_feed_read' ), 'yes', true ); ?> />
-                        <label for="twitchpress_visitor_scope_channel_feed_read"><?php _e( 'Ability to view to a channel feed.', 'twitchpress' ); ?></label>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="twitchpress_visitor_scope_channel_feed_edit"><?php _e( 'channel_feed_edit', 'twitchpress' ); ?></label></th>
-                    <td>
-                        <input type="checkbox" id="twitchpress_visitor_scope_channel_feed_edit" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="channel_feed_edit" <?php checked( get_option( 'twitchpress_visitor_scope_channel_feed_edit' ), 'yes', true ); ?> />
-                        <label for="twitchpress_visitor_scope_channel_feed_edit"><?php _e( 'Ability to add posts and reactions to a channel feed.', 'twitchpress' ); ?></label>
-                    </td>
-                </tr>
-                <tr>
                     <th scope="row"><label for="twitchpress_visitor_scope_communities_edit"><?php _e( 'communities_edit', 'twitchpress' ); ?></label></th>
                     <td>
                         <input type="checkbox" id="twitchpress_visitor_scope_communities_edit" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="communities_edit" <?php checked( get_option( 'twitchpress_visitor_scope_communities_edit' ), 'yes', true ); ?> />
@@ -569,8 +592,79 @@ class TwitchPress_Admin_Setup_Wizard {
                         <label for="twitchpress_visitor_scope_openid"><?php _e( 'Give permission  for the site to use OpenID Connect authentication.', 'twitchpress' ); ?></label>
                     </td>
                 </tr>
- 
-            </table>        
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_analytics_read_extensions"><?php _e( 'analytics:read:extensions', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_analytics_read_extensions" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="analytics_read_extensions" <?php checked( get_option( 'twitchpress_visitor_scope_analytics_read_extensions' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_analytics_read_extensions"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>         
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_analytics_read_games"><?php _e( 'analytics:read:games', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_analytics_read_games" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="analytics_read_games" <?php checked( get_option( 'twitchpress_visitor_scope_analytics_read_games' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_analytics_read_games"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_bits_read"><?php _e( 'bits:read', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_bits_read" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="bits_read" <?php checked( get_option( 'twitchpress_visitor_scope_bits_read' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_bits_read"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_clips_edit"><?php _e( 'clips:edit', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_clips_edit" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="clips_edit" <?php checked( get_option( 'twitchpress_visitor_scope_clips_edit' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_clips_edit"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_user_edit"><?php _e( 'user:edit', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_user_edit" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="user_edit" <?php checked( get_option( 'twitchpress_visitor_scope_user_edit' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_user_edit"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_user_edit_broadcast"><?php _e( 'user:edit:broadcast', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_user_edit_broadcast" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="user_edit_broadcast" <?php checked( get_option( 'twitchpress_visitor_scope_user_edit_broadcast' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_user_edit_broadcast"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_user_read_broadcast"><?php _e( 'user:read:broadcast', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_user_read_broadcast" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="user_read_broadcast" <?php checked( get_option( 'twitchpress_visitor_scope_user_read_broadcast' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_user_read_broadcast"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_user_read_email"><?php _e( 'user:read:email', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_user_read_email" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="user_read_email" <?php checked( get_option( 'twitchpress_visitor_scope_user_read_email' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_user_read_email"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>        
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_chat_edit"><?php _e( 'chat:edit', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_chat_edit" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="chat_edit" <?php checked( get_option( 'twitchpress_visitor_scope_chat_edit' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_chat_edit"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>        
+                <tr>
+                    <th scope="row"><label for="twitchpress_visitor_scope_chat_read"><?php _e( 'chat:read', 'twitchpress' ); ?></label></th>
+                    <td>
+                        <input type="checkbox" id="twitchpress_visitor_scope_chat_read" name="twitchpress_visitor_scopes[]" class="input-checkbox" value="chat_read" <?php checked( get_option( 'twitchpress_visitor_scope_chat_read' ), 'yes', true ); ?> />
+                        <label for="twitchpress_visitor_scope_chat_read"><?php _e( 'New Helix Scope.', 'twitchpress' ); ?></label>
+                    </td>
+                </tr>        
+        
+            </table>   
+                   
             <p class="twitchpress-setup-actions step">
                 <input type="submit" class="button-primary button button-large button-next" value="<?php esc_attr_e( 'Continue', 'twitchpress' ); ?>" name="save_step" />
                 <?php wp_nonce_field( 'twitchpress-setup' ); ?>
@@ -608,18 +702,18 @@ class TwitchPress_Admin_Setup_Wizard {
         // Delete options for scopes that are not in $_POST (not checked) and add those that are.
         $all_scopes = twitchpress_scopes();
         foreach( $all_scopes as $scope => $scope_info ) {  
-            if( in_array( $scope, $_POST['twitchpress_scopes'] ) ) {     
-                update_option( 'twitchpress_scope_' . $scope, 'yes' );
-            } else {                                       
-                delete_option( 'twitchpress_scope_' . $scope );
+            if( in_array( str_replace( ':', '_', $scope ), $_POST['twitchpress_scopes'] ) ) {   
+                update_option( 'twitchpress_scope_' . str_replace( ':', '_', $scope ), 'yes' );
+            } else {                         
+                delete_option( 'twitchpress_scope_' . str_replace( ':', '_', $scope ) );
             }
-        }   
-      
+        }
+        
         foreach( $all_scopes as $scope => $scope_info ) {  
-            if( in_array( $scope, $_POST['twitchpress_visitor_scopes'] ) ) {     
-                update_option( 'twitchpress_visitor_scope_' . $scope, 'yes' );
+            if( in_array( str_replace( ':', '_', $scope ), $_POST['twitchpress_visitor_scopes'] ) ) {  
+                update_option( 'twitchpress_visitor_scope_' . str_replace( ':', '_', $scope ), 'yes' );
             } else {                                       
-                delete_option( 'twitchpress_visitor_scope_' . $scope );
+                delete_option( 'twitchpress_visitor_scope_' . str_replace( ':', '_', $scope ) );
             }
         }
  
@@ -679,23 +773,30 @@ class TwitchPress_Admin_Setup_Wizard {
         // Confirm the giving main channel is valid. 
         if( TWITCHPRESS_API_NAME == 'kraken' )
         {
-            $kraken_calls_obj = new TWITCHPRESS_Twitch_API_Calls();
+            $twitch_api_obj = new TWITCHPRESS_Twitch_API_Calls();
+            // Confirm channel exists by using the "users?login" endpoint. 
+            $user_objects = $twitch_api_obj->get_users( $main_channel );   
+            
+            if( !isset( $user_objects['users'][0]['_id'] ) ) {
+                TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', sprintf( __( 'The channel you entered was not found. You entered %s. Please check the spelling and try again.'), esc_html( $main_channel ) ) );
+                return;                         
+            }    
+            
+            $twitch_user_id = $user_objects['users'][0]['_id'];                 
         }
         else
-        {   # untested
-            $helix = new TWITCHPRESS_Twitch_API();
-        }
-      
-        // Confirm channel exists by using the "users?login" endpoint. 
-        $user_objects = $kraken_calls_obj->get_users( $main_channel );
-
-        if( !isset( $user_objects['users'][0]['_id'] ) ) {
-            TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', sprintf( __( 'The channel you entered was not found. You entered %s. Please check the spelling and try again.'), esc_html( $main_channel ) ) );
-            return;                         
-        } 
+        {   
+            $twitch_api_obj = new TWITCHPRESS_Twitch_API();
+            $user_objects = $twitch_api_obj->get_user_without_email_by_login_name( $main_channel );
         
-        $twitch_user_id = $user_objects['users'][0]['_id'];
-
+            if( !isset( $user_objects->data[0]->id ) ) {
+                TwitchPress_Admin_Notices::add_custom_notice( 'wizardchanneldoesnotexist', sprintf( __( 'The channel you entered was not found. You entered %s. Please check the spelling and try again.'), esc_html( $main_channel ) ) );
+                return;                         
+            }
+            
+            $twitch_user_id = $user_objects->data[0]->id;        
+        }
+ 
         // The current user has logged into what we will assume is their own personal account, for now.
         // So add the channel/user ID to their user meta.  
         //update_user_meta( get_current_user_id(), 'twitchpress_twitch_id', $twitch_user_id );
@@ -1083,7 +1184,7 @@ class TwitchPress_Admin_Setup_Wizard {
         );
 
         // Generate the oAuth URL and forward the user to it. 
-        wp_redirect( twitchpress_generate_authorization_url( twitchpress_scopes( true ), $state ) );
+        wp_redirect( twitchpress_generate_authorization_url( twitchpress_get_global_accepted_scopes(), $state ) );
         exit; 
     }
     

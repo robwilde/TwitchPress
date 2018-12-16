@@ -131,7 +131,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
     * 
     * @var array
     */
-    private $curl_request_body = array();
+    public $curl_request_body = array();
 
     /**
     * The raw curl reply.
@@ -249,53 +249,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
         $this->originating_function = $originating_function;
         $this->originating_line = $originating_line;           
     }
-                    
-    /**
-    * Required method when making a WP_Http_Curl call.
-    * 
-    * This one contains all available parameters to guide developers.
-    * 
-    * @uses WP_Http_Curl() 
-    * @uses curl_version() 
-    * 
-    * @since 2.5.0
-    * @version 1.0
-    */    
-    public function do_call( $api_name, $optional_args = array() ) {
-        // Set $this values
-        $this->api_name = $api_name;
-        
-        // Establish a call ID that can be used in logs...
-        $this->call_id = twitchpress_get_new_call_id(); 
-                     
-        // Create the WordPress Http Curl object
-        $this->WP_Http_Curl_Object = new WP_Http_Curl();
-        
-        // Optional arguments submitted will over-ride $this default...
-        $this->arguments( $optional_args );   
-        
-        // Determine if we should queue this request...
-        $this->queue();
-        
-        // This will or will not set $this->curl_response...
-        if( $this->can_cache )
-        {        
-            $this->get_transient();
-        }
-        
-        // Execute call if transient holds nothing for us...
-        if( !empty( $this->curl_reply ) ) 
-        {
-            $this->call_execute();
-        }
-        
-        // Check, set and react to the response code...
-        $this->check_response_code();
-        
-        // Use json_decode() to set $this->curl_response_body...
-        $this->decode_body();         
-    }
-    
+                        
     /**
     * Prepare final request values - always use this after the developer has been giving
     * a chance to set the calls parameters.
@@ -322,9 +276,9 @@ class TwitchPress_Curl extends WP_Http_Curl {
             )
         );
 
-        // Prepare arguments...
+        // Built the final request...
         $this->curl_request = array( 
-            'headers'    => array(), 
+            'headers'    => $this->headers, 
             'method'     => strtoupper( $this->type ), 
             'body'       => $this->curl_request_body,
             'user-agent' => 'curl/' . $this->curl_version['version'],
@@ -332,27 +286,16 @@ class TwitchPress_Curl extends WP_Http_Curl {
             'filename'   => false,
             'decompress' => false 
         );      
-        
-        // Add custom headers...
-        if( $this->headers && is_array( $this->headers ) ) 
-        {
-            $this->curl_request['headers'] = array_merge( $this->curl_request['headers'], $this->headers );    
+    }
+    
+    public function add_headers( $new_headers = array() )  {
+        if( !$this->headers || !is_array( $this->headers ) ) {
+            $this->headers = array();     
         }
-     
-    }
-    
-    /**
-    * Decide if the call can/should be made to Twitch.tv at this time or queue.
-    * 
-    * @version 1.0
-    */
-    public function queue() {
-        if( !$this->can_queue ) { $this->call_execute(); }  
         
-        // We will check for a recent request and result that matches
-        $this->get_transient(); 
+        $this->headers = array_merge( $new_headers, $this->headers );        
     }
-    
+   
     /**                        
     * Check if there is a transient cache of the exact same call!
     * 
@@ -381,11 +324,74 @@ class TwitchPress_Curl extends WP_Http_Curl {
             $this->curl_reply_response = $transient_value['response'];
         }    
     }
+        
+    /**
+    * Required method when making a WP_Http_Curl call.
+    * 
+    * This one contains all available parameters to guide developers.
+    * 
+    * @uses WP_Http_Curl() 
+    * @uses curl_version() 
+    * 
+    * @since 2.5.0
+    * @version 1.0
+    */    
+    public function do_call( $api_name, $optional_args = array() ) {
+        // Set $this values
+        $this->api_name = $api_name;
+        
+        // Establish a call ID that can be used in logs...
+        $this->call_id = twitchpress_get_new_call_id(); 
+                     
+        // Create the WordPress Http Curl object
+        $this->WP_Http_Curl_Object = new WP_Http_Curl();
+                                    
+        // Optional arguments submitted will over-ride $this default...
+        $this->arguments( $optional_args );   
+        
+        // Determine if we should queue this request...
+        $this->queue();
+        
+        // This will or will not set $this->curl_response...
+        if( $this->can_cache )
+        {        
+            $this->get_transient();
+        }
+        
+        // Execute call if transient holds nothing for us...
+        if( !empty( $this->curl_reply ) ) 
+        {
+            $this->call_execute();
+        }
+        
+        // Handle WP_Error returned by WP_Http_Curl_Object() 
+        if( is_wp_error( $this->curl_reply ) ) {
+            return false;    
+        }
+
+        // Check, set and react to the response code...
+        $this->check_response_code();
+        
+        // Use json_decode() to set $this->curl_response_body...
+        $this->decode_body();         
+    }
+        
+    /**
+    * Decide if the call can/should be made to Twitch.tv at this time or queue.
+    * 
+    * @version 1.0
+    */
+    public function queue() {
+        if( !$this->can_queue ) { $this->call_execute(); }  
+        
+        // We will check for a recent request and result that matches
+        $this->get_transient(); 
+    }
     
     public function call_execute() {
-
+            
         $this->curl_reply = $this->WP_Http_Curl_Object->request( $this->endpoint, $this->curl_request );       
-           
+            
         // Should this curl request be cached?
         if( $this->can_cache )
         {
@@ -401,6 +407,7 @@ class TwitchPress_Curl extends WP_Http_Curl {
     }  
 
     public function check_response_code() {
+        
         if( isset( $this->curl_reply['response']['code'] ) ) {
             $this->response_code = $this->curl_reply['response']['code'];
         }   
@@ -417,6 +424,14 @@ class TwitchPress_Curl extends WP_Http_Curl {
             }
         }
     }  
+    
+    public function get_curl_request() {
+        return $this->curl_request;
+    }
+    
+    public function get_curl_request_body() {
+        return $this->curl_request_body;
+    }
     
     public function user_output() {
         

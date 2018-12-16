@@ -26,7 +26,7 @@ final class WordPressTwitchPress {
      * 
      * @deprecated use constant TWITCHPRESS_VERSION
      */
-    public $version = '2.8.0';
+    public $version = '2.16.3';
 
     /**
      * Minimum WP version.
@@ -288,17 +288,28 @@ final class WordPressTwitchPress {
         register_deactivation_hook( __FILE__, array( 'TwitchPress_Deactivate', 'deactivate' ) );
 
         // Do integration of custom post types etc
-        add_action( 'init', 'twitchpress_integration' );
+        add_action( 'init', 'twitchpress_integration', 2 );
         add_action( 'admin_init', 'twitchpress_offer_wizard' );
         
         add_action( 'init', array( $this, 'init_system' ), 0 );
-        add_action( 'init', array( $this, 'output_errors' ), 1 );
-        add_action( 'init', array( $this, 'output_actions' ), 1 );            
-        add_action( 'init', array( $this, 'output_filters' ), 1 );        
+        add_action( 'init', array( $this, 'output_errors' ), 2 );
+        add_action( 'init', array( $this, 'output_actions' ), 2 );            
+        add_action( 'init', array( $this, 'output_filters' ), 2 );   
+        
+        add_filter( 'views_edit-plugins', array( $this, 'views_edit_plugins' ), 1 ); 
+
+    }
+        
+    public function views_edit_plugins( $views ) {
+        
+        $screen = get_current_screen();
+        
+                    
+                    twitchpress_var_dump( $views );
     }
     
     public function init_system() {
-
+                    
         // Before init action.
         do_action( 'before_twitchpress_init' );    
 
@@ -330,7 +341,6 @@ final class WordPressTwitchPress {
     public function frontend_includes() {
         include_once( plugin_basename( 'includes/class.twitchpress-frontend-scripts.php' ) );  
         include_once( plugin_basename( 'includes/functions.twitchpress-frontend-notices.php' ) );  
-        include_once( plugin_basename( 'includes/functions.twitchpress-frontend.php' ) );
         include_once( plugin_basename( 'includes/class.twitchpress-public-preset-notices.php' ) );              
     }
 
@@ -387,7 +397,7 @@ final class WordPressTwitchPress {
         add_action( 'shutdown', array( $this, 'show_filters' ), 1 );                                                               
     }
 
-    public static function show_errors() {
+    public static function show_errors() {      
         global $wpdb, $bugnet;
         echo '<div id="bugnet-wperror-dump">';       
             _e( '<h1>BugNet: Possible Errors</h1>', 'twitchpress' );

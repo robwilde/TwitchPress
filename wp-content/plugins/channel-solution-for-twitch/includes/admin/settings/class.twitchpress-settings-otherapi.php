@@ -108,7 +108,7 @@ class TwitchPress_Settings_OtherAPI extends TwitchPress_Settings_Page {
             return;
         }    
 
-        $uri    = sanitize_url( $_POST[ 'twitchpress_allapi_' . $service . '_default_uri' ] );
+        $uri    = esc_url_raw( $_POST[ 'twitchpress_allapi_' . $service . '_default_uri' ] );
         $key    = sanitize_key( $_POST[ 'twitchpress_allapi_' . $service . '_default_id' ] );
         $secret = sanitize_key( $_POST[ 'twitchpress_allapi_' . $service . '_default_secret' ] );
                 

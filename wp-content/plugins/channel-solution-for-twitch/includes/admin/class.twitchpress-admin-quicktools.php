@@ -434,11 +434,11 @@ class TwitchPress_Tools {
         $output .= sprintf( __( '<p><strong>User ID: %s</strong></p>', 'twitchpress' ), $user_id );
         
         // Get the main channel Twitch ID.
-        $channel_id = twitchpress_get_main_channel_id();
+        $channel_id = twitchpress_get_main_channels_twitchid();
         $output .= sprintf( __( '<p><strong>Main Channel ID: %s</strong></p>', 'twitchpress' ), $channel_id );
         
         // Get main account token.     
-        $channel_token = twitchpress_get_main_client_token();
+        $channel_token = twitchpress_get_main_channels_token();
         $output .= sprintf( __( '<p><strong>Main Token: %s</strong></p>', 'twitchpress' ), $channel_token );
 
         // Get main account code. 
@@ -453,7 +453,7 @@ class TwitchPress_Tools {
         $output .= sprintf( __( '<p><strong>Users Twitch ID: %s</strong></p>', 'twitchpress' ), $users_twitch_id );
         
         // Get possible existing sub plan from a earlier sub sync.
-        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . twitchpress_get_main_channel_id(), true  );
+        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . $channel_id, true  );
         $output .= sprintf( __( '<p><strong>Existing Sub Plan Value: %s</strong></p>', 'twitchpress' ), $local_sub_plan );
 
         // Check channel subscription from channel side (does not require scope permission).
@@ -602,7 +602,7 @@ class TwitchPress_Tools {
         $output .= sprintf( __( '<p><strong>User ID: %s</strong></p>', 'twitchpress' ), $user_id );
         
         // Get the main channel Twitch ID.
-        $channel_id = twitchpress_get_main_channel_id();
+        $channel_id = twitchpress_get_main_channels_twitchid();
         $output .= sprintf( __( '<p><strong>Main Channel ID: %s</strong></p>', 'twitchpress' ), $channel_id );
         
         // Get main account token.     
@@ -621,7 +621,7 @@ class TwitchPress_Tools {
         $output .= sprintf( __( '<p><strong>Users Twitch ID: %s</strong></p>', 'twitchpress' ), $users_twitch_id );
         
         // Get possible existing sub plan from a earlier sub sync.
-        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . twitchpress_get_main_channel_id(), true  );
+        $local_sub_plan = get_user_meta( $user_id, 'twitchpress_sub_plan_' . $channel_id, true  );
         $output .= sprintf( __( '<p><strong>Existing Sub Plan Value: %s</strong></p>', 'twitchpress' ), $local_sub_plan );
 
         // Check channel subscription from channel side (does not require scope permission).

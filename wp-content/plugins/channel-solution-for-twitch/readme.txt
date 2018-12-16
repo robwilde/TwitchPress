@@ -6,7 +6,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, Twitch.tv, Twitch Feed, Twitch Channel, Twitch Team, Twitch Embed, Twitch Stream, Twitch Suite, Twitch Bot, Twitch Chat 
 Requires at least: 4.9
 Tested up to: 4.9
-Stable tag: 2.11.0
+Stable tag: 2.16.2
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
@@ -76,16 +76,113 @@ Translator needed to localize the Channel Solution for Twitch.
 
 == Upgrade Notice ==
 
-There are no special instructions for this upgrade.  
+If your Twitch.tv app is old or you have login issues please create new application
+credentials. Then update TwitchPress by completing the Setup Wizard.  
 
 == Changelog ==
-= 2.11.1: NOT RELEASED =                                           
+= 2.16.3: BETA =
+* Bugfixes
+    - Deprecated function twitchpress_get_main_channel_id() replaced with twitchpress_get_main_channels_twitchid()
+    - function twitchpress_display_frontend_notices_the_content() string instance removed
+* Feature Changes
+    - Made it clearer to users that the "chat_login" scope is deprecated    
+* Technical Changes
+    - Removed function get_channel_subscriptions_sandbox() as there is now a separate sandbox file and class
+    - Shortcode for channel status line now has a Helix version: twitchpress_channel_status_line_shortcode_helix()
+    - Updated helix function get_streams()
+    - Removed channel_feed_read scope as the feed service is no longer available
+    - Removed channel_feed_edit scope as the feed service is no longer available
+    - chat_login scope will no longer be available for old apps so apps must be re-created 
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.16.0: 19th November 2018 =
+* Bugfixes
+    - New applications no longer fail to go through oAuth2 process
+* Feature Changes
+    - No changes     
+* Technical Changes
+    - Further improvements made around the new scopes i.e. str_replace( ':', '_', $subject )
+    - The add_action in class.twitchpress-listener-main-account-oauth.php changed to init hook (worked as a fix)
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.15.0: 16th November 2018 =                                           
+* Bugfixes
+    - No changes 
+* Feature Changes
+    - No changes     
+* Technical Changes
+    - Deleted file functions.twitchpress-frontend.php as not in use
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.14.0: 15th November 2018 =                                           
+* Bugfixes
+    - No changes
+* Feature Changes
+    - New scopes available but not well tested...
+        - analytics:read:extensions
+        - analytics:read:games
+        - bits:read
+        - clips:edit
+        - user:edit
+        - user:edit:broadcast 
+        - user:read:broadcast
+        - user:read:email
+        - chat:read 
+        - chat:edit     
+* Technical Changes
+    - New Twitch API version 6 scopes have been added to Kraken
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.13.0: 13th November 2018 =                                           
+* Bugfixes
+    - No changes
+* Feature Changes
+    - Users profile picture is changed using their Twitch.tv profile image (user-meta-key twitchpress_avatar_url)
+* Technical Changes
+    - Priorities of init updated to allow Twitch app setup to come first...
+        - From 1 to 2: add_action( 'init', array( $this, 'output_errors' ), 2 );
+        - From 1 to 2: add_action( 'init', array( $this, 'output_actions' ), 2 );            
+        - From 1 to 2: add_action( 'init', array( $this, 'output_filters' ), 2 );
+        - From 5 to 1: add_action( 'init', 'twitchpress_init_main_app', 1 );
+        - Added 1: add_action( 'init', array( $this, 'includes' ), 1 );
+* Configuration
+    - No changes
+* Database
+    - No changes
+    
+= 2.12.0: 10th November 2018 =                                           
+* Bugfixes
+    - No changes
+* Feature Changes
+    - No changes
+* Technical Changes
+    - New functions supporting user specific data syncing especially for Ultimate Members.
+* Configuration
+    - No changes
+* Database
+    - No changes
+	
+= 2.11.1: 10th November 2018 =                                           
 * Bugfixes
     - No changes
 * Feature Changes
     - No changes
 * Technical Changes
     - trim() applied to redirect URL value entered in Setup Wizard
+    - Function set_twitch_subscribers_um_role() no longer uses current_filter() 
+    - Function twitchpress_is_sync_due() replaced with new function twitchpress_is_current_user_sync_due()in set_current_users_um_role_based_on_twitch_sub()
 * Configuration
     - No changes
 * Database

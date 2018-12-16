@@ -6,13 +6,15 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Tags: Twitch, TwitchPress, Twitch.tv, Twitch Login, Twitch Register, Twitch Registration, Twitch User, Twitch Visitor
 Requires at least: 4.4
 Tested up to: 4.9
-Stable tag: 1.4.0
-Minimum TwitchPress version: 2.3.0
+Stable tag: 1.8.1
+Minimum TwitchPress version: 2.10.0
 Requires PHP: 5.6
                         
 Launch your own Twitch services using the TwitchPress plugin for WordPress.
                        
 == Description ==
+
+Does not support Twitch API 6: Helix yet! 
 
 Add Twitch social login and registration to your TwitchPress service. This plugin acts as an extension
 to TwitchPress and has no purpose on it's own. The required API class and configuration exists in the
@@ -61,6 +63,23 @@ Translator needed.
 No special upgrade instructions this time. 
 
 == Changelog ==
+= 1.8.1 BETA = 
+* Create a new file for Kraken and Helix for switching between each.
+
+= 1.8.0: 26th November 2018 = 
+* Deleted "js/admin/settings.js"
+* Fixed getUserObject_Authd() must be an instance of string
+
+= 1.7.0: 20th November 2018 = 
+* Spelling mistake "kistener" to "listener"
+* twitchpress_get_app_redirect() replaced with get_option( 'twitchpress_app_redirect' )a
+
+= 1.6.0: 19th November 2018 = 
+* More user data is stored during login i.e. bio, partner status and more. 
+
+= 1.5.0: 14th November 2018 = 
+* WordPress avatar is now replaced with the visitors Twitch logo (URL method only)
+
 = 1.4.0: September 25 2018 =
 * Get get_user_scopes() error reported yet no code match - suspect version mismatch
  

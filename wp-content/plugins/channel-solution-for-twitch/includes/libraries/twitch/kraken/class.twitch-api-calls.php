@@ -96,10 +96,11 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * @param $code - [string] Code used to generate an Authentication key
      * 
      * @return $userObject - [array] Returned object for the query
+     * @link https://dev.twitch.tv/docs/v5/reference/users/#get-user
      * 
      * @version 5.8
      */ 
-    public function getUserObject_Authd( string $token, string $code ){
+    public function getUserObject_Authd( $token, $code ){
         
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = twitchpress_confirm_scope( 'user_read', 'channel', __FUNCTION__ );
@@ -172,7 +173,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 1.2
      */ 
-    public function addBlockedUser( string $chan, string $username, string $token, string $code){
+    public function addBlockedUser( $chan, $username, $token, $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = twitchpress_confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
@@ -210,7 +211,7 @@ class TWITCHPRESS_Twitch_API_Calls extends TWITCHPRESS_Twitch_API {
      * 
      * @version 1.5
      */ 
-    public function removeBlockedUser( string $chan, string $username, string $token, string $code){
+    public function removeBlockedUser( $chan, $username, $token, $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = twitchpress_confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );

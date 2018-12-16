@@ -30,7 +30,7 @@ class TwitchPress_Extension_Installer {
      * @param array $plugin_to_install
      * @since 1.2.7
      * 
-     * @version 2.0
+     * @version 3.0
      */
     public static function background_installer( $plugin_to_install_id, $plugin_to_install ) {
         // Explicitly clear the event.
@@ -48,8 +48,8 @@ class TwitchPress_Extension_Installer {
 
             $skin              = new Automatic_Upgrader_Skin;
             $upgrader          = new WP_Upgrader( $skin );
-            $installed_plugins = array_map( twitchpress_format_plugin_slug(), array_keys( get_plugins() ) );
             $plugin_slug       = $plugin_to_install['repo-slug'];
+            $installed_plugins = array_map( twitchpress_format_plugin_slug( $plugin_slug ), array_keys( get_plugins() ) );
             $plugin            = $plugin_slug . '/' . $plugin_slug . '.php';
             $installed         = false;
             $activate          = false;

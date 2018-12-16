@@ -25,7 +25,7 @@ class TwitchPress_Set_App {
     public $app_secret = null;
     public $app_redirect = null;
     public $app_token = null;
-    public $app_token_scopes = null;
+    public $app_scopes = null;
 
     public function __construct() {
         $this->set();
@@ -36,8 +36,8 @@ class TwitchPress_Set_App {
         $this->app_id           = get_option( 'twitchpress_app_id', 0 ); 
         $this->app_secret       = get_option( 'twitchpress_app_secret', 0 );
         $this->app_redirect     = get_option( 'twitchpress_app_redirect', 0 );
-        $this->app_token        = get_option( 'twitchpress_app_token', 0 );
-        $this->app_token_scopes = get_option( 'twitchpress_app_token_scopes', 0 ); 
+        $this->app_token        = get_option( 'twitchpress_app_token', 0 );        
+        $this->app_scopes       = get_option( 'twitchpress_app_scopes' ); 
         $this->app_expiry       = get_option( 'twitchpress_app_expiry', 0 ); 
 
         // Handle a missing token post setup completion...
@@ -61,7 +61,7 @@ class TwitchPress_Set_App {
             'secret'   => $this->app_secret,
             'redirect' => $this->app_redirect,
             'token'    => $this->app_token,
-            'scopes'   => $this->app_token_scopes
+            'scopes'   => $this->app_scopes
         );
     }
 
@@ -229,4 +229,9 @@ class TwitchPress_Set_App {
 
 endif;
 
-TwitchPress_Object_Registry::add( 'twitchapp', new TwitchPress_Set_App() );
+function twitchpress_init_main_app() {
+    TwitchPress_Object_Registry::add( 'twitchapp', new TwitchPress_Set_App() );    
+}
+
+// Priority needs to put app setup before most other things in TwitchPress...
+add_action( 'init', 'twitchpress_init_main_app', 1 );

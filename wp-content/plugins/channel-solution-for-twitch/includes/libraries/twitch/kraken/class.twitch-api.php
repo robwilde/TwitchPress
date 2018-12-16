@@ -9,7 +9,7 @@
  * @author   Ryan Bayne
  * @category Admin
  * @package  TwitchPress/Core
- * @version  5.2.0
+ * @version  5.3
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,7 +29,7 @@ class TWITCHPRESS_Twitch_API {
     private $app_secret = null;// Possibly change to protected?
     private $app_redirect = null;
     private $app_token = null;
-    private $app_token_scopes = null;
+    private $app_scopes = null;
     
     // Main channel credentials (added version 2.0.4)    
     private $main_channels_code = null;
@@ -60,12 +60,9 @@ class TWITCHPRESS_Twitch_API {
             'channel_check_subscription',
             'channel_commercial',
             'channel_editor',
-            'channel_feed_edit',
-            'channel_feed_read',
             'channel_read',
             'channel_stream',
             'channel_subscriptions',
-            'chat_login',
             'collections_edit',
             'communities_edit',
             'communities_moderate',
@@ -75,7 +72,17 @@ class TWITCHPRESS_Twitch_API {
             'user_read',
             'user_subscriptions',
             'viewing_activity_read',
-            'openid'
+            'openid',
+            'analytics:read:extensions', // View analytics data for your extensions.
+            'analytics:read:games',      // View analytics data for your games.
+            'bits:read',                 // View Bits information for your channel.
+            'clips:edit',                // Manage a clip object.
+            'user:edit',                 // Manage a user object.
+            'user:edit:broadcast',       // Edit your channel’s broadcast configuration, including extension configuration. (This scope implies user:read:broadcast capability.)
+            'user:read:broadcast',       // View your broadcasting configuration, including extension configurations.
+            'user:read:email',           // Read authorized user’s email address.  
+            'chat:edit',
+            'chat:read'          
     );
   
     /**
@@ -140,7 +147,7 @@ class TWITCHPRESS_Twitch_API {
         $this->app_secret       = $obj->app_secret;
         $this->app_redirect     = $obj->app_redirect;
         $this->app_token        = $obj->app_token;
-        $this->app_token_scopes = $obj->app_token_scopes; 
+        $this->app_scopes       = $obj->app_scopes; 
                
         // Main channel credentials loaded for service use (added version 2.0.4) 
         $obj = TwitchPress_Object_Registry::get( 'mainchannelauth' );  

@@ -21,6 +21,8 @@ Twitch system that can enhance how we use Twitch iframe and API features.
 This plugin focuses on a feature provided on the Twitch.tv developer site called Embed Everything. 
 The feature is still a beta in October 2017 and for now this extension should be treated as a beta.  
 
+= Development Direction = 
+
 = Links =                                                            
 
 *   <a href="https://dev.twitch.tv/docs/embed#embedding-everything-public-beta" title="">Twitch Dev Docs</a>    
@@ -37,9 +39,9 @@ The feature is still a beta in October 2017 and for now this extension should be
 
 * Embed Twitch Live Video
 * Embed Twitch Live Chat
-* Sign In Button
-* Follow Button
-* Subscribe Button 
+* Displays Sign In Button
+* Displays Follow Button
+* Displays Subscribe Button 
 
 == Installation ==
 

@@ -1,10 +1,10 @@
 <?php
 /**
- * Kraken5 for WordPress functions.
+ * helix5 for WordPress functions.
  *
  * @author      Ryan Bayne
  * @category    Admin
- * @package     Kraken5
+ * @package     helix5
  * @version     1.0.0
  */
 
@@ -15,7 +15,7 @@
 * 
 * @version 1.0
 */
-function twitchpress_kraken_httpstatus_groups( $status = null ) {
+function twitchpress_helix_httpstatus_groups( $status = null ) {
     $group_meanings = array(
         '1' => __( 'Informational responses.', 'twitchpress' ), 
         '2' => __( 'Success.', 'twitchpress' ), 
@@ -46,13 +46,13 @@ function twitchpress_kraken_httpstatus_groups( $status = null ) {
 /**
 * A list of HTTP status with default meaning taking from Wikipedia
 * and where possible there are other interpretations to explain 
-* a Twitch API (Kraken) result within the context of Kraken.
+* a Twitch API (helix) result within the context of helix.
 * 
 * @link https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 * 
 * @version 2.2
 */
-function twitchpress_kraken_httpstatuses( $requested_status = null, $requested_meaning = 'short' ) {
+function twitchpress_helix_httpstatuses( $requested_status = null, $requested_meaning = 'short' ) {
     $httpstatus = array();
     
     $httpstatus[100]['short'] = __( 'Continue', 'twitchpress' );     

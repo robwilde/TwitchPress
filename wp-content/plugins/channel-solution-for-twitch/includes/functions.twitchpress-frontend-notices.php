@@ -34,7 +34,7 @@ function twitchpress_frontend_notice_types() {
 * 
 * @version 1.0
 */
-function twitchpress_display_frontend_notices_the_content( string $post_content ) {  
+function twitchpress_display_frontend_notices_the_content( $post_content ) {  
     global $GLOBALS;
                                                    
     if( !isset( $_GET['twitchpress_notice'] ) || !is_string( $_GET['twitchpress_notice'] ) ) { return $post_content; }

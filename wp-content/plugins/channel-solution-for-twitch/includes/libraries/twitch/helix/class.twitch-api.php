@@ -52,12 +52,9 @@ class TwitchPress_Twitch_API {
             'channel_check_subscription',
             'channel_commercial',
             'channel_editor',
-            'channel_feed_edit',
-            'channel_feed_read',
             'channel_read',
             'channel_stream',
             'channel_subscriptions',
-            'chat_login',
             'collections_edit',
             'communities_edit',
             'communities_moderate',
@@ -140,6 +137,7 @@ class TwitchPress_Twitch_API {
             'redirect_uri'     => $twitch_app->app_redirect,
             'grant_type'       => 'client_credentials'
         ) );
+        unset($twitch_app);
 
         // Start + make the request in one line... 
         $this->curl_object->do_call( 'twitch' );
@@ -189,25 +187,29 @@ class TwitchPress_Twitch_API {
      * @version 5.2
      */
     public function request_user_access_token( $code = null, $requesting_function = null ){
-
+                
         if( !$code ) {
             $code = $this->twitch_client_code;
         }
-        
-        $endpoint = 'https://api.twitch.tv/kraken/oauth2/token';
 
+        //$endpoint = 'https://id.twitch.tv/oauth2/token';
+        $endpoint = 'https://api.twitch.tv/kraken/oauth2/token';
+        
         $this->curl( __FILE__, __FUNCTION__, __LINE__, 'POST', $endpoint );
- 
-        $this->call_object->grant_type = 'authorization_code';
- 
-        $this->call_object->auth_code = $code;
-        
-        $this->call_object->state = twitchpress_get_app_token();
-        
+
+        $this->curl_object->set_curl_body( array(
+                'client_id'     => twitchpress_get_app_id(),
+                'client_secret' => twitchpress_get_app_secret(),
+                'code'          => $code,
+                'grant_type'    => 'authorization_code',
+                'redirect_uri'  => twitchpress_get_app_redirect(),
+            )
+        );
+
         $this->call();
         
-        $result = $this->call_object->curl_reply_response;
- 
+        $result = $this->curl_object->curl_reply_response;
+
         if ( is_array( $result ) && array_key_exists( 'access_token', $result ) )
         {
             $appending = '';
@@ -362,17 +364,7 @@ class TwitchPress_Twitch_API {
 
                 // This method does not update user meta because $user_id is not always available where it is used.
                 $user_access_token_array = $this->request_user_access_token( $code, __FUNCTION__ );
-                
-                #   Example for $user_access_token_array             
-                #      
-                #  'access_token' => string 'psv9jaiqgimari17zb1ekeg9emlw38' (length=30)
-                #  'refresh_token' => string 'lmgdjnlik871s4qzxe94scu4x8ou0rxzacvgfni95bbob0crxv' (length=50)
-                #  'scope' => 
-                #      array (size=19)
-                #         0 => string 'channel_check_subscription' (length=26)
-                #         1 => string 'channel_commercial' (length=18)
-                #     'expires_in' => int 15384         
-                
+
                 twitchpress_update_user_token( $user_id, $user_access_token_array['access_token'] );
                 twitchpress_update_user_token_refresh( $user_id, $user_access_token_array['refresh_token'] );
                        
@@ -398,31 +390,16 @@ class TwitchPress_Twitch_API {
 
         $this->curl( __FILE__, __FUNCTION__, __LINE__, 'POST', $endpoint );
         
-        $this->call_object->grant_type = 'refresh_token';
+        $this->curl_object->grant_type = 'refresh_token';
         
-        $this->call_object->refresh_token = $token_refresh;
+        $this->curl_object->refresh_token = $token_refresh;
         
-        $this->call_object->scope = twitchpress_prepare_scopes( twitchpress_get_visitor_scopes() );
+        $this->curl_object->scope = twitchpress_prepare_scopes( twitchpress_get_visitor_scopes() );
         
         $this->call();
         
         $result = $this->call_result;
-        //$result = json_decode( $this->cURL_post( $url, $post, $options, false ), true );
-        
-        
-        
-            # Success Example $result
-            #
-            # "access_token": "asdfasdf",
-            # "refresh_token": "eyJfMzUtNDU0OC04MWYwLTQ5MDY5ODY4NGNlMSJ9%asdfasdf=",
-            # "scope": "viewing_activity_read"
-            
-            # Failed Example Result 
-            #
-            # "error": "Bad Request",
-            # "status": 400,
-            # "message": "Invalid refresh token"
-             
+
         if( isset( $result['access_token'] ) && !isset( $result['error'] ) )
         {
             twitchpress_update_user_token( $user_id, $result['access_token'] );
@@ -513,7 +490,7 @@ class TwitchPress_Twitch_API {
      * 
      * @version 5.8
      */ 
-    public function getUserObject_Authd( string $token, string $code ){
+    public function getUserObject_Authd( $token, $code ){
         
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = twitchpress_confirm_scope( 'user_read', 'channel', __FUNCTION__ );
@@ -564,7 +541,7 @@ class TwitchPress_Twitch_API {
         
         $this->call();
         
-        return $this->call_object->curl_reply_response;
+        return $this->curl_object->curl_reply_response;
     }  
 
     /**
@@ -579,7 +556,7 @@ class TwitchPress_Twitch_API {
      * 
      * @version 1.2
      */ 
-    public function addBlockedUser( string $chan, string $username, string $token, string $code){
+    public function addBlockedUser( $chan, $username, $token, $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = twitchpress_confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
@@ -614,7 +591,7 @@ class TwitchPress_Twitch_API {
      * 
      * @version 1.5
      */ 
-    public function removeBlockedUser( string $chan, string $username, string $token, string $code){
+    public function removeBlockedUser( $chan, $username, $token, $code){
 
         // Ensure required scope is permitted else we return the WP_Error confirm_scope() generates.
         $confirm_scope = twitchpress_confirm_scope( 'user_blocks_edit', 'channel', __FUNCTION__ );
@@ -687,31 +664,7 @@ class TwitchPress_Twitch_API {
 
         return $chatToken;                
     }
-            
-    /**
-     * Grabs the stream object of a given channel
-     * 
-     * @param $channel_id - [string] Channel ID to get the stream object for
-     * 
-     * @return $object - [array or null] Returned array of all stream object data or null if stream is offline
-     * 
-     * @version 5.0
-     */ 
-    public function getStreamObject( $channel_id ){
-        $url = 'https://api.twitch.tv/kraken/streams/' . $channel_id;
-        $get = array( 'client_id' => $this->twitch_client_id );
-
-        $result = json_decode($this->cURL_get($url, $get, array(), false), true);
-        
-        if ($result['stream'] != null){
-            $object = $result['stream'];
-        } else {
-            $object = null;
-        }
-        
-        return $object;
-    }
-    
+                
     /**
      * Gets a list of all users subscribed to a channel.
      * 
@@ -749,36 +702,7 @@ class TwitchPress_Twitch_API {
                       'client_id' => $this->twitch_client_id );
          
         return json_decode( $this->cURL_get($url, $get, array( /* cURL options */), false, __FUNCTION__ ), true);
-    }
-    
-    /**
-    * Sandbox version of get_channel_subscriptions().
-    * 
-    * @version 1.0
-    */
-    public function get_channel_subscriptions_sandbox() { 
-        return array( 
-                        "_total" => 4,
-                        "subscriptions" => array( 
-                            array(
-                                "_id"            => "e5e2ddc37e74aa9636625e8d2cc2e54648a30418",
-                                "created_at"     => "2016-04-06T04:44:31Z",
-                                "sub_plan"       => "1000",
-                                "sub_plan_name"  =>  "Channel Subscription (mr_woodchuck)",
-                                "user"               => array(
-                                    "_id"            => "89614178",
-                                    "bio"            => "Twitch staff member who is a heimerdinger main on the road to diamond.",
-                                    "created_at"     => "2015-04-26T18:45:34Z",
-                                    "display_name"   => "Mr_Woodchuck",
-                                    "logo"           => "https://static-cdn.jtvnw.net/jtv_user_pictures/mr_woodchuck-profile_image-a8b10154f47942bc-300x300.jpeg",
-                                    "name"           => "mr_woodchuck",
-                                    "type"           => "staff",
-                                    "updated_at"     => "2017-04-06T00:14:13Z" ),
-                                    
-                            )
-                        )
-        );
-    }   
+    }  
     
     /**
      * Gets a giving users subscription details for a giving channel
@@ -961,69 +885,6 @@ class TwitchPress_Twitch_API {
         $this->call();        
     }
                                  
-                                  
-    /**
-    * Sandbox-mode edition of getUserSubscription().
-    * 
-    * @param mixed $twitch_user_id
-    * @param mixed $chan_id
-    * @param mixed $user_token
-    * 
-    * @version 1.0
-    */
-    public function getUserSubscription_sandbox( $twitch_user_id, $chan_id, $user_token = false ){   
-        
-        $return = array();
-        
-        if( 'yes' == get_option( 'twitchress_sandbox_mode_generator_switch' ) )
-        {
-             /* Not doing anything here yet, but we could generate users based on real Twitch channels. */
-        }
-
-        // Return a subscriber as the affirmative response.
-        $return[] = array( 
-            "_id"           => "ac2f1248993eaf97e71721458bd88aae66c92330",
-            "sub_plan"      => "3000",
-            "sub_plan_name" => "Channel Subscription (forstycup) - $24.99 Sub",
-            "channel" => array(
-                "_id"                             => "19571752",
-                "broadcaster_language"            => "en",
-                "created_at"                      => "2011-01-16T04:35:51Z",
-                "display_name"                    => "forstycup",
-                "followers"                       => 397,
-                "game"                            => "Final Fantasy XV",
-                "language"                        => "en",
-                "logo"                            => "https://static-cdn.jtvnw.net/jtv_user_pictures/forstycup-profile_image-940fb4ca1e5949c0-300x300.png",
-                "mature"                          => true,
-                "name"                            => "forstycup",
-                "partner"                         => true,
-                "profile_banner"                  => null,
-                "profile_banner_background_color" => null,
-                "status"                          => "[Blind] Moar Sidequests! Let's explore.",
-                "updated_at"                      => "2017-04-06T09:00:41Z",
-                "url"                             => "http://localhost:3000/forstycup",
-                "video_banner"                    => "https://static-cdn.jtvnw.net/jtv_user_pictures/forstycup-channel_offline_image-f7274322063da225-1920x1080.png",
-                "views"                           => 5705 
-            ),
-            "created_at" => "2017-04-08T19:54:24Z"
-        );
-
-        // If false returns not on, we only return the affirmative response.
-        if( 'yes' !== get_option( 'twitchress_sandbox_mode_falsereturns_switch' ) )
-        {
-            return $return[0];
-        }
-                
-        // Add the false returns and randomize which is returned (for a natural set of data)
-        $return[] = array(
-            "error"   => "Not Found",
-            "message" => "dallas has no subscriptions to twitch",
-            "status"  => 404
-        );
-        
-        return array_rand( $return );
-    } 
-    
     ############################################################################
     #                                                                          #
     #                              NEW API (HELIX)                             #
@@ -1059,9 +920,10 @@ class TwitchPress_Twitch_API {
         );
 
         // Add common/default headers...
-        $this->curl_object->headers = array(
+        $this->curl_object->add_headers( array(
+            'Client-ID' => twitchpress_get_app_id(),
             'Authorization' => 'Bearer ' . twitchpress_get_app_token(),
-        );
+        ) );
     }   
     
     /**
@@ -1088,7 +950,7 @@ class TwitchPress_Twitch_API {
             }
        
             if( $this->curl_object->response_code !== '200' ) {   
-                $this->bugnet->log( __FUNCTION__, sprintf( __( 'Response code [%s] Call ID [%s]', 'twitchpress' ), $this->call_object->response_code, $this->curl_object->get_call_id() ), array(), true, false );            
+                $this->bugnet->log( __FUNCTION__, sprintf( __( 'Response code [%s] Call ID [%s]', 'twitchpress' ), $this->curl_object->response_code, $this->curl_object->get_call_id() ), array(), true, false );            
             }
         }
     }  
@@ -1111,7 +973,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    function get_extension_analytics( string $after = null, string $ended_at = null, string $extension_id = null, integer $first = null, string $started_at = null, string $type = null ) {
+    function get_extension_analytics( $after = null, $ended_at = null, $extension_id = null, $first = null, $started_at = null, $type = null ) {
         
         $call_authentication = 'scope';
         
@@ -1151,7 +1013,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_game_analytics( string $after = null, string $ended_at = null, integer $first = null, string $game_id = null, string $started_at = null, string $type = null ) {
+    public function get_game_analytics( $after = null, $ended_at = null, $first = null, $game_id = null, $started_at = null, $type = null ) {
 
         $call_authentication = 'scope';
         
@@ -1178,7 +1040,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_bits_leaderboard( integer $count = null, string $period = null, string $started_at = null, string $user_id = null ) {
+    public function get_bits_leaderboard( $count = null, $period = null, $started_at = null, $user_id = null ) {
 
         $call_authentication = 'scope';
         
@@ -1211,7 +1073,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function create_clip( string $broadcaster_id, boolean $has_delay = null ) {
+    public function create_clip( $broadcaster_id, $has_delay = null ) {
 
         $call_authentication = 'scope';
 
@@ -1243,7 +1105,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_clips( string $broadcaster_id, string $game_id, string $id, string $after = null, string $before = null, string $ended_at = null, integer $first = null, string $started_at = null ) {
+    public function get_clips( $broadcaster_id, $game_id, $id, $after = null, $before = null, $ended_at = null, $first = null, $started_at = null ) {
 
         $call_authentication = 'none';
 
@@ -1270,7 +1132,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function create_entitlement_grants_upload_url( string $manifest_id, string $type ) {
+    public function create_entitlement_grants_upload_url( $manifest_id, $type ) {
 
         $call_authentication = 'app_access_token';
 
@@ -1293,7 +1155,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_games( string $id, string $name ) {
+    public function get_games( $id, $name ) {
 
         $call_authentication = 'none';
 
@@ -1305,7 +1167,7 @@ class TwitchPress_Twitch_API {
     }
          
     /**
-    * Get Top Games
+    * Get Top (viewed) Games
     * 
     * Gets games sorted by number of current viewers on Twitch, most popular first.
     * 
@@ -1321,15 +1183,16 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_top_games( string $after = null, string $before = null, string $first = null ) {
-
+    public function get_top_games( $after = null, $before = null, $first = 10 ) {
         $call_authentication = 'none';
 
-        $endpoint = 'https://api.twitch.tv/helix/games/top';    
+        $endpoint = 'https://api.twitch.tv/helix/games/top?first=' . $first;    
 
         $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint ); 
- 
-        $this->call( 'GET', $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );    
+        
+        $this->call( 'GET', $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' ); 
+           
+        return $this->curl_object->curl_reply_body;
     }
          
     /**
@@ -1355,15 +1218,42 @@ class TwitchPress_Twitch_API {
     * @param mixed $user_id
     * @param mixed $user_login
     * 
-    * @version 1.0
+    * @version 2.0
     */
-    public function get_streams( string $after = null, string $before = null, string $community_id = null, integer $first = null, string $game_id = null, string $language = null, string $user_id = null, string $user_login = null ) {
+    public function get_streams( $after = null, $before = null, $community_id = null, $first = null, $game_id = null, $language = null, $user_id = null, $user_login = null ) {
    
         $call_authentication = 'none';
 
-        $endpoint = 'https://api.twitch.tv/helix/streams';     
+        $endpoint = 'https://api.twitch.tv/helix/streams?user_id=' . $user_id;     
         
-        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );     
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint );    
+
+        $this->curl_object->add_headers( array(
+            'user_id' => $user_id,
+        ) );
+
+        $this->call();
+                     
+        return $this->curl_object->curl_reply_body;
+    }
+    
+    /**
+    * Get a single stream using Twitch user ID or channel ID.
+    * 
+    * @uses get_streams()
+    * 
+    * @param mixed $twitch_user_id
+    * 
+    * @version 1.0
+    */
+    public function get_stream_by_userid( $twitch_user_id ) {
+        $result = $this->get_streams( null, null, null, null, null, null, $twitch_user_id, null );     
+              
+        if( isset( $result->data[0] ) && !empty( $result->data[0] ) ) {
+            return $result->data[0];
+        }
+        
+        return false;
     }
          
     /**
@@ -1394,7 +1284,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_streams_metadata( string $after = null, string $before = null, string $community_id = null, integer $first = null, string $game_id = null, string $language = null, string $user_id = null, string $user_login = null ) {
+    public function get_streams_metadata( $after = null, $before = null, $community_id = null, $first = null, $game_id = null, $language = null, $user_id = null, $user_login = null ) {
 
         $call_authentication = 'none';
 
@@ -1426,7 +1316,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function create_stream_markers( string $user_id, string $description = null ) {
+    public function create_stream_markers( $user_id, $description = null ) {
 
         $call_authentication = 'scope';
         
@@ -1460,7 +1350,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_streams_markers( string $user_id, string $video_id, string $after = null, string $before = null, string $first = null ) {
+    public function get_streams_markers( $user_id, $video_id, $after = null, $before = null, $first = null ) {
 
         $call_authentication = 'scope';
 
@@ -1470,9 +1360,10 @@ class TwitchPress_Twitch_API {
         
         $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' );       
     }
-         
+        
     /**
-    * Get Users
+    * Get a user using login name without using scope. Using scope would get the
+    * users email address also. 
     * 
     * Gets information about one or more specified Twitch users. 
     * Users are identified by optional user IDs and/or login name. 
@@ -1490,22 +1381,52 @@ class TwitchPress_Twitch_API {
     * 
     * @version 6.0
     */
-    public function get_users( string $id = null, string $login = null ) {
-
-        $call_authentication = 'scope';
-        
-        $endpoint = 'https://api.twitch.tv/helix/users';
+    public function get_user_without_email_by_login_name( $login_name ) {
+ 
+        $endpoint = 'https://api.twitch.tv/helix/users?login=' . $login_name . '&login=' . $login_name;
         
         $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint ); 
         
-        $this->call_object->scope = 'user:read:email';
-        
         $this->call();
-        
-        // We should now have $this->call_object with a response from the Twitch API...
-        twitchpress_var_dump( $this->call_object );          
+  
+        return $this->curl_object->curl_reply_body;          
     }
-         
+    
+    /**
+    * Get a user using login name without using scope. Using scope would get the
+    * users email address also. 
+    * 
+    * Gets information about one or more specified Twitch users. 
+    * Users are identified by optional user IDs and/or login name. 
+    * If neither a user ID nor a login name is specified, the user is 
+    * looked up by Bearer token.
+    * 
+    * The response has a JSON payload with a data field containing an array 
+    * of user-information elements. If this is provided, the response 
+    * includes the user’s email address.
+    * 
+    * @link https://dev.twitch.tv/docs/api/reference/#get-users
+    * 
+    * @param mixed $id
+    * @param mixed $login
+    * 
+    * @version 6.0
+    */
+    public function get_user_plus_email_by_login_name( $login_name ) {
+ 
+        $call_authentication = 'scope';
+        
+        $endpoint = 'https://api.twitch.tv/helix/users?login=' . $login_name . '&login=' . $login_name;
+        
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint ); 
+        
+        $this->curl_object->scope = 'user:read:email';
+        
+        $result = $this->call();
+        
+        twitchpress_var_dump( $result, __FUNCTION__, __LINE__, __FILE__ );          
+    }
+             
     /**
     * Get Users Follows [from giving ID]
     * 
@@ -1527,7 +1448,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_users_follows_from_id( string $after = null, integer $first = null, string $from_id = null, string $to_id = null ) {
+    public function get_users_follows_from_id( $after = null, $first = null, $from_id = null, $to_id = null ) {
     
         $call_authentication = 'none';
 
@@ -1557,7 +1478,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_users_follows_to_id( string $after = null, integer $first = null, string $from_id = null, string $to_id = null ) {
+    public function get_users_follows_to_id( $after = null, $first = null, $from_id = null, $to_id = null ) {
     
         $call_authentication = 'none';
 
@@ -1681,13 +1602,28 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_videos( string $id, string $user_id, string $game_id, string $after = null, string $before = null, string $first = null, string $language = null, string $period = null, string $sort = null, string $type = null ) {
+    public function get_videos( $id = null, $user_id = null, $game_id = null, $after = null, $before = null, $first = null, $language = null, $period = null, $sort = null, $type = null ) {
   
         $call_authentication = 'none';
 
         $endpoint = 'https://api.twitch.tv/helix/videos';          
         
-        $this->get( $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' ); 
+        if( $id ) { $endpoint = add_query_arg( array( 'id' => $id ), $endpoint ); }
+        if( $user_id ) { $endpoint = add_query_arg( array( 'user_id' => $user_id ), $endpoint ); }
+        if( $game_id ) { $endpoint = add_query_arg( array( 'game_id' => $game_id ), $endpoint ); }
+        if( $after ) { $endpoint = add_query_arg( array( 'after' => $after ), $endpoint ); }
+        if( $before ) { $endpoint = add_query_arg( array( 'before' => $before ), $endpoint ); }
+        if( $first ) { $endpoint = add_query_arg( array( 'first' => $first ), $endpoint ); }
+        if( $language ) { $endpoint = add_query_arg( array( 'language' => $language ), $endpoint ); }
+        if( $period ) { $endpoint = add_query_arg( array( 'period' => $period ), $endpoint ); }
+        if( $sort ) { $endpoint = add_query_arg( array( 'sort' => $sort ), $endpoint ); }
+        if( $type ) { $endpoint = add_query_arg( array( 'type' => $type ), $endpoint ); }
+     
+        $this->curl( __FILE__, __FUNCTION__, __LINE__, 'GET', $endpoint ); 
+
+        $this->call( 'GET', $endpoint, __FILE__, __FUNCTION__, __LINE__, 'automatic' ); 
+                             
+        return $this->curl_object->curl_reply_body;
     }
          
     /**
@@ -1711,7 +1647,7 @@ class TwitchPress_Twitch_API {
     * 
     * @version 1.0
     */
-    public function get_webhook_subscriptions( string $after, string $first, string $callback = null, string $expires_at = null, string $pagination = null, string $topic = null, int $total = null ) {
+    public function get_webhook_subscriptions( $after, $first, $callback = null, $expires_at = null, $pagination = null, $topic = null, $total = null ) {
 
         $call_authentication = 'app_access_token';
 

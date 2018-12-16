@@ -22,7 +22,7 @@ class TwitchPress_Admin_Help {
     /**
      * Hook in tabs.
      */
-    public function __construct() {
+    public function __construct() {                     
         add_action( 'current_screen', array( $this, 'add_tabs' ), 50 );
     }
 
@@ -34,13 +34,13 @@ class TwitchPress_Admin_Help {
     public function add_tabs() {
         $screen = get_current_screen();
                                        
-        if ( ! $screen || ! in_array( $screen->id, twitchpress_get_screen_ids() ) ) {
+        if ( ! $screen || ! in_array( $screen->id, twitchpress_get_screen_ids() ) ) {             
             return;
-        }
+        }                                                                                                                                            
         
         $page = empty( $_GET['page'] ) ? '' : sanitize_title( $_GET['page'] );
         $tab  = empty( $_GET['tab'] )  ? '' : sanitize_title( $_GET['tab'] );
-
+          
         /**
         * This is the right side sidebar, usually displaying a list of links. 
         * 
@@ -56,6 +56,7 @@ class TwitchPress_Admin_Help {
             '<p><a href="https://twitch.tv/zypherevolved" target="_blank">' . __( 'My Twitch', 'twitchpress' ) . '</a></p>' . 
             '<p><a href="https://dev.twitch.tv/dashboard/apps" target="_blank">' . __( 'Twitch Apps', 'twitchpress' ) . '</a></p>' .
             '<p><a href="https://github.com/RyanBayne/TwitchPress/wiki/Extensions" target="_blank">' . __( 'Extensions', 'twitchpress' ) . '</a></p>' . 
+            '<p><a href="https://dev.twitch.tv/docs/api/reference/" target="_blank">' . __( 'Twitch API Doc', 'twitchpress' ) . '</a></p>' .            
             '<p><a href="https://www.patreon.com/zypherevolved" target="_blank">' . __( 'Patron Pledges', 'twitchpress' ) . '</a></p>' .
             '<p><a href="https://www.paypal.me/zypherevolved" target="_blank">' . __( 'PayPal Donations', 'twitchpress' ) . '</a></p>'
         );
@@ -195,34 +196,42 @@ class TwitchPress_Admin_Help {
     * 
     * @version 2.0
     */
-    public function installation() {
-        
+    public function installation() {     
+                    
         $output = '';
         
         if( TWITCHPRESS_API_NAME == 'kraken' ) 
-        {
+        {               
             $kraken = new TWITCHPRESS_Twitch_API_Calls();
-            
+                         
             // Test Top Game 
             $channel = $kraken->get_top_games( __FUNCTION__ );
-            
+                     
             // Get main channel as a Twitch user.         
             //$twitch_user = $kraken->get_users( twitchpress_get_main_channels_name() );
                     
             // Test Get Application Token
             $token_result = twitchpress_get_app_token();
+                     
+            if( isset( $channel['top'][0]['game']['name'] ) ) {   
+                $game_name = $channel['top'][0]['game']['name'];
+            }
         }
         else 
-        {   # untested
+        {   
             $helix = new TwitchPress_Twitch_API(); 
-            
+                                                
             $channel = $helix->get_top_games();
-  
+                                       
             // Test Get Application Token
             $token_result = twitchpress_get_app_token();  
-        }
-
-        if( !isset( $channel['top'][0]['game']['name'] ) ) {
+            
+            if( isset( $channel->data[0]->name ) ) {  
+                $game_name = $channel->data[0]->name;
+            } 
+        }     
+                
+        if( !isset( $game_name ) ) {
             $output .= __( '<h2>No Application Code</h2>', 'twitchpress' );
             $output .= __( '<p>Could not get the current Top Game from Twitch.tv which indicates application details are missing. Please complete the Setup Wizard.</p>', 'twitchpress' );  
         }        
@@ -756,11 +765,13 @@ class TwitchPress_Admin_Help {
         
         if( TWITCHPRESS_API_NAME == 'kraken' )
         {
-            $kraken_or_helix = new TWITCHPRESS_Twitch_API_Calls();
+            $kraken = new TWITCHPRESS_Twitch_API_Calls();         
+            $twitch_user = $kraken->get_users( twitchpress_get_main_channels_name() );            
         }
         else
-        {   # untested
-            $kraken_or_helix = new TWITCHPRESS_Twitch_API();
+        {  
+            $helix = new TWITCHPRESS_Twitch_API();
+            $twitch_user = $helix->get_user_without_email_by_login_name( twitchpress_get_main_channels_name() );
         }
 
         $output .= '<h2>' . __( 'Main Channel Credentials', 'twitchpress' ) . '</h2>';
@@ -775,9 +786,6 @@ class TwitchPress_Admin_Help {
         $output .= '<h2>' . __( 'Main Channel Submitted (Home of Application)', 'twitchpress' ) . '</h2>';
         $output .= '<p>' . twitchpress_get_main_channels_name() . '</p>';
         
-        // Get main channel as a Twitch user.         
-        $twitch_user = $kraken_or_helix->get_users( twitchpress_get_main_channels_name() );
-
         // Main Channel ID
         //$output .= '<h2>' . __( 'Main Channel ID', 'twitchpress' ) . '</h2>';
         //$output .= '<p>' . $twitch_user['users'][0]['_id'] . '</p>';
